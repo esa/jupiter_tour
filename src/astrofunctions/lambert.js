@@ -2,7 +2,7 @@ var MAX_ITER = 50;
 var ACCURACY = 1e-9;
 
 
-function lambertProblem(r1, r2, tof, cw, soln)
+function lambertProblem(r1, r2, tof, cw)
 {
 
     // 1 - Computing non dimensional units
@@ -23,30 +23,21 @@ function lambertProblem(r1, r2, tof, cw, soln)
     if (cw) lw = (lw + 1) % 2;				        // changed to retrograde motion
 	
     // 3 - computing maximum number of revolutions
-    var Nmax = lambertFindN(s, c, tof/T, lw);
 	
     // 4 - get solution
-    var branch = (soln % 2 ? "r" : "l");
 	
-    var revolutions = Math.ceil(soln / 2);
-	
-    if (revolutions > Nmax) {
-        revolutions = Nmax;
-        soln = (Nmax * 2) + (branch == "r" ? 0 : 1);
-    }
-	
-	var sol = lambert3d(r1, r2, tof, lw, revolutions, branch);
+	var sol = lambert3d(r1, r2, tof, lw);
 	
     // each revolution has 2 solutions so nsols = (max number or revolutions * 2)
-    return {sol: sol, soln : soln, nsols : (Nmax * 2)};
+    return sol;
 }
 
 
-function lambert3d(r1, r2, tof, lw, n, branch)
+function lambert3d(r1, r2, tof, lw)
 {
     // 1 - Computing non dimensional units
     var R = magnitude(r1);
-    var V = Math.sqrt(MU_SUN / R);
+    var V = Math.sqrt(MU_JUP / R);
     var T = R / V;
 
     // 2 - Computing geometry of transfer
@@ -58,7 +49,7 @@ function lambert3d(r1, r2, tof, lw, n, branch)
     var s = (1 + r2_mod + c) / 2.0;
 
     // 3 - Solving the problem in 2D
-    var out = lambert2d(s, c, tof/T, lw, n, branch);
+    var out = lambert2d(s, c, tof/T, lw);
 	
     // 4 - Reconstructing the velocity vectors in three dimensions
     var ir1 = normalise(r1);
@@ -89,7 +80,7 @@ function lambert3d(r1, r2, tof, lw, n, branch)
 }
 
 
-function lambert2d(s, c, tof, lw, n, branch)
+function lambert2d(s, c, tof, lw)
 {
     var out;
 	
@@ -107,27 +98,13 @@ function lambert2d(s, c, tof, lw, n, branch)
 	
     // 1 - We solve the tof equation
     var x, ia, ib;
-    if (n == 0) {    // no multiple revolutions
-        ia = Math.log(1 - 0.5);
-        ib = Math.log(1 + 0.5);
-        out = regulaFalsi(ia, ib, new tofCurve(s, c, tof, lw),
-        MAX_ITER, ACCURACY);
-        x = Math.exp(out.ia) - 1;
-		
-    } else {         // multiple revolutions
-        if (branch == "l") {
-            ia = Math.tan(-0.5234 * (Math.PI/2));
-            ib = Math.tan(-0.2234 * (Math.PI/2));
-        } else {
-            ia = Math.tan(0.7234 * (Math.PI/2));
-            ib = Math.tan(0.5234 * (Math.PI/2));
-        }
-		
-        out = regulaFalsi(ia, ib, new tofCurveMultiRev(s, c, tof, lw, n), 
-        MAX_ITER, ACCURACY);
-        x = Math.atan(out.ia) * (2/Math.PI);
-		
-	}
+    // no multiple revolutions
+    ia = Math.log(1 - 0.5);
+    ib = Math.log(1 + 0.5);
+    out = regulaFalsi(ia, ib, new tofCurve(s, c, tof, lw),
+    MAX_ITER, ACCURACY);
+    x = Math.exp(out.ia) - 1;
+
 
     // 3 - Using the Battin variable we recover all our outputs
     var a = am/(1 - x*x);
@@ -263,28 +240,4 @@ function regulaFalsi(a, b, F, iterations, accuracy)
 	}
 
 	return {retval : n, ia : c};
-}
-
-
-/*
-
-*/
-function lambertFindN(s, c, tof, lw)
-{
-	var Tm = (Math.PI/2) * Math.sqrt(2*s*s*s); // Minimum energy ellipse period
-	var Ntemp = Math.floor(tof / Tm);          // It is either Nmax=Ntemp or Nmax = Ntemp-1
-
-    // simple check tof = 0
-	if (Ntemp == 0) {
-        retval = 0;
-    } else if (tof > x2tof(0, s, c, lw, Ntemp)) {
-        retval = Ntemp;
-	} else if (tof > brentFindMinima(new x2tofPartial(s, c, lw, Ntemp), 0, 0.5,
-        ACCURACY, MAX_ITER)[1]) {
-        retval = Ntemp;
-    } else {
-        retval = Ntemp -1;
-    }
-
-	return retval;
 }

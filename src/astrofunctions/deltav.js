@@ -24,7 +24,7 @@ function flyByDv(vIn, vOut, phase, moon)
 
     var dv = Math.abs(Math.sqrt((v1*v1) + (v2*v2) -2 *v1*v2*Math.cos(q)));             // law of cosine
 
-    var rp = body.mu * (1/Math.sin(turnAngle/2)-1)/(v1*v1);
+    var rp = moon.mu * (1/Math.sin(turnAngle/2)-1)/(v1*v1);
     rp = (rp < rmin) ? rmin : rp;                              // If rp < rmin, then assign rp = rmin
 
 // check for NaN !!!!
