@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>jDE test-file</title>
+  </head>
+  <body>
+    <h1>jDE Testing</h1>
+
+	<p>
+	Enter dimension:
+	<input id="dimfield" type="text" size="5" maxlength="2" /> 
+	<button type="button" onclick="jdebox.gen_rastrigin()">Generate Rastrigin problem</button>
+	</p>
+	
+	<p>
+	Number of individuals:
+	<input id="popfield" type="text" size="5" maxlength="4" /> 
+	<button id="popbutton" type="button" disabled=true onclick="jdebox.gen_pop()">Generate Population</button>
+	</p>
+
+	<p>
+	Enter number of generations:
+	<input id="genfield" type="text" size="5" maxlength="4" /> 
+	<button id="evolvebutton" type="button" disabled=true onclick="jdebox.evolve()">Evolve</button>
+	</p>
+
+	<div id='output'></div>
+	<script type="text/javascript" src="jde.js"></script>
+	</body>
+</html>

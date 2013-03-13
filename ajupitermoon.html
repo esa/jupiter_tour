@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>A jupiter Moon - alpha</title>
+
+<style>
+	body {
+			width:100%;
+			height:95%;
+			border:1px gray solid;
+			background:url(resources/images/stars.jpg);
+	}
+
+</style>
+
+</head>
+
+<body>
+
+<script type="text/javascript" src="resources/libs/Three.js"></script>
+<script type="text/javascript" src="resources/libs/DAT.GUI.min.js"></script>
+<script type="text/javascript" src="resources/libs/TrackballControls.js"></script>
+<script type="text/javascript" src="resources/libs/ReusableRay.js"></script>
+<script type="text/javascript" src="src/astrofunctions/brentsmethod.js"></script>
+<script type="text/javascript" src="src/astrofunctions/lambert.js"></script>
+<script type="text/javascript" src="src/astrofunctions/deltav.js"></script>
+<script type="text/javascript" src="src/astrofunctions/planetephemerides.js"></script>
+<script type="text/javascript" src="src/astrofunctions/propagatelagrangian.js"></script>
+<script type="text/javascript" src="src/astrofunctions/math.js"></script>
+<script type="text/javascript" src="src/proto.js"></script>
+<script type="text/javascript" src="src/moon.js"></script>
+<script type="text/javascript" src="src/constants.js"></script>
+<script type="text/javascript" src="src/feasible_faces.js"></script>
+<script type="text/javascript" src="src/faces_vertices.js"></script>
+<script type="text/javascript" src="src/jDE/jde.js"></script>
+
+<script type="text/javascript">
+
+
+var container;
+var moonVector;
+var camera;
+var scene;
+var renderer;
+var objects = [];
+var projector = new THREE.Projector();
+				
+var gui;
+
+var currMoon = 0;
+var jupMoons = [];
+
+var currModel, europaModel, ioModel, callistoModel, ganymedeModel;
+
+var europa = new moon('Europa', 671224237.12681, 9.384699662601e-03, 0.46530284284480, -132.15817268686, -79.571640035051, 318.00776678240, 1561.0e3, 3202.739e9, europaModel);
+jupMoons[jupMoons.length] = europa;
+var io = new moon('Io', 422029687.14001, 4.308524661773e-03, 40.11548686966e-03, -79.640061742992, 37.991267683987, 286.85240405645, 1826.5e3, 5959.916e9, ioModel);
+jupMoons[jupMoons.length] = io;
+var callisto = new moon('Callisto', 1883136616.73050, 7.337063799028e-03, 0.25354332731555, 86.723916616548, -160.76003434076, 321.07650614246, 2408.0e3, 7179.289e9, callistoModel);
+jupMoons[jupMoons.length] = callisto;
+var ganymede = new moon('Ganymede', 1070587469.23740, 1.953365822716e-03, 0.13543966756582, -50.793372416917, -42.876495018307, 220.59841030407, 2634.0e3, 9887.834e9, ganymedeModel);
+jupMoons[jupMoons.length] = ganymede;
+
+var r_sp0 = [ R_JUP*1000*Math.cos(0.0)*Math.cos(0.5), R_JUP*1000*Math.cos(0.0)*Math.sin(0.5), R_JUP*1000*Math.sin(0.0)];
+var v_sp0 = [30, 30, 0];
+
+var last_selected = null;
+
+var init = function() {
+  
+  container = document.createElement( 'div' );
+  document.body.appendChild( container );
+  
+  var w = window.innerWidth;
+  var h = window.innerHeight;
+  
+  var x = 0;
+  var y = 0;
+  
+  renderer = new THREE.WebGLRenderer();
+  renderer.setSize( w, h );
+  container.appendChild(renderer.domElement);
+  
+  guiSetup();
+  
+  scene = new THREE.Scene();
+
+  camera = new THREE.PerspectiveCamera(
+      15,     // Field of view
+      w / h,  // Aspect ratio
+      0.1,    // Near
+      10000   // Far
+  );
+  camera.position.set( 0, 0, -20 );
+  camera.lookAt(scene.position);
+  scene.add(camera);
+  
+  controls = new THREE.TrackballControls( camera, container );
+
+  controls.rotateSpeed = 1.0;
+  controls.zoomSpeed = 1.2;
+  controls.panSpeed = 0.0;
+
+  controls.noZoom = false;
+  controls.noPan = false;
+
+  controls.staticMoving = true;
+  controls.dynamicDampingFactor = 0.3;
+
+  controls.keys = [ 65, 83, 68 ];
+
+  controls.addEventListener( 'change', render );
+  
+  var light = new THREE.PointLight( 0xFFFFDD );
+  light.position.set( -15, 10, -50 );
+  scene.add( light );
+  
+  var ambient = new THREE.AmbientLight( 0x999999 );
+  scene.add( ambient );
+  
+  var loader = new THREE.JSONLoader();
+  var europaGeometry = function(geom) {
+  
+    europaModel = new THREE.Mesh( geom, new THREE.MeshLambertMaterial({color: 0xffffdd}));
+	europaModel.position.set( 0, 0, 0 );
+    europaModel.scale.set( europa.radius/1e6, europa.radius/1e6, europa.radius/1e6 );
+	europaModel.material.vertexColors = THREE.VertexColors;
+	europaModel.geometry.dynamic  = true;
+	
+	europa.model = europaModel;
+	
+	currModel = europaModel;
+	objects.push(currModel);
+    scene.add(currModel);
+	
+	render();
+  };
+  
+  var ioGeometry = function(geom) {
+	
+	ioModel = new THREE.Mesh( geom, new THREE.MeshLambertMaterial({color: 0x00ffdd}));
+	ioModel.position.set( 0, 0, 0 );
+    ioModel.scale.set( io.radius/1e6, io.radius/1e6, io.radius/1e6 );
+	ioModel.material.vertexColors = THREE.VertexColors;
+	ioModel.geometry.dynamic  = true;
+	
+	io.model = ioModel;
+  };
+  
+  var callistoGeometry = function(geom) {
+	
+	callistoModel = new THREE.Mesh( geom, new THREE.MeshLambertMaterial({color: 0xff00dd}));
+	callistoModel.position.set( 0, 0, 0 );
+    callistoModel.scale.set( callisto.radius/1e6, callisto.radius/1e6, callisto.radius/1e6 );
+	callistoModel.material.vertexColors = THREE.VertexColors;
+	callistoModel.geometry.dynamic  = true;
+	
+	callisto.model = callistoModel;
+  };
+  
+  var ganymedeGeometry = function(geom) {
+	
+	ganymedeModel = new THREE.Mesh( geom, new THREE.MeshLambertMaterial({color: 0xf0f000}));
+	ganymedeModel.position.set( 0, 0, 0 );
+    ganymedeModel.scale.set( ganymede.radius/1e6, ganymede.radius/1e6, ganymede.radius/1e6 );
+	ganymedeModel.material.vertexColors = THREE.VertexColors;
+	ganymedeModel.geometry.dynamic  = true;
+	
+	ganymede.model = ganymedeModel;
+  };
+  
+  
+  loader.load("http://localhost:8000/resources/models/trunicos.js", europaGeometry);
+  loader.load("http://localhost:8000/resources/models/trunicos.js", ioGeometry);
+  loader.load("http://localhost:8000/resources/models/trunicos.js", callistoGeometry);
+  loader.load("http://localhost:8000/resources/models/trunicos.js", ganymedeGeometry);
+  
+  var b1VectorGeom = new THREE.Geometry();
+  b1VectorGeom.vertices.push(new THREE.Vector3(0, 0, 0));  
+  b1VectorGeom.vertices.push(new THREE.Vector3(5, 0, 0));
+  
+  var b3VectorGeom = new THREE.Geometry();
+  b3VectorGeom.vertices.push(new THREE.Vector3(0, 0, 0));
+  b3VectorGeom.vertices.push(new THREE.Vector3(0, 0, 5));
+  
+  var b2VectorGeom = new THREE.Geometry();
+  b2VectorGeom.vertices.push(new THREE.Vector3(0, 0, 0));
+  b2VectorGeom.vertices.push(new THREE.Vector3(0, 5, 0));
+  
+  b1Vector = new THREE.Line(b1VectorGeom, new THREE.LineBasicMaterial({color: 0xff0000}));
+  b3Vector = new THREE.Line(b3VectorGeom, new THREE.LineBasicMaterial({color: 0x00ff00}));
+  b2Vector = new THREE.Line(b2VectorGeom, new THREE.LineBasicMaterial({color: 0x0000ff}));
+  
+  scene.add(b1Vector);
+  scene.add(b3Vector);
+  scene.add(b2Vector);
+  
+  animate();
+  
+  window.addEventListener( 'resize', onWindowResize, false );
+  container.addEventListener( 'mousedown', onMouseDown, false );
+  window.onkeydown = onKeyDown;
+
+};
+
+window.onload = init;
+
+function animate() {
+
+	requestAnimationFrame( animate );
+	controls.update();
+}
+
+function render() {
+	renderer.render(scene, camera);
+}
+
+function onKeyDown(event){
+	event.preventDefault();
+	
+	if (event.keyCode == 36){ // HOME
+
+	}
+	
+	if (event.keyCode == 33){ // PGUP
+	
+		console.log("\n");
+		
+		var pe = planetEphemerides(gc.time, jupMoons[currMoon%jupMoons.length]);
+		
+		var anomaly = calculateAnomaly(r_sp0, pe.r, v_sp0, pe.v);
+		
+		console.log("\n ANOMALY:");
+		console.log(anomaly);
+		var pl = propagateLagrangian(r_sp0, v_sp0, anomaly.a, anomaly.theta);
+		console.log("\n PROPAGATE LAGRANGIAN");
+		console.log(pl);
+		
+		console.log("\n\nLAMBERT PROBLEM \n");
+		var lp = lambertProblem(pl.r, pe.r, 50000, false, 4);
+		
+		console.log(lp);
+	}
+	
+	
+	if (event.keyCode == 34){ // PGDN
+		nextMoon();
+	}
+	
+	if (event.keyCode == 35){ // END
+		lockFace();
+	}
+	
+	if (event.keyCode == 45){ // INSERT
+		
+		jupMoons[currMoon%4].feasibles = [];
+		
+		console.log("\n SPACECRAFT INITIAL RADIUS: x= " + r_sp0[0] +", y= " + r_sp0[1] +", z= " + r_sp0[2] + " [km]"); 
+		
+		var ff = feas_faces_tight_bisection(60000, jupMoons[currMoon%4], [gc.vx*1000, gc.vy*1000, gc.vz*1000], []);
+		jupMoons[currMoon%4].feasibles.faces = ff.f.slice(0);
+		jupMoons[currMoon%4].feasibles.beta = ff.beta.slice(0);
+		jupMoons[currMoon%4].feasibles.rp = ff.rp.slice(0);
+		
+		if (last_selected != null){
+			jupMoons[currMoon%4].selected[last_selected[0]] = false;
+			gc.score -= last_selected[1];
+			last_selected = null;
+			gc.face = "None";
+			gc.beta_lower = -5.0;
+			gc.beta_upper = 5.0;
+			gc.rp_lower = 0;
+			gc.rp_upper = 5.0;
+		}
+		
+		clearPaint();
+
+		for (face in ff.f){
+			paintFeasibleFace(ff.f[face]);
+		}
+		
+		console.log("\n \n FEASIBLE FACES: ");
+		console.log(ff);
+		
+	}
+	
+	if (event.keyCode == 46){ // DELETE
+		
+		jupMoons[currMoon%4].feasibles = [];
+		
+		console.log("\n SPACECRAFT INITIAL RADIUS: x= " + r_sp0[0] +", y= " + r_sp0[1] +", z= " + r_sp0[2] + " [km]"); 
+		
+		var ff = feas_faces(60000, jupMoons[currMoon%4], [gc.vx*1000, gc.vy*1000, gc.vz*1000]);
+		jupMoons[currMoon%4].feasibles.faces = ff.f.slice(0);
+		jupMoons[currMoon%4].feasibles.beta = ff.beta.slice(0);
+		jupMoons[currMoon%4].feasibles.rp = ff.rp.slice(0);
+		
+		if (last_selected != null){
+			jupMoons[currMoon%4].selected[last_selected[0]] = false;
+			gc.score -= last_selected[1];
+			last_selected = null;
+			gc.face = "None";
+			gc.beta_lower = -5.0;
+			gc.beta_upper = 5.0;
+			gc.rp_lower = 0;
+			gc.rp_upper = 5.0;
+		}
+		
+		clearPaint();
+
+		for (face in ff.f){
+			paintFeasibleFace(ff.f[face]);
+		}
+		
+		console.log("\n \n FEASIBLE FACES: ");
+		console.log(ff);
+	}
+}
+
+function nextMoon() {
+	
+	if (last_selected != null){
+		jupMoons[currMoon%4].selected[last_selected[0]] = false;
+		gc.score -= last_selected[1];
+		paintFeasibleFace(last_selected[0]);
+		last_selected = null;
+		gc.face = "None";
+		gc.beta_lower = -5.0;
+		gc.beta_upper = 5.0;
+		gc.rp_lower = 0;
+		gc.rp_upper = 5.0;
+	}
+	
+	
+	currMoon++;
+	
+	
+	console.log("CURRENT MOON: " + jupMoons[currMoon%4].name + ", radius = " + jupMoons[currMoon%4].radius);
+	scene.remove(currModel);
+	objects = [];
+	
+	currModel = jupMoons[currMoon%4].model;
+	
+	scene.add(currModel);
+	objects.push(currModel);
+	
+	updateGui();
+	render();
+}
+
+
+function onMouseDown(event) {
+
+    event.preventDefault();
+
+    var mousex = (event.clientX / window.innerWidth) * 2 - 1;
+    var mousey = -(event.clientY / window.innerHeight) * 2 + 1;
+    var vector = new THREE.Vector3(mousex, mousey, 0.5);
+
+    projector.unprojectVector(vector, camera);
+    var ray = new THREE.Ray(camera.position, vector.subSelf(camera.position).normalize());
+
+    var intersects = ray.intersectObjects(objects);
+	
+    if (intersects.length > 0) {
+		
+		var n = 0;
+
+		for (var i in faces_3d){
+
+			if ((faces_3d[i][0] == intersects[0].faceIndex || faces_3d[i][1] == intersects[0].faceIndex) && contains(jupMoons[currMoon%4].feasibles.faces, i) && !contains(jupMoons[currMoon%4].locked, i)) {
+			console.log("\n SELECTED FACE NO.: " + i);
+					
+					var ix = jupMoons[currMoon%4].feasibles.faces.indexOf(i);
+					
+					
+					if(last_selected==null || i == last_selected[0]);
+					else {
+						jupMoons[currMoon%4].selected[last_selected[0]] = false;
+						gc.score -= last_selected[1];
+						paintFeasibleFace(last_selected[0]);
+					}
+					
+					if (i<=8){
+						if (jupMoons[currMoon%4].name == 'Io' || jupMoons[currMoon%4].name == 'Europa') {
+							n = 1;
+						}
+						else {
+							n = 3;
+						}
+					}
+					else if (i >= 15 && i<=26) {
+						if (jupMoons[currMoon%4].name == 'Io' || jupMoons[currMoon%4].name == 'Europa') {
+							n = 3;
+						}
+						else {
+							n = 1;
+						}
+					}
+					else {
+						n = 2;
+					}
+					
+					if (jupMoons[currMoon%4].name == 'Europa') n *= 2;
+					
+					console.log("SCORE: " + n);
+					
+					if (!jupMoons[currMoon%4].selected[i]) {
+						if (gc.score >= 324)  gc.score = 324;
+						else gc.score += n;
+						
+						last_selected = [i, n];
+						
+					}
+					else {
+						if (gc.score <= 0) gc.score=0;
+						else gc.score -= n;
+						
+						last_selected = null;
+					}
+					
+						var selected;
+						var colour_selected = new THREE.Color(0x8a2be2);
+						var colour_deselected = new THREE.Color(0x00ff00);
+						var sgn = ((intersects[0].faceIndex %2 == 0) ? 1 : (-1));
+		
+						if(!jupMoons[currMoon%4].selected[i]){
+							selected = true;
+							gc.face = i;
+							gc.beta_lower = jupMoons[currMoon%4].feasibles.beta[ix][0];
+							gc.beta_upper = jupMoons[currMoon%4].feasibles.beta[ix][1];
+							gc.rp_lower = jupMoons[currMoon%4].feasibles.rp[ix][0];
+							gc.rp_upper = jupMoons[currMoon%4].feasibles.rp[ix][1];
+						}
+						else {
+							selected = false;
+							colour_selected = colour_deselected;
+							gc.face = "None";
+							gc.beta_lower = -5.0;
+							gc.beta_upper = 5.0;
+							gc.rp_lower = 0;
+							gc.rp_upper = 5.0;
+						}
+				
+				jupMoons[currMoon%4].model.geometry.faces[intersects[0].faceIndex].color = colour_selected;
+				jupMoons[currMoon%4].model.geometry.faces[intersects[0].faceIndex +sgn].color = colour_selected;
+				
+				jupMoons[currMoon%4].selected[i] = selected;
+				
+				console.log("LAST SELECTED");
+				console.log(last_selected);
+				
+				currModel.geometry.colorsNeedUpdate = true;
+				render();
+					
+				break;
+			}
+		}
+	}
+}
+
+
+function onWindowResize() {
+
+	camera.aspect = window.innerWidth / window.innerHeight;
+	camera.updateProjectionMatrix();
+	renderer.setSize( window.innerWidth, window.innerHeight );
+	
+	controls.handleResize();
+	render();
+} 
+
+var guiControls = function() {
+	this.moon = jupMoons[currMoon%4].name;
+	this.face = "None";
+	this.score = 0;
+	this.dv = 0;
+	this.time = 58849;
+	this.mass = 2000;
+	this.vx = 3.4;
+	this.vy = 3.4;
+	this.vz = 3.4;
+	this.beta_lower = -5.0;
+	this.beta_upper = 5.0;
+	this.rp_lower = 0;
+	this.rp_upper = 5.0;
+	this.nextMoon = function(){nextMoon()};
+	this.lockFace = function(){lockFace()};
+}
+
+var gc = new guiControls();
+
+function guiSetup(){
+
+	gui = new DAT.GUI({ height : 15 * 32 - 1 });
+	gui.add(gc, 'moon').name('Satellite').listen();
+	gui.add(gc, 'face').name('Face').onChange(function(newValue){if (last_selected == null || newValue==null || newValue == undefined) gc.face = "None";}).listen();
+	
+	gui.add(gc, 'score', 0, 324).name('Score').onChange(function(newValue){if (newValue < 0) gc.score = 0; if (newValue > 324) gc.score = 324;}).listen();
+	gui.add(gc, 'dv').name('DV').listen();
+	gui.add(gc, 'time', 58849, 64328).name('Time').listen();
+	gui.add(gc, 'mass').name('Mass').listen();
+	gui.add(gc, 'vx', -10.0, 10.0).step(0.1).name('Vx [km/s]').listen();
+	gui.add(gc, 'vy', -10.0, 10.0).step(0.1).name('Vy [km/s]').listen();
+	gui.add(gc, 'vz', -10.0, 10.0).step(0.1).name('Vz [km/s]').listen();
+
+	gui.add(gc, 'beta_lower', -5.0, 5.0).step(0.1).name('Beta Lower Bound').onChange(function(newValue){if (gc.beta_lower >= gc.beta_upper) gc.beta_lower = gc.beta_upper-0.1;}).listen();
+	gui.add(gc, 'beta_upper', -5.0, 5.0).step(0.1).name('Beta Upper Bound').onChange(function(newValue){if (gc.beta_upper <= gc.beta_lower) gc.beta_upper = gc.beta_lower+0.1;}).listen();
+	gui.add(gc, 'rp_lower', 0, 5.0).step(0.1).name('RP Lower Bound').onChange(function(newValue){if (gc.rp_lower >= gc.rp_upper) gc.rp_lower = gc.rp_upper-0.1;}).listen();
+	gui.add(gc, 'rp_upper', 0, 5.0).step(0.1).name('RP Upper Bound').onChange(function(newValue){if (gc.rp_upper <= gc.rp_lower) gc.rp_upper = gc.rp_lower+0.1;}).listen();
+	gui.add(gc, 'nextMoon').name('Go to next moon!').listen();
+	gui.add(gc, 'lockFace').name('Visit Selected Face').listen();
+}
+
+function updateGui(){
+	gc.moon = jupMoons[currMoon%4].name;
+}
+
+function lockFace(){
+	
+	if (last_selected != null){
+		jupMoons[currMoon%4].locked.push(last_selected[0]);
+	
+	jupMoons[currMoon%4].model.geometry.faces[faces_3d[last_selected[0]][0]].color = new THREE.Color(0x0000ff);
+	jupMoons[currMoon%4].model.geometry.faces[faces_3d[last_selected[0]][1]].color = new THREE.Color(0x0000ff);
+	
+	last_selected = null;
+	gc.face = "None";
+	gc.beta_lower = -5.0;
+	gc.beta_upper = 5.0;
+	gc.rp_lower = 0;
+	gc.rp_upper = 5.0;
+	
+	currModel.geometry.colorsNeedUpdate = true;
+	render();
+	}
+}
+
+function paintFeasibleFace(face_nr){
+		
+	if (!jupMoons[currMoon%4].selected[face_nr]){
+		jupMoons[currMoon%4].model.geometry.faces[faces_3d[face_nr][0]].color = new THREE.Color(0x00ff00);
+		jupMoons[currMoon%4].model.geometry.faces[faces_3d[face_nr][1]].color = new THREE.Color(0x00ff00);
+	}
+		currModel.geometry.colorsNeedUpdate = true;
+		render();
+}
+
+function clearPaint(){
+	for (face in faces_3d){
+		if (!jupMoons[currMoon%4].selected[face]){
+			jupMoons[currMoon%4].model.geometry.faces[faces_3d[face][0]].color = new THREE.Color(0xfffffe);
+			jupMoons[currMoon%4].model.geometry.faces[faces_3d[face][1]].color = new THREE.Color(0xfffffe);
+		}
+	}
+	
+	currModel.geometry.colorsNeedUpdate = true;
+	render();
+}
+
+</script>
+
+</body>
+</html>
