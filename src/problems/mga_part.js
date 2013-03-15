@@ -18,11 +18,10 @@
   mga_part = (function() {
 
     function mga_part(seq, tof, t0, v_inf) {
-      var invalid_tof, t, x;
+      var i, invalid_tof, t, x, _i, _ref;
       if (seq.length < 2) {
         throw 'ValueError: sequence needs at least two bodies';
       }
-      this.central_mu = 0.0;
       if (tof.length !== (seq.length - 1)) {
         throw 'ValueError: tof sequence has the wrong length';
       }
@@ -49,10 +48,24 @@
         var _i, _ref, _results;
         _results = [];
         for (x = _i = 1, _ref = this.dim; 1 <= _ref ? _i <= _ref : _i >= _ref; x = 1 <= _ref ? ++_i : --_i) {
-          _results.push([-5.12, 5.12]);
+          _results.push([0, 0]);
         }
         return _results;
       }).call(this);
+      for (i = _i = 0, _ref = this.bounds.length; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
+        console.log(i);
+        if (i % 4 === 0) {
+          this.bounds[i] = [-2 * Math.PI, 2 * Math.PI];
+        } else if (i % 4 === 1) {
+          this.bounds[i] = [1.1, 30];
+        } else if (i % 4 === 2) {
+          this.bounds[i] = [1e-5, 1.0 - 1e-5];
+        } else if (i % 4 === 3) {
+          console.log(tof[0]);
+          this.bounds[i] = tof[Math.floor(i / 4)];
+        }
+      }
+      console.log(this.bounds);
     }
 
     mga_part.prototype.objfun = function(x) {
@@ -92,17 +105,36 @@
 
   this.mga_partbox = {
     genprob: function() {
-      var prob;
       console.log('generate problem');
       try {
-        prob = new mga_part([europa, io], [[4, 50]], 23, 24);
+        this.prob = new mga_part([europa, io, europa], [[4, 50], [5, 60]], 23, 24);
       } catch (error) {
         alert(error);
       }
+      document.getElementById('popbutton').disabled = false;
       return 0;
+    },
+    gen_pop: function() {
+      var i, p, v;
+      v = document.getElementById('popfield').value;
+      if ((8 <= v && v <= 999)) {
+        p = v;
+      } else {
+        p = 100;
+        document.getElementById('popfield').value = 100;
+      }
+      this.alg = new jde();
+      this.pop = (function() {
+        var _i, _results;
+        _results = [];
+        for (i = _i = 1; 1 <= p ? _i <= p : _i >= p; i = 1 <= p ? ++_i : --_i) {
+          _results.push(new individual(this.prob));
+        }
+        return _results;
+      }).call(this);
+      document.getElementById('evolvebutton').disabled = false;
+      return Document.log(pop);
     }
   };
-
-  this.wtf = 'bla';
 
 }).call(this);

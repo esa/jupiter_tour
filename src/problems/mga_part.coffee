@@ -15,10 +15,6 @@ class mga_part
         if seq.length < 2
             throw 'ValueError: sequence needs at least two bodies'
         
-        # check if all bodies have the same central body and use this 
-        
-        @central_mu = 0.0
-        
         # check for consistency of the time of flight
         if tof.length isnt (seq.length - 1) 
             throw 'ValueError: tof sequence has the wrong length'
@@ -35,12 +31,20 @@ class mga_part
         
         # dimension and bounds
         @dim = 4 * (seq.length - 1)
-        @bounds = ([-5.12, 5.12] for x in [1..@dim])
-    
-    # not sure, if we really need that?
-    # function for setting the bounds
-    # set_bounds : (index, newbounds):
-    #	@bounds[index] = newboundsbounds
+        
+        @bounds = ([0,0] for x in [1..@dim])
+        for i in [0...@bounds.length]
+            console.log(i)
+            if i % 4 is 0 
+                @bounds[i] = [-2 * Math.PI, 2 * Math.PI] 
+            else if i % 4 is 1 
+                @bounds[i] = [1.1, 30]
+            else if i % 4 is 2
+                @bounds[i] = [1e-5, 1.0-1e-5]
+            else if i % 4 is 3
+                console.log(tof[0])
+                @bounds[i] = tof[Math.floor(i / 4)]
+        console.log(@bounds)
     
     # fitness function
     objfun : (x) ->
@@ -76,9 +80,21 @@ class mga_part
     genprob: ->
         console.log('generate problem')
         try
-            prob = new mga_part([europa, io], [[4, 50]], 23, 24)
+            @prob = new mga_part([europa, io, europa], [[4, 50],[5,60]], 23, 24)
         catch error
             alert(error)
+        document.getElementById('popbutton').disabled = false
         return 0
-        
-@wtf = 'bla'
+
+    gen_pop: ->
+        v = document.getElementById('popfield').value
+        if 8 <= v <= 999
+            p = v 
+        else 
+            p = 100
+            document.getElementById('popfield').value = 100
+
+        @alg = new jde()
+        @pop = (new individual(@prob) for i in [1..p])
+        document.getElementById('evolvebutton').disabled = false
+        Document.log(pop)     
