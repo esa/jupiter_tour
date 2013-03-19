@@ -115,7 +115,7 @@ function Conversion(E)
                 vel[i] += R[i][j] * X_dotper[j];
         }
     }
-
+	
 	console.log("Moon position r: x=" + pos[0] + ", y=" + pos[1] + ", z=" + pos[2]);
 	console.log("Moon velocity v: x=" + vel[0] + ", y=" + vel[1] + ", z=" + vel[2]);
 	

@@ -11,30 +11,54 @@ function brentFindMinima(F, min, max, iterations, accuracy)
     var fu, fv, fw, fx; // function evaluations at u, v, w, x
     var mid;            // midpoint of min and max
     var fract1, fract2; // minimal relative movement in x
-
+	
+	console.log("\n\nBRENT'S METHOD");
+	
     fw = fv = fx = F.f(x);
 
+	console.log("F.f(x)");
+	console.log(F.f(x));
+	
     do {
         // get midpoint
         mid = (min + max) / 2;
         // work out if we're done already:
         fract1 = accuracy * Math.abs(x) + accuracy / 4;
         fract2 = 2 * fract1;
+		
+		console.log("MID: " + mid);
+		console.log("FRACT 1 " + fract1);
+		console.log("FRACT 2 " + fract2);
+		
+		console.log("|x-mid| = " + Math.abs(x-mid));
+		console.log("fract2-(max-min)/2 = " + (fract2-(max-min)/2));
+		
+		
         if (Math.abs(x - mid) <= (fract2 - (max - min) / 2)) {
+		console.log("\n\nBREAK\n\n");
             break;
         }
-
+		
         if (Math.abs(delta2) > fract1) {
             // try and construct a parabolic fit:
             var r = (x - w) * (fx - fv);
             var q = (x - v) * (fx - fw);
             var p = (x - v) * q - (x - w) * r;
+			
+			console.log("r1: " + r);
+			console.log("q1: " + q);
+			console.log("p1: " + p);
+			
             q = 2 * (q - r);
             if (q > 0) p = -p;
             q = Math.abs(q);
             var td = delta2;
             delta2 = delta;
 
+			console.log("r2: " + r);
+			console.log("q2: " + q);
+			console.log("p2: " + p);
+			
             // determine whether a parabolic step is acceptible or not:
             if ((Math.abs(p) >= Math.abs(q * td / 2)) || (p <= q * (min - x)) || (p >= q * (max - x))) {
                 // nope, try golden section instead
@@ -48,10 +72,18 @@ function brentFindMinima(F, min, max, iterations, accuracy)
                     delta = (mid - x) < 0 ? -Math.abs(fract1) : Math.abs(fract1);
                 }
             }
+			
+			console.log("delta: " + delta);
+			console.log("delta2: " + delta2);
+			console.log("u: " + u);
+			
         } else {
             // golden section:
             delta2 = (x >= mid) ? min - x : max - x;
             delta = GOLDEN * delta2;
+			
+			console.log("delta: " + delta);
+			console.log("delta2: " + delta2);
         }
 
         // update current position:

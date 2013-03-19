@@ -33,6 +33,7 @@
 <script type="text/javascript" src="src/feasible_faces.js"></script>
 <script type="text/javascript" src="src/faces_vertices.js"></script>
 <script type="text/javascript" src="src/jDE/jde.js"></script>
+<script type="text/javascript" src="src/astrofunctions/newton_raphson.js"></script>
 
 <script type="text/javascript">
 
@@ -61,8 +62,11 @@ jupMoons[jupMoons.length] = callisto;
 var ganymede = new moon('Ganymede', 1070587469.23740, 1.953365822716e-03, 0.13543966756582, -50.793372416917, -42.876495018307, 220.59841030407, 2634.0e3, 9887.834e9, ganymedeModel);
 jupMoons[jupMoons.length] = ganymede;
 
-var r_sp0 = [ R_JUP*1000*Math.cos(0.0)*Math.cos(0.5), R_JUP*1000*Math.cos(0.0)*Math.sin(0.5), R_JUP*1000*Math.sin(0.0)];
-var v_sp0 = [30, 30, 0];
+var r_sp_init = [ R_JUP*1000*Math.cos(0.0)*Math.cos(0.5), R_JUP*1000*Math.cos(0.0)*Math.sin(0.5), R_JUP*1000*Math.sin(0.0)];
+
+var r_sp0 = [-278703850.85525566, 542151412.7917728, -6576087.448015392];
+
+var v_sp0 = [3000, 3000, 0];
 
 var last_selected = null;
 
@@ -219,27 +223,25 @@ function onKeyDown(event){
 	event.preventDefault();
 	
 	if (event.keyCode == 36){ // HOME
-
+			
+			console.log(Math.sqrt(Math.pow(10,2)+ Math.pow(5,2)));
+			
+			console.log(10*Math.sqrt(1+Math.pow((5/10),2)));
+			
 	}
 	
 	if (event.keyCode == 33){ // PGUP
-	
-		console.log("\n");
 		
-		var pe = planetEphemerides(gc.time, jupMoons[currMoon%jupMoons.length]);
+		console.log("\nV_SP0 MAG : " + magnitude(v_sp0));
 		
-		var anomaly = calculateAnomaly(r_sp0, pe.r, v_sp0, pe.v);
+		console.log("\n  FLYBY EUROPA - IO");
 		
-		console.log("\n ANOMALY:");
-		console.log(anomaly);
-		var pl = propagateLagrangian(r_sp0, v_sp0, anomaly.a, anomaly.theta);
-		console.log("\n PROPAGATE LAGRANGIAN");
-		console.log(pl);
+		var c = new chromosome(0.9, 1.1, 0.5, 40);
 		
-		console.log("\n\nLAMBERT PROBLEM \n");
-		var lp = lambertProblem(pl.r, pe.r, 50000, false);
+		var fb = flyByDv(v_sp0, gc.time, europa, io, c);
 		
-		console.log(lp);
+		console.log("\n\nFLYBY DELTA V: ");
+		console.log(fb);
 	}
 	
 	
@@ -274,7 +276,7 @@ function onKeyDown(event){
 		}
 		
 		clearPaint();
-
+		
 		for (face in ff.f){
 			paintFeasibleFace(ff.f[face]);
 		}

@@ -1,5 +1,4 @@
-var RAD2DEG = 180 / Math.PI;
-var DEG2RAD   = Math.PI / 180.0;
+
 
 
 function cross(vector1, vector2)

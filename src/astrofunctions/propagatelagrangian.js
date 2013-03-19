@@ -1,130 +1,76 @@
-
-function propagateLagrangian(r0, v0, a, dE)
+function propagate_lagrangian(r0, v0, t, mu)
 {
-    var r0_mag = magnitude(r0);
-    var v0_mag = magnitude(v0);
+    var R = magnitude(r0);
+    var V = magnitude(v0);
+    var energy = (V*V/2 - mu/R);
+    var a = - mu / 2.0 / energy;
+    var sqrta;
+    var F,G,Ft,Gt;
 
-    var sigma = dot(r0, v0) / Math.sqrt(MU_JUP);
+    var sigma0 = dot(r0, v0) / Math.sqrt(mu);
 	
-    if (a > 0) {     // ellipse
-        var sqrta = Math.sqrt(a);
-        var cosdE = Math.cos(dE);
-        var sindE = Math.sin(dE);
+    if (a > 0){	//Solve Kepler's equation, elliptical case
+        sqrta = Math.sqrt(a);
+        var DM = Math.sqrt(mu / Math.pow(a,3)) * t;
+        var DE = DM;
 		
-        // distance
-        var r = a + ((r0_mag - a) * cosdE) + (sigma * sqrta * sindE);
-
-        // lagrangian coefficients
-        var f = 1 - ((a * (1 - cosdE)) / r0_mag);
-        var g = ((a * sigma * (1 - cosdE)) +  (r0_mag * sqrta * sindE)) / Math.sqrt(MU_JUP);
-        var ft = -(Math.sqrt(a * MU_JUP) * sindE) / (r * r0_mag);
-        var gt = 1 - ((a * (1 - cosdE)) / r);
+        //Solve Kepler Equation for ellipses in DE (eccentric anomaly difference)
+        
+		DE = newton_raphson(DE, new bind_kepDE(DM,sigma0,sqrta,a,R), new bind_d_kepDE(sigma0,sqrta,a,R),100,ASTRO_TOLERANCE);
 		
-    } else {        // hyperbolic
-        var sqrta = Math.sqrt(-a);
-        var coshdE = Math.cosh(dE);
-        var sinhdE = Math.sinh(dE);
+		console.log("DE: " + DE);
+		
+        var r = a + (R - a) * Math.cos(DE) + sigma0 * sqrta * Math.sin(DE);
 
-        // distance
-        var r = a + ((r0_mag - a) * coshdE) + (sigma * sqrta * sinhdE);
+        //Lagrange coefficients
+        F  = 1 - a / R * (1 - Math.cos(DE));
+        G  = a * sigma0 / Math.sqrt(mu) * (1 - Math.cos(DE)) + R * Math.sqrt(a / mu) * Math.sin(DE);
+        Ft = -Math.sqrt(mu * a) / (r * R) * Math.sin(DE);
+        Gt = 1 - a / r * (1 - Math.cos(DE));
+    }
+    else{	//Solve Kepler's equation, hyperbolic case
+        sqrta = Math.sqrt(-a);
+        var DN = Math.sqrt(-mu / Math.pow(a,3)) * t;
+        var DH;
+        t > 0 ? DH = 1 : DH = -1; // TODO: find a better initial guess. I tried with 0 and D (both have numercial problems and result in exceptions)
 
-        // lagrangian coefficients
-        var f = 1 - ((a * (1 - coshdE)) / r0_mag);
-        var g = ((a * sigma * (1 - coshdE)) + (r0_mag * sqrta * sinhdE)) / Math.sqrt(MU_JUP);
-        var ft = -(Math.sqrt(-a * MU_JUP) * sinhdE) / (r * r0_mag);
-        var gt = 1 - ((a * (1 - coshdE)) / r);
+        //Solve Kepler Equation for hyperbolae in DH (hyperbolic anomaly difference)
+		
+		DH = newton_raphson(DH, new bind_kepDH(DN,sigma0,sqrta,a,R), new bind_d_kepDH(sigma0,sqrta,a,R), 100, ASTRO_TOLERANCE);
+		
+		console.log("DH: " + DH);
+		
+        var r = a + (R - a) * Math.cosh(DH) + sigma0 * sqrta * Math.sinh(DH);
+
+        //Lagrange coefficients
+        F  = 1 - a / R * (1 - Math.cosh(DH));
+        G  = a * sigma0 / Math.sqrt(mu) * (1 - Math.cosh(DH)) + R * Math.sqrt(-a / mu) * Math.sinh(DH);
+        Ft = -Math.sqrt(-mu * a) / (r * R) * Math.sinh(DH);
+        Gt = 1 - a / r * (1 - Math.cosh(DH));
+		
+		console.log("\nF: " + F);
+		console.log("G: " + G);
+		console.log("Ft: " + Ft);
+		console.log("Gt: " + Gt);
+		
     }
 
-    // r = f*r0 + g*v0
-    // v = df*r0 + dg*v0
+    var temp = [r0[0],r0[1],r0[2]];
+	
+	console.log("Temp: ");
+	console.log(temp);
+	
+    for (var i=0;i<3;i++){
+        r0[i] = F * r0[i] + G * v0[i];
+        v0[i] = Ft * temp[i] + Gt * v0[i];
+    }
+	
     return {
-        r : [
-            ((f*r0[0])+(g*v0[0])),
-            ((f*r0[1])+(g*v0[1])),
-            ((f*r0[2])+(g*v0[2]))
-        ],
-        v : [
-            ((ft*r0[0])+(gt*v0[0])),
-            ((ft*r0[1])+(gt*v0[1])),
-            ((ft*r0[2])+(gt*v0[2]))
-        ]
+        r : r0,
+        v : v0
     };
 }
 
-
-/*
-
-*/
-function calculateAnomaly(r_sp, r_moon, v_sp, v_moon)
-{
-    var r1 = r_sp;
-    var r2 = r_moon;
-	
-    var v1 = v_sp;
-    var v2 = v_moon;
-
-    var r1_mag = magnitude(r1);
-    var r2_mag = magnitude(r2);
-    var v1_mag = magnitude(v1);
-	
-    // semi-major axis
-    var a = 1 / ((2/r1_mag) - ((v1_mag*v1_mag)/MU_JUP));
-	
-
-    // if multiple revolution, just draw full ellipse
-    //if (Math.ceil(leg.soln / 2) != 0) {                                                             // check for errors
-    //    var theta = 2 * Math.PI;
-    //} else {
-        // eccentricity
-        var tmp = cross(v1, cross(r1, v1));
-        var e = subtraction(division(tmp, MU_JUP), division(r1, r1_mag));
-		e = magnitude(e);
-
-        if (a > 0) {
-            var E1 = Math.acos((1 - (r1_mag/a)) / e);
-            var E2 = Math.acos((1 - (r2_mag/a)) / e);
-			
-            if (dot(r1, v1) < 0) {
-                E1 = - E1;
-            }
-
-            if (dot(r2, v2) < 0) {
-                E2 = (2*Math.PI) - E2;
-            }
-			
-			
-
-            var theta = E2 - E1;
-			
-            if (theta < 0) {
-                theta += 2 * Math.PI;
-            }
-
-            // tempoary fix for theata > 2 * PI
-            // example: Earth (Feb 2001) -> Venus (May 2001)
-            if (theta > (2 * Math.PI)) {
-                theta -= (2 * Math.PI);
-            }
-
-        } else {
-            var H1 = Math.acosh((1 - (r1_mag/a)) / e);
-            var H2 = Math.acosh((1 - (r2_mag/a)) / e);
-
-            if (dot(r1, v1) < 0) {
-                H1 = - H1;
-            }
-
-            if (dot(r2, v2) < 0) {
-                H2 = -H2;
-            }
-
-            var theta = H2 - H1;
-			
-        }
-    //}
-
-    return {a : a, theta: theta};
-}
 
 
 /*
@@ -144,12 +90,12 @@ function propagateLagrangianSimp(r0, v0, theta)
     var vr0 = dot(r0, v0) / r0_mag;
 
     // distance
-    var tmp1 = (((h*h)/(MU_SUN*r0_mag)) - 1) * Math.cos(theta);
-    var tmp2 = (((h*vr0)/MU_SUN) * Math.sin(theta));
-    var r = ((h*h)/MU_SUN) * (1/(1 + tmp1 - tmp2));
+    var tmp1 = (((h*h)/(MU_JUP*r0_mag)) - 1) * Math.cos(theta);
+    var tmp2 = (((h*vr0)/MU_JUP) * Math.sin(theta));
+    var r = ((h*h)/MU_JUP) * (1/(1 + tmp1 - tmp2));
 
     // lagrangian coefficients
-    var f = 1 - ((MU_SUN*r)/(h*h)) * (1 - Math.cos(theta));
+    var f = 1 - ((MU_JUP*r)/(h*h)) * (1 - Math.cos(theta));
     var g = ((r*r0_mag)/h) * Math.sin(theta);
 
 
@@ -161,3 +107,71 @@ function propagateLagrangianSimp(r0, v0, theta)
     };
 }
 
+
+function kepDE(DE, DM, sigma0, sqrta, a, R){
+        return ( (-DM + DE + sigma0 / sqrta * (1 - Math.cos(DE)) - (1 - R / a) * Math.sin(DE)) );
+}
+
+function bind_kepDE(DM, sigma0, sqrta, a, R){
+
+    this.DM = DM;
+    this.sigma0 = sigma0;
+    this.sqrta = sqrta;
+    this.a = a;
+	this.R = R;
+
+    this.f = function (x) {
+        return kepDE(x, DM, sigma0, sqrta, a, R);
+    }
+}
+
+function d_kepDE(DE, sigma0, sqrta, a, R){
+        return ( (1 + sigma0 / sqrta * Math.sin(DE) - (1 - R / a) * Math.cos(DE)) );
+    }
+
+function bind_d_kepDE(sigma0, sqrta, a, R){
+
+    this.sigma0 = sigma0;
+    this.sqrta = sqrta;
+    this.a = a;
+	this.R = R;
+
+    this.f = function (x) {
+        return d_kepDE(x, sigma0, sqrta, a, R);
+    }
+}
+	
+function kepDH(DH, DN, sigma0, sqrta, a, R){
+        return ( -DN -DH + sigma0/sqrta * (Math.cosh(DH) - 1) + (1 - R / a) * Math.sinh(DH) );
+    }
+	
+function bind_kepDH(DN, sigma0, sqrta, a, R){
+
+    this.DN = DN;
+    this.sigma0 = sigma0;
+    this.sqrta = sqrta;
+    this.a = a;
+	this.R = R;
+
+    this.f = function (x) {
+        return kepDH(x, DN, sigma0, sqrta, a, R);
+    }
+}
+
+function d_kepDH(DH, sigma0, sqrta, a, R){
+        return ( -1 + sigma0 / sqrta * Math.sinh(DH) + (1 - R / a) * Math.cosh(DH) );
+    }
+	
+	
+function bind_d_kepDH(sigma0, sqrta, a, R){
+
+    this.sigma0 = sigma0;
+    this.sqrta = sqrta;
+    this.a = a;
+	this.R = R;
+
+    this.f = function (x) {
+        return d_kepDH(x, sigma0, sqrta, a, R);
+    }
+}
+	

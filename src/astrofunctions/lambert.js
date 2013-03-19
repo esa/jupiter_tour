@@ -22,13 +22,9 @@ function lambertProblem(r1, r2, tof, cw)
     var lw = ((r1[0]*r2[1] - r1[1]*r2[0]) > 0) ? 0 : 1;	// prograde motion assumed
     if (cw) lw = (lw + 1) % 2;				        // changed to retrograde motion
 	
-    // 3 - computing maximum number of revolutions
-	
     // 4 - get solution
-	
 	var sol = lambert3d(r1, r2, tof, lw);
 	
-    // each revolution has 2 solutions so nsols = (max number or revolutions * 2)
     return sol;
 }
 
@@ -50,6 +46,9 @@ function lambert3d(r1, r2, tof, lw)
 
     // 3 - Solving the problem in 2D
     var out = lambert2d(s, c, tof/T, lw);
+	
+	console.log("\nLAMBERT 2D: ")
+	console.log(out);
 	
     // 4 - Reconstructing the velocity vectors in three dimensions
     var ir1 = normalise(r1);

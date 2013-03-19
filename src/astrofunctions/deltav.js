@@ -1,40 +1,71 @@
-function flyByDv(vIn, vOut, phase, moon)
-{    
-    var vInfIn = subtraction(vIn, phase.v);
-    var vInfOut = subtraction(vOut, phase.v);
+function flyByDv(v_sc, t_0, m0, m1, chromosome)
+{   
 
-    if (magnitude(vInfOut) < magnitude(vInfIn)) {
-        var V1 = vInfOut;
-        var V2 = vInfIn;
-    } else {
-        var V1 = vInfIn;
-        var V2 = vInfOut;
-    }
+	console.log("\n Chromosome:");
+	console.log(chromosome);
 
-    var v1 = magnitude(V1);
-    var v2 = magnitude(V2);
+	var t_0_T = t_0 + chromosome.T;
 
-    var turnAngle = Math.acos(dot(vInfIn, vInfOut)/(magnitude(vInfIn)*magnitude(vInfOut)));
+	console.log(t_0_T);
+	
+	var m0_eph = planetEphemerides(t_0, m0);
+	var m1_eph = planetEphemerides(t_0_T, m1);
+	
+	console.log("\n MOONS");
+	console.log(m0);
+	console.log(m1);
+	console.log("\n MOON EPHS:");
+	console.log(m0_eph);
+	console.log(m1_eph);
+	
+	var v_out = fb_prop(v_sc, m0_eph.v, chromosome.beta, chromosome.rp, m0.mu);
+	
+	// var anomaly = calculateAnomaly(r_sc, m0_eph.r, v_sc, m0_eph.v);
+	
+	var pl = propagate_lagrangian(m0_eph.r, v_out, chromosome.T*chromosome.eta, MU_JUP);
+	
+	console.log("\nPROP LAGRANGIAN");
+	console.log(pl);
+	console.log("PL V_mag: " + magnitude(pl.v));
+	
+	var lp = lambertProblem(pl.r, m1_eph.r, (1-chromosome.eta)*chromosome.T, false);
+	
+	
+	
+	console.log("\nLAMBERT PROBLEM");
+	console.log(lp);
+	console.log("LP V_mag: " + magnitude(lp.v1));
+	
+	var v_dsm_out = lp.v1;
+	
+	var dv = magnitude(subtraction(v_dsm_out, pl.v));
+	
+    return dv;
+}
 
-    var rmin = (moon.radius * moon.safeRadius);
 
-    var alpha = Math.asin(1 / (1+ (v1*v1) * rmin     / moon.mu));                     // half flyby turn angle at minimum flyby radius (from v1, smaller magnitude)
-
-    var q = Math.max(turnAngle-2*alpha, 0);                             // excess turn angle -- check syntax
-
-    var dv = Math.abs(Math.sqrt((v1*v1) + (v2*v2) -2 *v1*v2*Math.cos(q)));             // law of cosine
-
-    var rp = moon.mu * (1/Math.sin(turnAngle/2)-1)/(v1*v1);
-    rp = (rp < rmin) ? rmin : rp;                              // If rp < rmin, then assign rp = rmin
-
-// check for NaN !!!!
-
-    //var dv = Math.abs(magnitude(vInfIn) - magnitude(vInfOut));
-
-    // rp = flyby radius
-    //var rp = (body.gm/(magnitude(vInfIn)*magnitude(vInfIn))) * ((1/Math.sin(turnAngle/2)) - 1);
-
-    return {dv : dv, rp : rp};
+function fb_prop(v_in, v_moon, beta, rp, mu)
+{
+    var v_rel_in = subtraction(v_in, v_moon);
+    var v_rel_in2 = dot(v_rel_in, v_rel_in);
+    var v_rel_in_norm = magnitude(v_rel_in);
+    var ecc = 1 + rp / mu * v_rel_in2;
+    var delta = 2 * Math.asin(1.0/ecc);
+   
+    var i_hat = [v_rel_in[0] / v_rel_in_norm, v_rel_in[1] / v_rel_in_norm, v_rel_in[2] / v_rel_in_norm];
+	
+    var j_hat = cross(i_hat,v_moon);
+    j_hat  = normalise(j_hat);
+	
+	var k_hat = cross(i_hat,j_hat);
+	
+	var v_out = [0,0,0];
+	
+    v_out[0] = v_moon[0] + v_rel_in_norm * Math.cos(delta) * i_hat[0] + v_rel_in_norm * Math.cos(beta) * Math.sin(delta) * j_hat[0] + v_rel_in_norm * Math.sin(beta) * Math.sin(delta) * k_hat[0];
+    v_out[1] = v_moon[1] + v_rel_in_norm * Math.cos(delta) * i_hat[1] + v_rel_in_norm * Math.cos(beta) * Math.sin(delta) * j_hat[1] + v_rel_in_norm * Math.sin(beta) * Math.sin(delta) * k_hat[1];
+    v_out[2] = v_moon[2] + v_rel_in_norm * Math.cos(delta) * i_hat[2] + v_rel_in_norm * Math.cos(beta) * Math.sin(delta) * j_hat[2] + v_rel_in_norm * Math.sin(beta) * Math.sin(delta) * k_hat[2];
+    
+	return v_out;
 }
 
 

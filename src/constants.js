@@ -6,6 +6,8 @@ var R_SAFE_JUP = 2 * R_JUP;			// the closest distance of the spacecraft to Jupit
 var g = 9.80665;					// standard acceleration due to gravity [m/s2]
 var DAY2SEC = 86400;				// day [s]
 var YEAR2DAY = 365.25;				// Year [days]
+var RAD2DEG = 180 / Math.PI;		// 
+var DEG2RAD   = Math.PI / 180.0;	// 
 
 var r_spacecraft_init = 1000 * R_JUP;		// initial radius of spacecraft from jupiter
 var v_spacecraft_init = 3400.0;				// initial velocity of spacecraft [m/s]
@@ -20,3 +22,6 @@ var end_epoch = 62867.0;				// end of launch window - 1 January 2031 [MJD]
 var final_epoch = end_epoch + max_tof;	// end of the mission - 1 January 2035 [MJD]
 
 var AU = 149597870660.0;			// 1 Astronomical Unit [km]
+
+var ASTRO_MAX_ITER = 50;			// Maximum iterations for Propagate Lagrangian
+var ASTRO_TOLERANCE = 1e-16;		// Maximum tolerance of error in calculations
