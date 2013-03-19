@@ -17,11 +17,3 @@ var moon = function(name, a, e, i, LAN, w, M, radius, mu, model){
 	this.locked = new Array(32);
 	this.model = model;
 }
-
-var chromosome = function(beta, rp, eta, T){
-	
-	this.beta = beta;
-	this.rp = rp;
-	this.eta = eta;
-	this.T = T;
-}
