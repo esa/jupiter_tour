@@ -134,7 +134,7 @@ class jde
         return pop
 
 ### 
-    main namespace 
+    functions
 ###
 @jdebox =
     gen_rastrigin: ->

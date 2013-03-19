@@ -69,17 +69,25 @@
     }
 
     mga_part.prototype.objfun = function(x) {
-      var T, i;
+      var T, i, planet, t_P, _i, _len, _ref;
       T = (function() {
-        var _i, _results;
+        var _i, _ref, _results;
         _results = [];
-        for (i = _i = 0; 0 <= dim ? _i < dim : _i > dim; i = 0 <= dim ? ++_i : --_i) {
-          if (i + 1 % 4 === 0) {
+        for (i = _i = 0, _ref = this.dim; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
+          if ((i + 1) % 4 === 0) {
             _results.push(x[i]);
           }
         }
         return _results;
-      })();
+      }).call(this);
+      t_P = [];
+      _ref = this.seq;
+      for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
+        planet = _ref[i];
+        t_P[i] = csutils.arr_sum(T.slice(0, i));
+      }
+      console.log(T);
+      console.log(t_P);
       return retval;
     };
 
@@ -103,38 +111,16 @@
   */
 
 
-  this.mga_partbox = {
-    genprob: function() {
-      console.log('generate problem');
-      try {
-        this.prob = new mga_part([europa, io, europa], [[4, 50], [5, 60]], 23, 24);
-      } catch (error) {
-        alert(error);
-      }
-      document.getElementById('popbutton').disabled = false;
-      return 0;
-    },
-    gen_pop: function() {
-      var i, p, v;
-      v = document.getElementById('popfield').value;
-      if ((8 <= v && v <= 999)) {
-        p = v;
-      } else {
-        p = 100;
-        document.getElementById('popfield').value = 100;
-      }
-      this.alg = new jde();
-      this.pop = (function() {
-        var _i, _results;
-        _results = [];
-        for (i = _i = 1; 1 <= p ? _i <= p : _i >= p; i = 1 <= p ? ++_i : --_i) {
-          _results.push(new individual(this.prob));
-        }
-        return _results;
-      }).call(this);
-      document.getElementById('evolvebutton').disabled = false;
-      return Document.log(pop);
+  jdebox.gen_mga_part = function() {
+    var prob;
+    console.log('generate mga_part');
+    try {
+      prob = new jupiter.mga_part([europa, io, europa], [[4, 50], [5, 60]], 23, 24);
+    } catch (error) {
+      alert(error);
     }
+    document.getElementById('popbutton').disabled = false;
+    return prob;
   };
 
 }).call(this);

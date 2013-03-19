@@ -186,7 +186,7 @@
   })();
 
   /* 
-      main namespace
+      functions
   */
 
 

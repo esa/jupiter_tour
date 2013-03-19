@@ -48,19 +48,15 @@ class mga_part
     
     # fitness function
     objfun : (x) ->
-        # extract the tof-sequence of the chromosome
-        T = (x[i] for i in [0...dim] when i + 1 % 4 is 0)
-        
+        # 1. extract the tof-sequence of the chromosome
+        T = (x[i] for i in [0...@dim] when (i + 1) % 4 is 0)
         
         # Epochs and Ephemerides of the planetary encounters
-
-        # for planet, i in @seq
-            # coffeescript
-        #	t_P = epoch(x[0] + arr_sum(T[..i]))
-
-# python			
-#			t_P[i] = epoch(x[0]+sum(T[:i+1]))
-#			r_P[i],v_P[i] = self.seq[i].eph(t_P[i])
+        t_P = []
+        for planet, i in @seq
+            t_P[i] = csutils.arr_sum(T[...i])
+        console.log(T)
+        console.log(t_P)
         
         return retval
     
@@ -75,26 +71,11 @@ class mga_part
 ###
     main namespace
 ###
-
-@mga_partbox =
-    genprob: ->
-        console.log('generate problem')
-        try
-            @prob = new mga_part([europa, io, europa], [[4, 50],[5,60]], 23, 24)
-        catch error
-            alert(error)
-        document.getElementById('popbutton').disabled = false
-        return 0
-
-    gen_pop: ->
-        v = document.getElementById('popfield').value
-        if 8 <= v <= 999
-            p = v 
-        else 
-            p = 100
-            document.getElementById('popfield').value = 100
-
-        @alg = new jde()
-        @pop = (new individual(@prob) for i in [1..p])
-        document.getElementById('evolvebutton').disabled = false
-        Document.log(pop)     
+jdebox.gen_mga_part = ->
+    console.log('generate mga_part')
+    try
+        prob = new jupiter.mga_part([europa, io, europa], [[4, 50],[5,60]], 23, 24)
+    catch error
+        alert(error)
+    document.getElementById('popbutton').disabled = false
+    return prob
