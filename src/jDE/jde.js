@@ -44,7 +44,7 @@
         }
         return _results;
       })();
-      return csutils.arr_sum(s) + this.dim * 10;
+      return arr_sum(s) + this.dim * 10;
     };
 
     rastrigin.prototype.feasible = function(x) {
@@ -114,27 +114,27 @@
         return _results;
       })();
       for (i = _i = 1; 1 <= gen ? _i <= gen : _i >= gen; i = 1 <= gen ? ++_i : --_i) {
-        best_idx = csutils.championidx(pop);
+        best_idx = championidx(pop);
         new_pop = [];
         for (j = _j = 0, _len = pop.length; _j < _len; j = ++_j) {
           ind = pop[j];
-          tmp_pop = csutils.takeout(pop, j);
-          r = csutils.choice(tmp_pop, 3);
+          tmp_pop = arr_takeout(pop, j);
+          r = arr_choice(tmp_pop, 3);
           ind1_chr = tmp_pop[r[0]].x;
           ind2_chr = tmp_pop[r[1]].x;
           ind3_chr = tmp_pop[r[2]].x;
           f = Math.random() >= 0.9 ? Math.random() * 0.9 + 0.1 : pop_f[j];
           cr = Math.random() >= 0.9 ? Math.random() : pop_cr[j];
-          mutant = csutils.arr_add(ind1_chr, csutils.arr_scalar(csutils.arr_add(ind2_chr, csutils.arr_scalar(ind3_chr, -1.0)), f));
+          mutant = arr_add(ind1_chr, arr_scalar(arr_add(ind2_chr, arr_scalar(ind3_chr, -1.0)), f));
           for (k = _k = 0, _len1 = mutant.length; _k < _len1; k = ++_k) {
             v = mutant[k];
             if (!((prob.bounds[k][0] <= v && v <= prob.bounds[k][1]))) {
-              mutant[k] = csutils.random_real(prob.bounds[k][0], prob.bounds[k][1]);
+              mutant[k] = random_real(prob.bounds[k][0], prob.bounds[k][1]);
             }
           }
           if (this.variant === 1) {
             new_chr = [];
-            sure_cross_idx = csutils.random_int(0, prob.dim - 1);
+            sure_cross_idx = random_int(0, prob.dim - 1);
             _ref = ind.x;
             for (k = _l = 0, _len2 = _ref.length; _l < _len2; k = ++_l) {
               v = _ref[k];
@@ -145,7 +145,7 @@
               }
             }
           } else if (this.variant === 2) {
-            n = csutils.random_int(0, prob.dim - 1);
+            n = random_int(0, prob.dim - 1);
             new_chr = ind.x.slice(0);
             L = 0;
             while (true) {
@@ -172,8 +172,8 @@
             new_pop.push(ind);
           }
         }
-        if (pop[best_idx].f > new_pop[csutils.championidx(new_pop)].f) {
-          console.log('generation ' + i + ' improved ' + pop[best_idx].f + ' --> ' + new_pop[csutils.championidx(new_pop)].f);
+        if (pop[best_idx].f > new_pop[championidx(new_pop)].f) {
+          console.log('generation ' + i + ' improved ' + pop[best_idx].f + ' --> ' + new_pop[championidx(new_pop)].f);
         }
         pop = new_pop;
       }
@@ -232,9 +232,9 @@
       document.getElementById('evolvebutton').disabled = true;
       this.pop = this.alg.evolve(this.pop, prob, v);
       document.getElementById('evolvebutton').disabled = false;
-      s = '<p>current fitness: ' + this.pop[csutils.championidx(this.pop)].f + '<p/>';
+      s = '<p>current fitness: ' + this.pop[championidx(this.pop)].f + '<p/>';
       s += 'decision vector: <ul>';
-      _ref = this.pop[csutils.championidx(this.pop)].x;
+      _ref = this.pop[championidx(this.pop)].x;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         k = _ref[_i];
         s += '<li>' + k + '</li>';

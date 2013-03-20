@@ -8,22 +8,23 @@
 
 	<p>
 	Please click for a generic problem:
-	<button type="button" onclick="mga_partbox.genprob()">Generate mga_part problem</button>
+	<button type="button" onclick="prob = test.gen_mga_part();">Generate mga_part problem</button>
 	</p>
 	
 	<p>
 	Number of individuals:
 	<input id="popfield" type="text" size="5" maxlength="4" /> 
-	<button id="popbutton" type="button" disabled=true onclick="jdebox.gen_pop()">Generate Population</button>
+	<button id="popbutton" type="button" disabled=true onclick="test.gen_pop(prob)">Generate Population</button>
 	</p>
 
 	<p>
 	Enter number of generations:
 	<input id="genfield" type="text" size="5" maxlength="4" /> 
-	<button id="evolvebutton" type="button" disabled=true onclick="mga_partbox.evolve()">Evolve</button>
+	<button id="evolvebutton" type="button" disabled=true onclick="test.evolve(prob)">Evolve</button>
 	</p>
 
 	<div id='output'></div>
+    <script type="text/javascript" src="../init.js"></script>
     <script type="text/javascript" src="../constants.js"></script>
     <script type="text/javascript" src="../moon.js"></script>
     <script type="text/javascript" src="../coffee_utils.js"></script>

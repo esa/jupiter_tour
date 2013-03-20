@@ -24,7 +24,7 @@ class test.rastrigin
         s = ( xi*xi - 10.0 * Math.cos(omega * xi) for xi in x )
         
         # sum up s while using reduce technique
-        return csutils.arr_sum(s) + @dim * 10
+        return arr_sum(s) + @dim * 10
             
     feasible : (x) ->
         # error-checks for correct dimension omitted
@@ -61,13 +61,13 @@ class core.jde
         # evolutionary main-loop
         for i in [1..gen]
             # get best individual as it is a constant for all mutations
-            best_idx = csutils.championidx(pop)
+            best_idx = championidx(pop)
             new_pop = []
             
             # mutate each individual according to (DE/rand/1)-strategy
             for ind, j in pop
-                tmp_pop = csutils.takeout(pop, j)
-                r = csutils.choice(tmp_pop, 3)
+                tmp_pop = arr_takeout(pop, j)
+                r = arr_choice(tmp_pop, 3)
                 ind1_chr = tmp_pop[r[0]].x
                 ind2_chr = tmp_pop[r[1]].x
                 ind3_chr = tmp_pop[r[2]].x
@@ -77,18 +77,18 @@ class core.jde
                 cr = if Math.random() >= 0.9 then Math.random() else pop_cr[j]
                 
                 # mutate
-                mutant = csutils.arr_add(ind1_chr, csutils.arr_scalar(csutils.arr_add(ind2_chr,csutils.arr_scalar(ind3_chr, -1.0)),f))
+                mutant = arr_add(ind1_chr, arr_scalar(arr_add(ind2_chr,arr_scalar(ind3_chr, -1.0)),f))
                 
                 # checking feasibility and reshuffle if infeasible
                 for v, k in mutant
                     if not (prob.bounds[k][0] <= v <= prob.bounds[k][1])
-                        mutant[k] = csutils.random_real(prob.bounds[k][0], prob.bounds[k][1])
+                        mutant[k] = random_real(prob.bounds[k][0], prob.bounds[k][1])
 
                 # Crossover-switch for different strategies
                 if @variant == 1	# DE/rand/1
                     new_chr = []
                     # pick one coefficient which will be crossovered for sure
-                    sure_cross_idx = csutils.random_int(0, prob.dim - 1)
+                    sure_cross_idx = random_int(0, prob.dim - 1)
 
                     # apply binomial crossover
                     for v, k in ind.x
@@ -99,7 +99,7 @@ class core.jde
 
                 else if @variant == 2 # DE/rand/1/exp
                     # pick a random start index
-                    n = csutils.random_int(0, prob.dim-1)
+                    n = random_int(0, prob.dim-1)
                     new_chr = ind.x[..]
                     L = 0
                     while true
@@ -126,8 +126,8 @@ class core.jde
                     new_pop.push(ind)
             
             # after all individuals are processed, swap population and go on with the next generation
-            if pop[best_idx].f > new_pop[csutils.championidx(new_pop)].f
-                console.log('generation ' + i + ' improved ' + pop[best_idx].f + ' --> ' + new_pop[csutils.championidx(new_pop)].f)
+            if pop[best_idx].f > new_pop[championidx(new_pop)].f
+                console.log('generation ' + i + ' improved ' + pop[best_idx].f + ' --> ' + new_pop[championidx(new_pop)].f)
             pop = new_pop
         
         # after all generations are evolved, put out the evolved population
@@ -167,9 +167,9 @@ test.evolve = (prob) ->
         document.getElementById('evolvebutton').disabled = true
         @pop = @alg.evolve(@pop, prob, v)
         document.getElementById('evolvebutton').disabled = false
-        s = '<p>current fitness: ' + @pop[csutils.championidx(@pop)].f + '<p/>'
+        s = '<p>current fitness: ' + @pop[championidx(@pop)].f + '<p/>'
         s += 'decision vector: <ul>'
-        for k in @pop[csutils.championidx(@pop)].x
+        for k in @pop[championidx(@pop)].x
             s += '<li>' + k + '</li>'
         s += '</ul>'
         document.getElementById('output').innerHTML= s
