@@ -9,22 +9,23 @@
 	<p>
 	Enter dimension:
 	<input id="dimfield" type="text" size="5" maxlength="2" /> 
-	<button type="button" onclick="jdebox.gen_rastrigin()">Generate Rastrigin problem</button>
+	<button type="button" onclick="prob = test.gen_rastrigin();">Generate Rastrigin problem</button>
 	</p>
 	
 	<p>
 	Number of individuals:
 	<input id="popfield" type="text" size="5" maxlength="4" /> 
-	<button id="popbutton" type="button" disabled=true onclick="jdebox.gen_pop()">Generate Population</button>
+	<button id="popbutton" type="button" disabled=true onclick="test.gen_pop(prob)">Generate Population</button>
 	</p>
 
 	<p>
 	Enter number of generations:
 	<input id="genfield" type="text" size="5" maxlength="4" /> 
-	<button id="evolvebutton" type="button" disabled=true onclick="jdebox.evolve()">Evolve</button>
+	<button id="evolvebutton" type="button" disabled=true onclick="test.evolve(prob)">Evolve</button>
 	</p>
 
 	<div id='output'></div>
+	<script type="text/javascript" src="../init.js"></script>
 	<script type="text/javascript" src="../coffee_utils.js"></script>
 	<script type="text/javascript" src="jde.js"></script>
 	</body>

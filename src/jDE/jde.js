@@ -16,9 +16,8 @@
 
 
 (function() {
-  var individual, jde, rastrigin;
 
-  rastrigin = (function() {
+  test.rastrigin = (function() {
 
     function rastrigin(dim) {
       var x;
@@ -63,7 +62,7 @@
 
   })();
 
-  individual = (function() {
+  core.individual = (function() {
 
     function individual(prob) {
       var b;
@@ -84,7 +83,7 @@
 
   })();
 
-  jde = (function() {
+  core.jde = (function() {
 
     function jde(variant) {
       if (variant == null) {
@@ -190,59 +189,62 @@
   */
 
 
-  this.jdebox = {
-    gen_rastrigin: function() {
-      var dim, v;
-      v = document.getElementById('dimfield').value;
-      if ((1 <= v && v <= 99)) {
-        dim = v;
-      } else {
-        dim = 10;
-        document.getElementById('dimfield').value = 10;
-      }
-      this.prob = new rastrigin(dim);
-      return document.getElementById('popbutton').disabled = false;
-    },
-    gen_pop: function() {
-      var i, p, v;
-      v = document.getElementById('popfield').value;
-      if ((8 <= v && v <= 999)) {
-        p = v;
-      } else {
-        p = 100;
-        document.getElementById('popfield').value = 100;
-      }
-      this.alg = new jde();
-      this.pop = (function() {
-        var _i, _results;
-        _results = [];
-        for (i = _i = 1; 1 <= p ? _i <= p : _i >= p; i = 1 <= p ? ++_i : --_i) {
-          _results.push(new individual(this.prob));
-        }
-        return _results;
-      }).call(this);
-      return document.getElementById('evolvebutton').disabled = false;
-    },
-    evolve: function() {
-      var k, s, v, _i, _len, _ref;
-      v = parseInt(document.getElementById('genfield').value);
-      if ((1 <= v && v <= 5000)) {
-        document.getElementById('evolvebutton').disabled = true;
-        this.pop = this.alg.evolve(this.pop, this.prob, v);
-        document.getElementById('evolvebutton').disabled = false;
-        s = '<p>current fitness: ' + this.pop[csutils.championidx(this.pop)].f + '<p/>';
-        s += 'decision vector: <ul>';
-        _ref = this.pop[csutils.championidx(this.pop)].x;
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          k = _ref[_i];
-          s += '<li>' + k + '</li>';
-        }
-        s += '</ul>';
-        return document.getElementById('output').innerHTML = s;
-      } else {
-        return alert('Enter a number of generations between 1 and 5000');
-      }
+  test.gen_rastrigin = function() {
+    var dim, prob, v;
+    v = document.getElementById('dimfield').value;
+    if ((1 <= v && v <= 99)) {
+      dim = v;
+    } else {
+      dim = 10;
+      document.getElementById('dimfield').value = 10;
     }
+    prob = new test.rastrigin(dim);
+    document.getElementById('popbutton').disabled = false;
+    return prob;
+  };
+
+  test.gen_pop = function(prob) {
+    var i, p, v;
+    v = document.getElementById('popfield').value;
+    if ((8 <= v && v <= 999)) {
+      p = v;
+    } else {
+      p = 100;
+      document.getElementById('popfield').value = 100;
+    }
+    this.alg = new core.jde();
+    this.pop = (function() {
+      var _i, _results;
+      _results = [];
+      for (i = _i = 1; 1 <= p ? _i <= p : _i >= p; i = 1 <= p ? ++_i : --_i) {
+        _results.push(new core.individual(prob));
+      }
+      return _results;
+    })();
+    document.getElementById('evolvebutton').disabled = false;
+    return 0;
+  };
+
+  test.evolve = function(prob) {
+    var k, s, v, _i, _len, _ref;
+    v = parseInt(document.getElementById('genfield').value);
+    if ((1 <= v && v <= 5000)) {
+      document.getElementById('evolvebutton').disabled = true;
+      this.pop = this.alg.evolve(this.pop, prob, v);
+      document.getElementById('evolvebutton').disabled = false;
+      s = '<p>current fitness: ' + this.pop[csutils.championidx(this.pop)].f + '<p/>';
+      s += 'decision vector: <ul>';
+      _ref = this.pop[csutils.championidx(this.pop)].x;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        k = _ref[_i];
+        s += '<li>' + k + '</li>';
+      }
+      s += '</ul>';
+      document.getElementById('output').innerHTML = s;
+    } else {
+      alert('Enter a number of generations between 1 and 5000');
+    }
+    return 0;
   };
 
 }).call(this);

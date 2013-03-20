@@ -8,10 +8,10 @@
 ###
 
 ###
-    classes
+    classes 
 ###
 # the rastrigin-function is used as a toy problem for testing jde
-class rastrigin
+class test.rastrigin
     constructor: (dim) ->
         # construct bounds
         @bounds = ([-5.12, 5.12] for x in [1..dim])
@@ -34,13 +34,13 @@ class rastrigin
         return true
 
 # Used to instantiate individuals (initialized within the problem bounds by random)
-class individual
+class core.individual
     constructor: (prob) ->
         @x = (Math.random() * (b[1] - b[0]) + b[0] for b in prob.bounds)
         @f = prob.objfun(@x)
 
 # class implementing the algorithm
-class jde
+class core.jde
     constructor: (variant=2) ->
         # variant=1 DE/rand/1, variant=2 DE/rand/1/exp
         # variant 2 is the default of PyGMO
@@ -136,41 +136,43 @@ class jde
 ### 
     functions
 ###
-@jdebox =
-    gen_rastrigin: ->
-        v = document.getElementById('dimfield').value
-        if 1 <= v <= 99
-            dim = v 
-        else 
-            dim = 10
-            document.getElementById('dimfield').value = 10
-        
-        @prob = new rastrigin(dim)
-        document.getElementById('popbutton').disabled = false
+test.gen_rastrigin = ->
+    v = document.getElementById('dimfield').value
+    if 1 <= v <= 99
+        dim = v 
+    else 
+        dim = 10
+        document.getElementById('dimfield').value = 10
     
-    gen_pop: ->
-        v = document.getElementById('popfield').value
-        if 8 <= v <= 999
-            p = v 
-        else 
-            p = 100
-            document.getElementById('popfield').value = 100
+    prob = new test.rastrigin(dim)
+    document.getElementById('popbutton').disabled = false
+    return prob
 
-        @alg = new jde()
-        @pop = (new individual(@prob) for i in [1..p])
+test.gen_pop = (prob) ->
+    v = document.getElementById('popfield').value
+    if 8 <= v <= 999
+        p = v 
+    else 
+        p = 100
+        document.getElementById('popfield').value = 100
+
+    @alg = new core.jde()
+    @pop = (new core.individual(prob) for i in [1..p])
+    document.getElementById('evolvebutton').disabled = false
+    return 0
+    
+test.evolve = (prob) ->
+    v = parseInt(document.getElementById('genfield').value)
+    if 1 <= v <= 5000
+        document.getElementById('evolvebutton').disabled = true
+        @pop = @alg.evolve(@pop, prob, v)
         document.getElementById('evolvebutton').disabled = false
-        
-    evolve: ->
-        v = parseInt(document.getElementById('genfield').value)
-        if 1 <= v <= 5000
-            document.getElementById('evolvebutton').disabled = true
-            @pop = @alg.evolve(@pop, @prob, v)
-            document.getElementById('evolvebutton').disabled = false
-            s = '<p>current fitness: ' + @pop[csutils.championidx(@pop)].f + '<p/>'
-            s += 'decision vector: <ul>'
-            for k in @pop[csutils.championidx(@pop)].x
-                s += '<li>' + k + '</li>'
-            s += '</ul>'
-            document.getElementById('output').innerHTML= s
-        else
-            alert('Enter a number of generations between 1 and 5000')
+        s = '<p>current fitness: ' + @pop[csutils.championidx(@pop)].f + '<p/>'
+        s += 'decision vector: <ul>'
+        for k in @pop[csutils.championidx(@pop)].x
+            s += '<li>' + k + '</li>'
+        s += '</ul>'
+        document.getElementById('output').innerHTML= s
+    else
+        alert('Enter a number of generations between 1 and 5000')
+    return 0
