@@ -13,9 +13,8 @@
 
 
 (function() {
-  var mga_part;
 
-  mga_part = (function() {
+  core.mga_part = (function() {
 
     function mga_part(seq, tof, t0, v_inf) {
       var i, invalid_tof, t, x, _i, _ref;
@@ -84,11 +83,11 @@
       _ref = this.seq;
       for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
         planet = _ref[i];
-        t_P[i] = csutils.arr_sum(T.slice(0, i));
+        t_P[i] = arr_sum(T.slice(0, i));
       }
       console.log(T);
       console.log(t_P);
-      return retval;
+      return 0;
     };
 
     mga_part.prototype.feasible = function(x) {
@@ -111,11 +110,11 @@
   */
 
 
-  jdebox.gen_mga_part = function() {
+  test.gen_mga_part = function() {
     var prob;
     console.log('generate mga_part');
     try {
-      prob = new jupiter.mga_part([europa, io, europa], [[4, 50], [5, 60]], 23, 24);
+      prob = new core.mga_part([europa, io, europa], [[4, 50], [5, 60]], 23, 24);
     } catch (error) {
       alert(error);
     }

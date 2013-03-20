@@ -9,7 +9,7 @@
 ###
 
 # chromosome: [beta1, rp1/rP1, eta1, T1] + [beta2, rp2/rP2, eta2, T2] + ...
-class mga_part
+class core.mga_part
     constructor: (seq, tof, t0, v_inf) ->
         # check the body-sequence
         if seq.length < 2
@@ -54,11 +54,11 @@ class mga_part
         # Epochs and Ephemerides of the planetary encounters
         t_P = []
         for planet, i in @seq
-            t_P[i] = csutils.arr_sum(T[...i])
+            t_P[i] = arr_sum(T[...i])
         console.log(T)
         console.log(t_P)
         
-        return retval
+        return 0
     
     # simple feasibility check
     feasible : (x) ->
@@ -71,10 +71,10 @@ class mga_part
 ###
     main namespace
 ###
-jdebox.gen_mga_part = ->
+test.gen_mga_part = ->
     console.log('generate mga_part')
     try
-        prob = new jupiter.mga_part([europa, io, europa], [[4, 50],[5,60]], 23, 24)
+        prob = new core.mga_part([europa, io, europa], [[4, 50],[5,60]], 23, 24)
     catch error
         alert(error)
     document.getElementById('popbutton').disabled = false

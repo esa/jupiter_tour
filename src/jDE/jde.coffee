@@ -8,10 +8,10 @@
 ###
 
 ###
-    classes
+    classes 
 ###
 # the rastrigin-function is used as a toy problem for testing jde
-class rastrigin
+class test.rastrigin
     constructor: (dim) ->
         # construct bounds
         @bounds = ([-5.12, 5.12] for x in [1..dim])
@@ -24,7 +24,7 @@ class rastrigin
         s = ( xi*xi - 10.0 * Math.cos(omega * xi) for xi in x )
         
         # sum up s while using reduce technique
-        return csutils.arr_sum(s) + @dim * 10
+        return arr_sum(s) + @dim * 10
             
     feasible : (x) ->
         # error-checks for correct dimension omitted
@@ -34,13 +34,13 @@ class rastrigin
         return true
 
 # Used to instantiate individuals (initialized within the problem bounds by random)
-class individual
+class core.individual
     constructor: (prob) ->
         @x = (Math.random() * (b[1] - b[0]) + b[0] for b in prob.bounds)
         @f = prob.objfun(@x)
 
 # class implementing the algorithm
-class jde
+class core.jde
     constructor: (variant=2) ->
         # variant=1 DE/rand/1, variant=2 DE/rand/1/exp
         # variant 2 is the default of PyGMO
@@ -61,13 +61,13 @@ class jde
         # evolutionary main-loop
         for i in [1..gen]
             # get best individual as it is a constant for all mutations
-            best_idx = csutils.championidx(pop)
+            best_idx = championidx(pop)
             new_pop = []
             
             # mutate each individual according to (DE/rand/1)-strategy
             for ind, j in pop
-                tmp_pop = csutils.takeout(pop, j)
-                r = csutils.choice(tmp_pop, 3)
+                tmp_pop = arr_takeout(pop, j)
+                r = arr_choice(tmp_pop, 3)
                 ind1_chr = tmp_pop[r[0]].x
                 ind2_chr = tmp_pop[r[1]].x
                 ind3_chr = tmp_pop[r[2]].x
@@ -77,18 +77,18 @@ class jde
                 cr = if Math.random() >= 0.9 then Math.random() else pop_cr[j]
                 
                 # mutate
-                mutant = csutils.arr_add(ind1_chr, csutils.arr_scalar(csutils.arr_add(ind2_chr,csutils.arr_scalar(ind3_chr, -1.0)),f))
+                mutant = arr_add(ind1_chr, arr_scalar(arr_add(ind2_chr,arr_scalar(ind3_chr, -1.0)),f))
                 
                 # checking feasibility and reshuffle if infeasible
                 for v, k in mutant
                     if not (prob.bounds[k][0] <= v <= prob.bounds[k][1])
-                        mutant[k] = csutils.random_real(prob.bounds[k][0], prob.bounds[k][1])
+                        mutant[k] = random_real(prob.bounds[k][0], prob.bounds[k][1])
 
                 # Crossover-switch for different strategies
                 if @variant == 1	# DE/rand/1
                     new_chr = []
                     # pick one coefficient which will be crossovered for sure
-                    sure_cross_idx = csutils.random_int(0, prob.dim - 1)
+                    sure_cross_idx = random_int(0, prob.dim - 1)
 
                     # apply binomial crossover
                     for v, k in ind.x
@@ -99,7 +99,7 @@ class jde
 
                 else if @variant == 2 # DE/rand/1/exp
                     # pick a random start index
-                    n = csutils.random_int(0, prob.dim-1)
+                    n = random_int(0, prob.dim-1)
                     new_chr = ind.x[..]
                     L = 0
                     while true
@@ -126,8 +126,8 @@ class jde
                     new_pop.push(ind)
             
             # after all individuals are processed, swap population and go on with the next generation
-            if pop[best_idx].f > new_pop[csutils.championidx(new_pop)].f
-                console.log('generation ' + i + ' improved ' + pop[best_idx].f + ' --> ' + new_pop[csutils.championidx(new_pop)].f)
+            if pop[best_idx].f > new_pop[championidx(new_pop)].f
+                console.log('generation ' + i + ' improved ' + pop[best_idx].f + ' --> ' + new_pop[championidx(new_pop)].f)
             pop = new_pop
         
         # after all generations are evolved, put out the evolved population
@@ -136,41 +136,43 @@ class jde
 ### 
     functions
 ###
-@jdebox =
-    gen_rastrigin: ->
-        v = document.getElementById('dimfield').value
-        if 1 <= v <= 99
-            dim = v 
-        else 
-            dim = 10
-            document.getElementById('dimfield').value = 10
-        
-        @prob = new rastrigin(dim)
-        document.getElementById('popbutton').disabled = false
+test.gen_rastrigin = ->
+    v = document.getElementById('dimfield').value
+    if 1 <= v <= 99
+        dim = v 
+    else 
+        dim = 10
+        document.getElementById('dimfield').value = 10
     
-    gen_pop: ->
-        v = document.getElementById('popfield').value
-        if 8 <= v <= 999
-            p = v 
-        else 
-            p = 100
-            document.getElementById('popfield').value = 100
+    prob = new test.rastrigin(dim)
+    document.getElementById('popbutton').disabled = false
+    return prob
 
-        @alg = new jde()
-        @pop = (new individual(@prob) for i in [1..p])
+test.gen_pop = (prob) ->
+    v = document.getElementById('popfield').value
+    if 8 <= v <= 999
+        p = v 
+    else 
+        p = 100
+        document.getElementById('popfield').value = 100
+
+    @alg = new core.jde()
+    @pop = (new core.individual(prob) for i in [1..p])
+    document.getElementById('evolvebutton').disabled = false
+    return 0
+    
+test.evolve = (prob) ->
+    v = parseInt(document.getElementById('genfield').value)
+    if 1 <= v <= 5000
+        document.getElementById('evolvebutton').disabled = true
+        @pop = @alg.evolve(@pop, prob, v)
         document.getElementById('evolvebutton').disabled = false
-        
-    evolve: ->
-        v = parseInt(document.getElementById('genfield').value)
-        if 1 <= v <= 5000
-            document.getElementById('evolvebutton').disabled = true
-            @pop = @alg.evolve(@pop, @prob, v)
-            document.getElementById('evolvebutton').disabled = false
-            s = '<p>current fitness: ' + @pop[csutils.championidx(@pop)].f + '<p/>'
-            s += 'decision vector: <ul>'
-            for k in @pop[csutils.championidx(@pop)].x
-                s += '<li>' + k + '</li>'
-            s += '</ul>'
-            document.getElementById('output').innerHTML= s
-        else
-            alert('Enter a number of generations between 1 and 5000')
+        s = '<p>current fitness: ' + @pop[championidx(@pop)].f + '<p/>'
+        s += 'decision vector: <ul>'
+        for k in @pop[championidx(@pop)].x
+            s += '<li>' + k + '</li>'
+        s += '</ul>'
+        document.getElementById('output').innerHTML= s
+    else
+        alert('Enter a number of generations between 1 and 5000')
+    return 0
