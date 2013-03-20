@@ -21,7 +21,7 @@ function propagate_lagrangian(r0, v0, t, mu)
 		console.log("DE: " + DE);
 		
         var r = a + (R - a) * Math.cos(DE) + sigma0 * sqrta * Math.sin(DE);
-
+		
         //Lagrange coefficients
         F  = 1 - a / R * (1 - Math.cos(DE));
         G  = a * sigma0 / Math.sqrt(mu) * (1 - Math.cos(DE)) + R * Math.sqrt(a / mu) * Math.sin(DE);

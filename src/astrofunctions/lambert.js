@@ -8,15 +8,25 @@ function lambertProblem(r1, r2, tof, cw)
     // 1 - Computing non dimensional units
     var R = magnitude(r1);
     var V = Math.sqrt(MU_JUP / R);
-    var T = R / V;
+    var T = R / V; 
+	
+	console.log("\n\nT: " + T);
 	
     // 2 - Computing geometry of transfer
     var R2 = magnitude(r2);
     var costheta = dot(r1, r2) / (R*R2);
 	
+	console.log("COS THETA: " + costheta);
+	
     var r2_mod = R2 / R;
+	
+	console.log("R2_MOD: " + r2_mod);
+	
     var c = Math.sqrt(1 + r2_mod * (r2_mod - 2.0 * costheta));
     var s = (1 + r2_mod + c) / 2.0;
+	
+	console.log("c: " + c);
+	console.log("s: " + s);
 	
     // 2a - long or short way?
     var lw = ((r1[0]*r2[1] - r1[1]*r2[0]) > 0) ? 0 : 1;	// prograde motion assumed
