@@ -5,37 +5,9 @@ var ACCURACY = 1e-9;
 function lambertProblem(r1, r2, tof, cw)
 {
 
-    // 1 - Computing non dimensional units
-    // var R = magnitude(r1);
-    // var V = Math.sqrt(MU_JUP / R);
-    // var T = R / V; 
-	
-	// console.log("R: " + R);
-	// console.log("V: " + V);
-	// console.log("T: " + T);
-	
-    // 2 - Computing geometry of transfer
-    // var R2 = magnitude(r2);
-    // var costheta = dot(r1, r2) / (R*R2);
-	
-	// console.log("R2: " + R2);
-	// console.log("COS THETA: " + costheta);
-	
-    // var r2_mod = R2 / R;
-	
-	// console.log("R2_MOD: " + r2_mod);
-	
-    // var c = Math.sqrt(1 + r2_mod * (r2_mod - 2.0 * costheta));
-    // var s = (1 + r2_mod + c) / 2.0;
-	
-	// console.log("c: " + c);
-	// console.log("s: " + s);
-	
-    // 2a - long or short way?
+
     var lw = ((r1[0]*r2[1] - r1[1]*r2[0]) > 0) ? 0 : 1;	// prograde motion assumed
     if (cw) lw = (lw + 1) % 2;				        // changed to retrograde motion
-	
-	console.log("\nLP lw: " + lw);
 	
     // 4 - get solution
 	var sol = lambert3d(r1, r2, tof, lw);
@@ -61,9 +33,6 @@ function lambert3d(r1, r2, tof, lw)
 
     // 3 - Solving the problem in 2D
     var out = lambert2d(s, c, tof/T, lw);
-	
-	console.log("\nLAMBERT 2D: ")
-	console.log(out);
 	
     // 4 - Reconstructing the velocity vectors in three dimensions
     var ir1 = normalise(r1);

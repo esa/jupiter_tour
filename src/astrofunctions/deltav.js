@@ -10,12 +10,10 @@ function flyByDv(v_sc, t_0, m0, m1, chromosome)
 	
 	var m0_eph = planetEphemerides(t_0, m0);
 	var m1_eph = planetEphemerides(t_0_T, m1);
-	
-	console.log("\n MOONS");
-	console.log(m0);
-	console.log(m1);
-	console.log("\n MOON EPHS:");
+
+	console.log("\n" + m0.name + " Ephemerides at epoch(MJD): " + t_0);
 	console.log(m0_eph);
+	console.log("\n" + m1.name + " Ephemerides at epoch(MJD): " + t_0_T);
 	console.log(m1_eph);
 	
 	var v_out = fb_prop(v_sc, m0_eph.v, chromosome.beta, chromosome.rp, m0.mu);
@@ -28,20 +26,12 @@ function flyByDv(v_sc, t_0, m0, m1, chromosome)
 	
 	console.log("\nPROP LAGRANGIAN");
 	console.log(pl);
-	console.log("PL V_mag: " + magnitude(pl.v));
-	
-	console.log("\n\nLAMBERT INPUTS:");
-	console.log("prop_lagr r: " + pl.r);
-	console.log("m1_eph r: " + m1_eph.r);
-	console.log("eta*T: " + (1-chromosome.eta)*chromosome.T);
-
 	
 	var lp = lambertProblem(pl.r, m1_eph.r, (1-chromosome.eta)*chromosome.T*DAY2SEC, false);
 	
 	
 	console.log("\nLAMBERT PROBLEM");
 	console.log(lp);
-	console.log("LP V_mag: " + magnitude(lp.v1));
 	
 	var v_dsm_out = lp.v1;
 	

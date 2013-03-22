@@ -18,8 +18,6 @@ function propagate_lagrangian(r0, v0, t, mu)
         
 		DE = newton_raphson(DE, new bind_kepDE(DM,sigma0,sqrta,a,R), new bind_d_kepDE(sigma0,sqrta,a,R),100,ASTRO_TOLERANCE);
 		
-		console.log("DE: " + DE);
-		
         var r = a + (R - a) * Math.cos(DE) + sigma0 * sqrta * Math.sin(DE);
 		
         //Lagrange coefficients
@@ -38,8 +36,6 @@ function propagate_lagrangian(r0, v0, t, mu)
 		
 		DH = newton_raphson(DH, new bind_kepDH(DN,sigma0,sqrta,a,R), new bind_d_kepDH(sigma0,sqrta,a,R), 100, ASTRO_TOLERANCE);
 		
-		console.log("DH: " + DH);
-		
         var r = a + (R - a) * Math.cosh(DH) + sigma0 * sqrta * Math.sinh(DH);
 
         //Lagrange coefficients
@@ -47,18 +43,9 @@ function propagate_lagrangian(r0, v0, t, mu)
         G  = a * sigma0 / Math.sqrt(mu) * (1 - Math.cosh(DH)) + R * Math.sqrt(-a / mu) * Math.sinh(DH);
         Ft = -Math.sqrt(-mu * a) / (r * R) * Math.sinh(DH);
         Gt = 1 - a / r * (1 - Math.cosh(DH));
-		
-		console.log("\nF: " + F);
-		console.log("G: " + G);
-		console.log("Ft: " + Ft);
-		console.log("Gt: " + Gt);
-		
     }
 
     var temp = [r0[0],r0[1],r0[2]];
-	
-	console.log("Temp: ");
-	console.log(temp);
 	
     for (var i=0;i<3;i++){
         r0[i] = F * r0[i] + G * v0[i];

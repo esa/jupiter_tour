@@ -5,54 +5,28 @@ function planetEphemerides(t, moon)
 {
     var keplerElements = new Array(6);
 	
-	console.log("\n\n" + moon.name);	
-	console.log(t);
-	
 	var mean_motion = Math.sqrt(MU_JUP/Math.pow(moon.a, 3));
-	
-	// console.log(mean_motion);
 	var dt = (t - ref_epoch) * DAY2SEC;
-	
-	// console.log(dt);
-	
+
     keplerElements[0] = moon.a;
     keplerElements[1] = moon.e;
     keplerElements[2] = moon.i;
     keplerElements[3] = moon.LAN;
     keplerElements[4] = moon.w;
 	keplerElements[5] = moon.M;
-	// console.log(moon.M);
-    // keplerElements[5] = moon.M + mean_motion * dt;
-	 // console.log(mean_motion);
-	// console.log(dt);
-	// console.log(keplerElements[5]);
-	
+
     // conversion of DEG into RAD
     keplerElements[2] *= DEG2RAD;
     keplerElements[3] *= DEG2RAD;
     keplerElements[4] *= DEG2RAD;
 	keplerElements[5] *= DEG2RAD;
 	
-	console.log(keplerElements[5]);
-	
     keplerElements[5] += mean_motion*dt;
 	keplerElements[5] =  keplerElements[5] % (2 * Math.PI);
-	
-	console.log(mean_motion);
-	console.log(dt);
-	console.log(keplerElements[5]);
-	
-	
-	// console.log("\n KE RADS");
-	// console.log(keplerElements);
 	
 	
     // Conversion from Mean Anomaly to Eccentric Anomaly via Kepler's equation
     keplerElements[5] = Mean2Eccentric(keplerElements[5], keplerElements[1]);
-	
-	
-	console.log("Kep[5] M2E = " + keplerElements[5]);
-	console.log("\n");
 	
     // Position and Velocity evaluation according to j2000 system
     return par2ic(keplerElements, MU_JUP);
@@ -67,25 +41,8 @@ function Mean2Eccentric(M, eccentricity)
 	E = M + eccentricity * Math.cos(M);
         Ecc_New = newton_raphson(E,new bind_kepE(M, eccentricity),new bind_d_kepE(eccentricity),100,TOLERANCE);
         return Ecc_New;
-	
-	
-    // if (eccentricity < 1.0) {
-        // E = M + eccentricity * Math.cos(M); // Initial guess
-        // while ((err > TOLERANCE) && (n_of_it < 100)) {
-            // Ecc_New = E - (E - eccentricity * Math.sin(E) - M) / (1 - eccentricity * Math.cos(E));
-            // err = Math.abs(E - Ecc_New);
-            // E = Ecc_New;
-            // n_of_it++;
-        // }
-    // } else {
-        // alert("planet ephermerides error !!");
- //       // CZF FF(e,M);  // function to find its zero point
- //       // ZeroFinder::FZero fz(-M_PI_2 + 1e-8, M_PI_2 - 1e-8);
- //       // Ecc_New = fz.FindZero(FF);
- //       // Eccentric = Ecc_New;
-    // }
 
-    return E;
+	return E;
 }
 
 // coverts keplerian elements to r & v
@@ -239,8 +196,8 @@ function par2ic( E, mu )
         }
     }
 	
-	console.log("Moon position r: x=" + pos[0] + ", y=" + pos[1] + ", z=" + pos[2]);
-	console.log("Moon velocity v: x=" + vel[0] + ", y=" + vel[1] + ", z=" + vel[2]);
+	// console.log("Moon position r: x=" + pos[0] + ", y=" + pos[1] + ", z=" + pos[2]);
+	// console.log("Moon velocity v: x=" + vel[0] + ", y=" + vel[1] + ", z=" + vel[2]);
 	
     return {
         r : [pos[0], pos[1], pos[2]],
