@@ -20,16 +20,23 @@ function flyByDv(v_sc, t_0, m0, m1, chromosome)
 	
 	var v_out = fb_prop(v_sc, m0_eph.v, chromosome.beta, chromosome.rp, m0.mu);
 	
+	console.log("V_OUT = FB_PROP: " + v_out);
+	
 	// var anomaly = calculateAnomaly(r_sc, m0_eph.r, v_sc, m0_eph.v);
 	
-	var pl = propagate_lagrangian(m0_eph.r, v_out, chromosome.T*chromosome.eta, MU_JUP);
+	var pl = propagate_lagrangian(m0_eph.r, v_out, chromosome.eta*chromosome.T*DAY2SEC, MU_JUP);
 	
 	console.log("\nPROP LAGRANGIAN");
 	console.log(pl);
 	console.log("PL V_mag: " + magnitude(pl.v));
 	
-	var lp = lambertProblem(pl.r, m1_eph.r, (1-chromosome.eta)*chromosome.T, false);
+	console.log("\n\nLAMBERT INPUTS:");
+	console.log("prop_lagr r: " + pl.r);
+	console.log("m1_eph r: " + m1_eph.r);
+	console.log("eta*T: " + (1-chromosome.eta)*chromosome.T);
+
 	
+	var lp = lambertProblem(pl.r, m1_eph.r, (1-chromosome.eta)*chromosome.T*DAY2SEC, false);
 	
 	
 	console.log("\nLAMBERT PROBLEM");

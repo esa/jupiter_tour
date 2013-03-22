@@ -35,6 +35,7 @@
 <script type="text/javascript" src="src/jDE/jde.js"></script>
 <script type="text/javascript" src="src/astrofunctions/newton_raphson.js"></script>
 <script type="text/javascript" src="src/chromosome.js"></script>
+<script type="text/javascript" src="src/astrofunctions/kepler_equations.js"></script>
 
 <script type="text/javascript">
 
@@ -210,6 +211,8 @@ var init = function() {
 
 window.onload = init;
 
+
+
 function animate() {
 
 	requestAnimationFrame( animate );
@@ -224,11 +227,18 @@ function onKeyDown(event){
 	event.preventDefault();
 	
 	if (event.keyCode == 36){ // HOME
-			
-			console.log(Math.sqrt(Math.pow(10,2)+ Math.pow(5,2)));
-			
-			console.log(10*Math.sqrt(1+Math.pow((5/10),2)));
-			
+		
+//		var earth = new moon('Earth', 1.016281672453605*AU, 0.024670207921092199, 0.0018122499433177301, 142.00661384655371, 314.22557146264961, 3.4727516723701761, 6378000, 398600441800000, null);
+		
+//		planetEphemerides(gc.time, jupMoons[currMoon%4]);
+		
+//		planetEphemerides(gc.time, jupMoons[currMoon%4]); 
+
+	console.log("\n\nPyKEP Delta V");
+
+	console.log(magnitude(subtraction([-22394090.115570806, -43488811.014680773, 101908.27883962537], [-29444.65759775203, -10961.250650192556, 205.90991434819537])));
+	
+	console.log("\n");
 	}
 	
 	if (event.keyCode == 33){ // PGUP

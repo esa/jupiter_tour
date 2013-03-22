@@ -4,9 +4,9 @@ var MU_JUP = 126686534.92180e9; 		// gravitational parameter of Jupiter [m3/s2]
 var R_JUP = 71492000.0;				// Jupiter radius [m]
 var R_SAFE_JUP = 2 * R_JUP;			// the closest distance of the spacecraft to Jupiter at any point in time
 var g = 9.80665;					// standard acceleration due to gravity [m/s2]
-var DAY2SEC = 86400;				// day [s]
+var DAY2SEC = 86400.0;				// day [s]
 var YEAR2DAY = 365.25;				// Year [days]
-var RAD2DEG = 180 / Math.PI;		// 
+var RAD2DEG = 180.0 / Math.PI;		// 
 var DEG2RAD   = Math.PI / 180.0;	// 
 
 var r_spacecraft_init = 1000 * R_JUP;		// initial radius of spacecraft from jupiter
