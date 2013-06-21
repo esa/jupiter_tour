@@ -1,0 +1,126 @@
+== Some conventions about namespaces ==
+
+namespace: global (=window)
+
+    - Constants like DEG2RAD, GOLDEN, MU_JUP, AU...
+    - Frequently used functions 
+        * but: these functions need to use precise names! "remove" i.e. is not a good one since it is to general)
+        * proto.js is a candidate
+        * coffeeutils.js as well
+        * please really really think about the consequences about adding something to global...
+        
+namespace: core
+
+    - All computationally sophisticated functions like
+        * candidates: feas_faces, feas_faces_tight_bisection, propagate_lagrangian, lambertProblem
+    
+namespace: gui (might make sense to split that into two - because of onMouseDown/animate?)
+
+    - everything that belongs to a gui
+        * paintFeasibleFace, updateGui, onMouseDown, animate
+    
+namespace: test
+
+    - Mockups, constructs, files and functions for test purpose only. Not necessary for the final program.
+
+namespace: rawdata
+
+    - Vertices, Facekoordinates, and other heaps of big and ugly numbers
+    
+namespace: tour
+
+    - Keeps data about the tour which is constructed during the game
+    
+(Where to put ganymede, io, europa, "moon" etc.?)
+
+
+---------- HOWTO NAMESPACES IN JAVASCRIPT -------------
+These namespaces are for the API of the program. If there are functions which do not need to be exposed, 
+we keep them in the local namespace. I recommend the following pattern for each js file:
+
+(function(){
+
+... here comes all the stuff of the js-file ...
+
+})();
+
+Why doing that? Everything what is declared in the anonymous function is private and will not mess with the global
+namespace. Suppose the following:
+
+1. file: 
+
+var moon = 'ganymede';
+
+2. file:
+
+function moon() {return 'europa';}
+
+while including both files, it depends on the order what moon in the global namespace will be: either a string-object 
+'ganymede' or a function returning the string 'eruopa'. Using the module pattern we get:
+
+1. file:
+
+(function(){
+    var moon = 'ganymede';
+})();
+
+2. file:
+
+(function(){
+    function moon() {return 'europa';}
+})();
+
+Regardless on how we read in these files now, we get neither of the moons in the global namespace. In fact, 
+moon from the 1st file can just be accessed within the 1st file and moon from the 2nd file can just 
+be accessed from the 2nd file. We have to expose the moon we want *explicitly* to a namespace. This is done
+the following way:
+
+0. file (to init the namespace)
+
+window.core = window.core || {};
+
+1. file:
+
+(function(){
+    var moon = 'ganymede';
+    
+    core.moon1 = moon;
+})();
+
+2. file:
+
+(function(){
+    function moon() {return 'europa';}
+    
+    core.moon2 = moon;
+})();
+
+Now we can access both functions within the namespace "core".
+This pattern is also used by coffeescript (if you check the generated files, it is exactly how it works).
+Important: we have to take care that the 0. file (init.js) will be read in first since otherwise we can not
+add functions and attributes to core.
+For the 2nd function there is alternative style applicable which saves a line of code:
+
+2b. file:
+
+(function(){
+    core.moon2 = function() {return 'europa';}
+})();
+
+You can do that for small files, but it will make it (in longer files) more difficult to find out which functions is associated to
+which namespace. I suggest the more explicit (but verbose) method of having a list of assignments at the end of the
+function:
+
+example file:
+
+(function(){
+    function foo() {...}    // core function
+    function bar() {...}    // core function
+    function spam(x) { return eggs(x, 2); }   // gui function
+    function eggs(x, y) { return x * y; }   // this function is used by spam but nowhere else so we leave it local
+    
+    // interface
+    core.foo = foo;
+    core.bar = bar;
+    gui.paint = spam;
+})();

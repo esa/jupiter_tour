@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Trajectory visualisation</title>
+
+<style>
+	body {
+			width:100%;
+			height:100%;
+			background-color:black;
+			margin: 0;
+	}
+
+</style>
+</head>
+
+<body>
+<script type="text/javascript" src="src/init.js"></script>
+<script type="text/javascript" src="lib/Three.js"></script>
+<script type="text/javascript" src="lib/dat.gui.min.js"></script>
+<script type="text/javascript" src="lib/TrackballControls.js"></script>
+<script type="text/javascript" src="lib/Detector.js"></script>
+<script type="text/javascript" src="src/core.js"></script>
+<script type="text/javascript" src="src/coffee_utils.js"></script>
+<script type="text/javascript" src="src/orbits.js"></script>
+<script type="text/javascript" src="src/astrofunctions/kepler_equations.js"></script>
+<script type="text/javascript" src="src/astrofunctions/newton_raphson.js"></script>
+<script type="text/javascript" src="src/astrofunctions/math.js"></script>
+<script type="text/javascript" src="src/astrofunctions/planetephemerides.js"></script> 
+<script type="text/javascript" src="src/astrofunctions/brentsmethod.js"></script>
+<script type="text/javascript" src="src/astrofunctions/lambert.js"></script>
+<script type="text/javascript" src="src/astrofunctions/deltav.js"></script>
+<script type="text/javascript" src="src/astrofunctions/propagatelagrangian.js"></script>
+<script type="text/javascript" src="src/astrofunctions/fb_prop.js"></script>
+<script type="text/javascript" src="src/elements.js"></script>
+<script type="text/javascript" src="src/feasible_faces.js"></script>
+<script type="text/javascript" src="src/faces_vertices.js"></script>
+<script type="text/javascript" src="src/problems/mga_part.js"></script>
+<script type="text/javascript" src="src/jDE/jde.js"></script>
+<script type="text/javascript" src="src/maingui.js"></script>
+<script type="text/javascript">
+			
+/** 
+	Function which is run when the website is loaded. 
+	Sets gui.container div, initialises WebGL renderer, camera, controls for the movement of objects in the game and lighting.
+	The gui controls are set up and the initial view of the Jovian system.
+    
+    All of the elements of the visualisation are exactly represented with accuracy of 1e-9.
+    The only exception being the Galilean moons of Jupiter which are 10 times their normal size for better visibility.
+*/
+var init = function() {
+
+    // Indicator for calculation
+    gui.busy = document.createElement( 'div' );
+    gui.busy.style.display = "none";
+    gui.busy.style.position = "fixed";
+    gui.busy.style.right = "8px";
+    gui.busy.style.bottom = "8px";
+    img = document.createElement( 'img' );
+    img.src = "resources/images/busy.gif"
+    img.alt = "busy ..."
+    gui.busy.appendChild( img );
+    document.body.appendChild( gui.busy );
+
+    gui.current_moon = tour.m_seq[tour.m_seq.length-1];
+    gui.projector = new THREE.Projector();
+    gui.container = document.createElement( 'div' );
+
+    document.body.appendChild( gui.container );
+
+    //Switch to canvas for browsers not supporting webgl
+    if ( Detector.webgl ) {
+		gui.renderer = new THREE.WebGLRenderer( {antialias:true} );
+	} else {
+		gui.renderer = new THREE.CanvasRenderer();
+    }
+    
+    gui.renderer.setSize( this.innerWidth, this.innerHeight );
+    gui.container.appendChild(gui.renderer.domElement);
+    gui.scene = gui.scene_trajectory;
+
+    // Sets the Optimizer to an instance of jde
+    core.solver = new core.jde();
+
+    // number of evolution steps that are currently left 
+    core.solver.steps = 0;    
+    core.solver.running = false;
+
+    controls = new THREE.TrackballControls( core.get_camera(gui.scene), gui.container );
+
+    controls.rotateSpeed = 1.0;
+    controls.zoomSpeed = 4.2;
+    controls.panSpeed = 0.5;
+
+    controls.noZoom = false;
+    controls.noPan = false;
+
+    controls.staticMoving = true;
+    controls.dynamicDampingFactor = 0.3;
+
+    controls.addEventListener( 'change', render );
+
+    gui.setup();
+  
+    gui.setup_traj_vis();
+  
+    /**
+    Workaround for Firefox. It loads all libraries at the same time thus trying to add the moon models to the scene before they are loaded. 
+    Timeout added to allow the models to be loaded before adding them to the appropriate scenes.
+    */
+    setTimeout("gui.setup_moon_vis()", 1500);
+
+	if (tour.m_seq.length > 1) {
+		tour.m_seq[tour.m_seq.length-2].unhighlight();
+	}
+	if (tour.m_seq.length > 0){
+		tour.m_seq[tour.m_seq.length-1].highlight();
+	}
+
+
+    window.addEventListener( 'resize', onWindowResize, false );
+    gui.container.addEventListener( 'click', onClick, false );
+    gui.container.addEventListener( 'mousemove', onMouseMove, false );
+    gui.container.addEventListener( 'dblclick', onDblClick, false );
+	
+	animate();
+}
+	
+function onClick(event)
+{	
+    //gui.mouse.click_counter++;
+    //if (gui.mouse.click_counter <= 1)
+    //    gui.mouse.click_timer = setTimeout(function(){gui.single_mouse_click(event); gui.mouse.click_counter=0;}, 150);
+    //else
+    //    gui.mouse.click_counter = 0;
+	
+	gui.single_mouse_click(event);
+	
+    animate();
+};
+
+function onDblClick(event)
+{
+    //clearTimeout(gui.mouse.click_timer);
+    gui.double_mouse_click(event);
+    //gui.mouse.click_counter = 0;
+};
+
+
+/**
+	Refreshes and re-renders the WebGL graphics on screen
+*/
+function render() {
+	gui.renderer.render(gui.scene, core.get_camera(gui.scene));
+}
+
+
+/**
+	Loop which allows the rendering of the graphics to be done with an appropriate frequency 
+	and makes sure that the appropriate method is called depending on the user's browser.
+*/
+window.requestAnimFrame = (function(){   
+return window.requestAnimationFrame  ||    
+ window.webkitRequestAnimationFrame ||    
+ window.mozRequestAnimationFrame ||    
+ window.oRequestAnimationFrame  ||    
+ window.msRequestAnimationFrame  ||    
+ function(/* function */ callback, /* DOMElement */ element){   
+  window.setTimeout(callback, 1000 / 60);   
+ };   
+})(); 
+
+
+/**
+	Recursive function which updates the controls status and calls to render the graphics. 
+	This function calls the animation frame loop and is also called from the loop.
+*/
+function animate() {   
+   // use a callback to animate as soon as the browser has time for another frame
+   requestAnimFrame( animate );        
+
+    if (core.solver.steps-- > 0) {
+        core.solver.running = true;
+        gui.toggle_busy(true);
+        core.pop = core.solver.evolve(core.pop, core.prob, 10);
+    } else {
+        if (core.solver.running) {
+            gui.apply_solution();
+            core.solver.running = false;
+            gui.toggle_busy(false);
+        } else {
+            ; // do intentionally nothing
+        }
+    }
+   
+    for (var i in moons) {
+        moons[i].animate();
+    }
+
+    gui.update();
+    controls.update();
+    render();   
+}
+
+/** Start Event handlers **/
+
+/**
+	Adjusts the size of the graphics canvas when resizing the window
+*/
+function onWindowResize() {
+
+	core.get_camera(gui.scene).aspect = window.innerWidth / window.innerHeight;
+	core.get_camera(gui.scene).updateProjectionMatrix();
+	gui.renderer.setSize( window.innerWidth, window.innerHeight );
+	
+	controls.handleResize();
+	render();
+} 
+
+
+function onMouseMove( event ) 
+{
+    // update the mouse variable
+	gui.mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+	gui.mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+}
+
+function onClick(event)
+{	
+    //gui.mouse.click_counter++;
+    //if (gui.mouse.click_counter <= 1)
+     //   gui.mouse.click_timer = setTimeout(function(){gui.single_mouse_click(event); gui.mouse.click_counter=0;}, 150);
+   // else
+        //gui.mouse.click_counter = 0;
+		
+	gui.single_mouse_click(event);
+		
+};
+
+function onDblClick(event)
+{
+    //clearTimeout(gui.mouse.click_timer);
+    gui.double_mouse_click(event);
+    //gui.mouse.click_counter = 0;
+};
+
+/** End Event handlers **/
+
+// setting up the function which is executed first
+this.onload = init;
+
+</script>
+</body>
+</html>

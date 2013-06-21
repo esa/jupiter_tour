@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>mga_part test-file</title>
+  </head>
+  <body>
+    <h1>mga_part Testing</h1>
+
+	<p>
+	Please click for a generic problem:
+	<button type="button" onclick="prob = test.gen_mga_part();">Generate mga_part problem</button>
+	</p>
+	
+	<p>
+	Number of individuals:
+	<input id="popfield" type="text" size="5" maxlength="4" /> 
+	<button id="popbutton" type="button" disabled=true onclick="test.gen_pop(prob)">Generate Population</button>
+	</p>
+
+	<p>
+	Enter number of generations:
+	<input id="genfield" type="text" size="5" maxlength="5" /> 
+	<button id="evolvebutton" type="button" disabled=true onclick="test.evolve(prob)">Evolve</button>
+	</p>
+
+	<div id='output'></div>
+    <script type="text/javascript" src="../init.js"></script>
+    <script type="text/javascript" src="../constants.js"></script>
+    <script type="text/javascript" src="../moon.js"></script>
+    <script type="text/javascript" src="../coffee_utils.js"></script>
+    <script type="text/javascript" src="../chromosome.js"></script>
+    <script type="text/javascript" src="../jDE/jde.js"></script>
+	<script type="text/javascript" src="mga_part.js"></script>
+	<script type="text/javascript" src="../astrofunctions/planetephemerides.js"></script>
+    <script type="text/javascript" src="../astrofunctions/brentsmethod.js"></script>
+    <script type="text/javascript" src="../astrofunctions/lambert.js"></script>
+    <script type="text/javascript" src="../astrofunctions/deltav.js"></script>
+    <script type="text/javascript" src="../astrofunctions/newton_raphson.js"></script>
+    <script type="text/javascript" src="../astrofunctions/propagatelagrangian.js"></script>
+    <script type="text/javascript" src="../astrofunctions/math.js"></script>
+    <script type="text/javascript" src="../astrofunctions/kepler_equations.js"></script>
+    <script type="text/javascript" src="../astrofunctions/fb_prop.js"></script>
+    <script type="text/javascript" src="resources/libs/Three.js"></script>
+    <script type="text/javascript" src="resources/libs/DAT.GUI.min.js"></script>
+    <script type="text/javascript" src="resources/libs/TrackballControls.js"></script>
+    <script type="text/javascript" src="resources/libs/ReusableRay.js"></script>
+    <script type="text/javascript" src="src/proto.js"></script>
+    <script type="text/javascript" src="src/feasible_faces.js"></script>
+    <script type="text/javascript" src="src/faces_vertices.js"></script>
+    </body>
+   
+    
+    <script type="text/javascript">
+var jupMoons = [];
+var currModel, europaModel, ioModel, callistoModel, ganymedeModel;
+var europa = new moon('Europa', 671224237.12681, 9.384699662601e-03, 0.46530284284480, -132.15817268686, -79.571640035051, 318.00776678240, 1561.0e3, 3202.739e9, europaModel);
+jupMoons[jupMoons.length] = europa;
+var io = new moon('Io', 422029687.14001, 4.308524661773e-03, 40.11548686966e-03, -79.640061742992, 37.991267683987, 286.85240405645, 1826.5e3, 5959.916e9, ioModel);
+jupMoons[jupMoons.length] = io;
+var callisto = new moon('Callisto', 1883136616.73050, 7.337063799028e-03, 0.25354332731555, 86.723916616548, -160.76003434076, 321.07650614246, 2408.0e3, 7179.289e9, callistoModel);
+jupMoons[jupMoons.length] = callisto;
+var ganymede = new moon('Ganymede', 1070587469.23740, 1.953365822716e-03, 0.13543966756582, -50.793372416917, -42.876495018307, 220.59841030407, 2634.0e3, 9887.834e9, ganymedeModel);
+jupMoons[jupMoons.length] = ganymede;
+    </script>
+</html>
