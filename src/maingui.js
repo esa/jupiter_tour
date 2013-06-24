@@ -495,12 +495,14 @@ function single_mouse_click(event) {
 			
 			//CASE 2.
 			if (face_select_phase){
-				for (var m = 0; m < tour.m_seq.length; m++){
-					if (intersects[0].object.name === tour.m_seq[tour.m_seq.length-1].name){
-					
-						gui.scene = gui.scene_moon;
-						gui.switch_scene(tour.m_seq[tour.m_seq.length-1]);
-						gui.show_feas_faces(tour.mission_epoch, current_moon, tour.leg_v_infs[tour.leg_v_infs.length-1]);
+				for (var m = 0; m < moons.length; m++){
+					if (intersects[0].object.name === moons[m].name){
+						gui.switch_scene(moons[m]);
+						
+						if (intersects[0].object.name === tour.m_seq[tour.m_seq.length-1].name){
+							gui.show_feas_faces(tour.mission_epoch, current_moon, tour.leg_v_infs[tour.leg_v_infs.length-1]);
+						}
+						
 						break;
 					}
 				}
@@ -592,6 +594,9 @@ function double_mouse_click(event) {
 					gui.lockFace(gui.current_moon); 
 					current_moon.set_face_value(i,0);
 					gui.scene = gui.scene_trajectory;
+					
+					clearPaint(current_moon);
+					current_moon.feasibles = {faces: [], beta: [], rp: []};
 					
 					gui.switch_scene(null);
 					
