@@ -308,5 +308,7 @@ var tour = {
 		flyby_scores:[],	// collection of all face values scored for each trajectory leg
 		leg_v_infs: [[-1000,400,-1000]],
 		leg_arcs: [],
-		end_leg_v_infs:[[-1000,400,-1000]]
+		end_leg_v_infs:[[-1000,400,-1000]],
+		total_dv: 0,
+		m_sc: 2000,		// spacecraft mass
 };

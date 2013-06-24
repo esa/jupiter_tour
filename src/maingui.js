@@ -105,7 +105,7 @@ function setup(){
             face: "None",
 			face_value: "0",
             score: 0,
-            dv: 0,
+            dv: tour.total_dv,
             time: max_mission_tof,
             mass: 2000,
 			leg_tof: 50,
@@ -136,7 +136,11 @@ function setup(){
 					tour.m_seq[tour.m_seq.length-1].unhighlight();
 					tour.x  = tour.x.slice(0, tour.x.length-4);
 					tour.m_seq = tour.m_seq.slice(0, tour.m_seq.length-1);
-					gui.control.dv -= tour.leg_dvs[tour.leg_dvs.length-1];
+					//gui.control.dv -= tour.leg_dvs[tour.leg_dvs.length-1];
+					
+					tour.total_dv -= tour.leg_dvs[tour.leg_dvs.length-1];
+					gui.control.dv = tour.total_dv;
+					
 					tour.leg_dvs = tour.leg_dvs.slice(0, tour.leg_dvs.length-1);
 					tour.leg_v_infs = tour.leg_v_infs.slice(0, tour.leg_v_infs.length-1);
 					tour.end_leg_v_infs = tour.end_leg_v_infs.slice(0, tour.end_leg_v_infs.length-1);
@@ -146,6 +150,9 @@ function setup(){
 					
 					gui.control.moon = tour.m_seq[tour.m_seq.length-1].name;				
 					tour.m_seq[tour.m_seq.length-1].highlight();
+					
+					core.calculate_sc_mass();
+					gui.control.mass = tour.m_sc;
 					
 					face_select_phase = false;
 					
@@ -179,8 +186,7 @@ function setup(){
 								gui.control.face = "None";
 								gui.control.face_value = 0;
 								
-								if(gui.control.time > 50) gui.control.leg_tof = 50;
-								else gui.control.leg_tof = gui.control.time;
+								if(gui.control.time < gui.control.leg_tof) gui.control.leg_tof = gui.control.time;
 								
 								gui.control.beta_lower = -6.2;
 								gui.control.beta_upper = 6.2;
@@ -194,7 +200,7 @@ function setup(){
         gui.load_big_moon_model(moons[i]);
     }
 
-	var gui_setup = new dat.GUI({ height : 13 * 32 - 1 });
+	var gui_setup = new dat.GUI({ height : 13 * 32 - 1, width: 280 });
 	
     gui_setup.add(gc, 'moon').name('Moon').listen();
 	gui_setup.add(gc, 'face').name('Face No.').onChange(function(newValue){if (gui.last_selected == null || newValue==null || newValue == undefined) gc.face = "None";}).listen();
@@ -202,8 +208,8 @@ function setup(){
 	
 	gui_setup.add(gc, 'score').name('Score').onChange(function(newValue){if (newValue < 0) gc.score = 0; if (newValue > 324) gc.score = 324;}).listen();
 	gui_setup.add(gc, 'dv').name('DV').listen();
-	gui_setup.add(gc, 'time').name('Time').listen();
-	gui_setup.add(gc, 'mass').name('Mass').listen();
+	gui_setup.add(gc, 'time').name('Remaining Time').listen();
+	gui_setup.add(gc, 'mass').name('S/C Mass').listen();
 	
 	var bounds_folder = gui_setup.addFolder('Flyby Bounds');
 	bounds_folder.add(gc, 'leg_tof', 1, 50).listen().name('Max Leg TOF');
@@ -361,9 +367,12 @@ function apply_solution(){
     }
     
     gui.control.time -= ind.x[3];
-    gui.control.dv += ind.f;
+	tour.total_dv += ind.f;
+	gui.control.dv = tour.total_dv;
 	tour.leg_dvs.push(ind.f);
 	gui.control.set_face_defaults();
+	 core.calculate_sc_mass();
+	 gui.control.mass = tour.m_sc;
     gui.show_trajectory();
     
     controls.update();
@@ -384,7 +393,14 @@ function colour_arcs(){
 	tour.leg_arcs[tour.leg_arcs.length-1].material.opacity = 1;
 	tour.leg_arcs[tour.leg_arcs.length-1].material.transparent = true;
 	
+	if (tour.leg_dvs[tour.leg_dvs.length-1] <= 5) tour.leg_arcs[tour.leg_arcs.length-1].material.color = new THREE.Color(0x00ff00);
+	else if (tour.leg_dvs[tour.leg_dvs.length-1] <= 200) tour.leg_arcs[tour.leg_arcs.length-1].material.color = new THREE.Color(0xffff00);
+	else tour.leg_arcs[tour.leg_arcs.length-1].material.color = new THREE.Color(0xff0000);
+	
 	if(tour.leg_arcs.length > 1){
+	
+		tour.leg_arcs[tour.leg_arcs.length-2].material.color = new THREE.Color(0x999999);
+	
 		for (var i = tour.leg_arcs.length-2; i >= 0; i--){
 			tour.leg_arcs[i].material.opacity = (tour.leg_arcs[i+1].material.opacity)/2;
 			if (tour.leg_arcs[i].material.opacity < 0.01) tour.leg_arcs[i].material.transparent = true;
