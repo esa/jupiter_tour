@@ -139,6 +139,22 @@
 		moon_name_sprite.scale.set( canvas_w/4, canvas_h/4, 1.0 ); // imageWidth, imageHeight
         return moon_name_sprite;
     }
+    
+    function create_skybox() {
+        var imagePrefix = "resources/images/skybox-";
+        var directions  = ["xpos", "xneg", "ypos", "yneg", "zpos", "zneg"];
+        var imageSuffix = ".png";
+        var skyGeometry = new THREE.CubeGeometry( 1000, 1000, 1000 );	
+        
+        var materialArray = [];
+        for (var i = 0; i < 6; i++)
+            materialArray.push( new THREE.MeshBasicMaterial({
+                map: THREE.ImageUtils.loadTexture( imagePrefix + directions[i] + imageSuffix ),
+                side: THREE.BackSide
+            }));
+        var yMaterial = new THREE.MeshFaceMaterial( materialArray );
+        return new THREE.Mesh( skyGeometry, yMaterial );
+    }
 
     /* uses a loader to load the truncated icosahedron */
     function load_big_moon_model(moon) {
@@ -164,7 +180,9 @@ gui.create_moon_vis_model = create_moon_vis_model;
 gui.create_moon_name_sprite = create_moon_name_sprite;
 gui.create_jupiter_vis_model = create_jupiter_vis_model;
 gui.create_moon_orbit = create_moon_orbit;
+gui.create_skybox = create_skybox;
 gui.create_helper_coordinate_system = create_helper_coordinate_system;
 gui.load_big_moon_model = load_big_moon_model
+
 
 })();
