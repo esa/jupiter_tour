@@ -91,17 +91,10 @@ function Arc(){
 		var m_seq = tour.m_seq;
 		var mission_epoch = tour.mission_epoch;
 		var v_inf = tour.end_leg_v_infs[tour.end_leg_v_infs.length-1];
-		
-		console.log("X: " + x);
-		console.log("M_SEQ: " + m_seq);
-		console.log("MISSION_EPOCH: " + mission_epoch);
-		console.log("V_INF: " + v_inf);
 
 		var arc_points = new Array(0);
 		
 		var leg = m_seq.length-2; // the number of the starting moon in the visited moon sequence for this trajectory leg
-		
-		console.log("LEG: " + leg);
 		
 		if (m_seq.length <= 1 || typeof(m_seq) == "undefined" || 
 			v_inf.length != 3 || typeof(v_inf) == "undefined" || 
@@ -109,15 +102,6 @@ function Arc(){
 			x.length != (m_seq.length-1)*4 || typeof(x) == "undefined") {
 				console.log("\n\nINVALID TRAJECTORY ELEMENTS!\n\n");
 		}
-			
-			var leg = m_seq.length-2; // the number of the starting moon in the visited moon sequence for this trajectory leg
-			
-			if (m_seq.length <= 1 || typeof(m_seq) == "undefined" || 
-				v_inf.length != 3 || typeof(v_inf) == "undefined" || 
-				ref_epoch < 58849 || typeof(ref_epoch) == "undefined" || 
-				x.length != (m_seq.length-1)*4 || typeof(x) == "undefined") {
-					console.log("\n\nINVALID TRAJECTORY ELEMENTS!\n\n");
-			}
 				
 			else {
 				
@@ -308,5 +292,7 @@ var tour = {
 		flyby_scores:[],	// collection of all face values scored for each trajectory leg
 		leg_v_infs: [[-1000,400,-1000]],
 		leg_arcs: [],
-		end_leg_v_infs:[[-1000,400,-1000]]
+		end_leg_v_infs:[[-1000,400,-1000]],
+		total_dv: 0,
+		m_sc: 2000,		// spacecraft mass
 };

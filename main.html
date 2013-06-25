@@ -32,6 +32,7 @@
 <script type="text/javascript" src="src/astrofunctions/deltav.js"></script>
 <script type="text/javascript" src="src/astrofunctions/propagatelagrangian.js"></script>
 <script type="text/javascript" src="src/astrofunctions/fb_prop.js"></script>
+<script type="text/javascript" src="src/astrofunctions/spacecraft_mass.js"></script>
 <script type="text/javascript" src="src/elements.js"></script>
 <script type="text/javascript" src="src/feasible_faces.js"></script>
 <script type="text/javascript" src="src/faces_vertices.js"></script>
@@ -39,7 +40,9 @@
 <script type="text/javascript" src="src/jDE/jde.js"></script>
 <script type="text/javascript" src="src/maingui.js"></script>
 <script type="text/javascript">
-			
+	
+
+
 /** 
 	Function which is run when the website is loaded. 
 	Sets gui.container div, initialises WebGL renderer, camera, controls for the movement of objects in the game and lighting.
@@ -50,22 +53,10 @@
 */
 var init = function() {
 
-    // Indicator for calculation
-    gui.busy = document.createElement( 'div' );
-    gui.busy.style.display = "none";
-    gui.busy.style.position = "fixed";
-    gui.busy.style.right = "8px";
-    gui.busy.style.bottom = "8px";
-    img = document.createElement( 'img' );
-    img.src = "resources/images/busy.gif"
-    img.alt = "busy ..."
-    gui.busy.appendChild( img );
-    document.body.appendChild( gui.busy );
-
     gui.current_moon = tour.m_seq[tour.m_seq.length-1];
     gui.projector = new THREE.Projector();
     gui.container = document.createElement( 'div' );
-
+	
     document.body.appendChild( gui.container );
 
     //Switch to canvas for browsers not supporting webgl
@@ -75,55 +66,59 @@ var init = function() {
 		gui.renderer = new THREE.CanvasRenderer();
     }
     
+	
     gui.renderer.setSize( this.innerWidth, this.innerHeight );
     gui.container.appendChild(gui.renderer.domElement);
     gui.scene = gui.scene_trajectory;
-
-    // Sets the Optimizer to an instance of jde
-    core.solver = new core.jde();
-
-    // number of evolution steps that are currently left 
-    core.solver.steps = 0;    
-    core.solver.running = false;
-
-    controls = new THREE.TrackballControls( core.get_camera(gui.scene), gui.container );
-
-    controls.rotateSpeed = 1.0;
-    controls.zoomSpeed = 4.2;
-    controls.panSpeed = 0.5;
-
-    controls.noZoom = false;
-    controls.noPan = false;
-
-    controls.staticMoving = true;
-    controls.dynamicDampingFactor = 0.3;
-
-    controls.addEventListener( 'change', render );
-
-    gui.setup();
-  
-    gui.setup_traj_vis();
-  
-    /**
-    Workaround for Firefox. It loads all libraries at the same time thus trying to add the moon models to the scene before they are loaded. 
-    Timeout added to allow the models to be loaded before adding them to the appropriate scenes.
-    */
-    setTimeout("gui.setup_moon_vis()", 1500);
-
-	if (tour.m_seq.length > 1) {
-		tour.m_seq[tour.m_seq.length-2].unhighlight();
-	}
-	if (tour.m_seq.length > 0){
-		tour.m_seq[tour.m_seq.length-1].highlight();
-	}
-
-
-    window.addEventListener( 'resize', onWindowResize, false );
-    gui.container.addEventListener( 'click', onClick, false );
-    gui.container.addEventListener( 'mousemove', onMouseMove, false );
-    gui.container.addEventListener( 'dblclick', onDblClick, false );
 	
-	animate();
+	//if (gui.webGL_check()){
+		
+		// Sets the Optimizer to an instance of jde
+		core.solver = new core.jde();
+
+		// number of evolution steps that are currently left 
+		core.solver.steps = 0;    
+		core.solver.running = false;
+
+		controls = new THREE.TrackballControls( core.get_camera(gui.scene), gui.container );
+
+		controls.rotateSpeed = 1.0;
+		controls.zoomSpeed = 4.2;
+		controls.panSpeed = 0.5;
+
+		controls.noZoom = false;
+		controls.noPan = false;
+
+		controls.staticMoving = true;
+		controls.dynamicDampingFactor = 0.3;
+
+		controls.addEventListener( 'change', render );
+
+		gui.setup();
+	  
+		gui.setup_traj_vis();
+	  
+		/**
+		Workaround for Firefox. It loads all libraries at the same time thus trying to add the moon models to the scene before they are loaded. 
+		Timeout added to allow the models to be loaded before adding them to the appropriate scenes.
+		*/
+		setTimeout("gui.setup_moon_vis()", 1500);
+
+		if (tour.m_seq.length > 1) {
+			tour.m_seq[tour.m_seq.length-2].unhighlight();
+		}
+		if (tour.m_seq.length > 0){
+			tour.m_seq[tour.m_seq.length-1].highlight();
+		}
+
+
+		window.addEventListener( 'resize', onWindowResize, false );
+		gui.container.addEventListener( 'click', onClick, false );
+		gui.container.addEventListener( 'mousemove', onMouseMove, false );
+		gui.container.addEventListener( 'dblclick', onDblClick, false );
+		
+		animate();
+	//}
 }
 	
 function onClick(event)

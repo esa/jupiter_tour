@@ -20,6 +20,10 @@ function update() {
     }
 }
 
+/**
+	@param in moon - the moon on which the last selected face should be confirmed as the face to fly over.
+	Adds the last selected face of moon to an array of faces which have already been visited and paints them blue.
+*/
 function lockFace(moon){
 	
 	if (gui.last_selected != null){
@@ -36,6 +40,11 @@ function lockFace(moon){
 	}
 }
 
+/**
+	@param in moon - moon on which the face should be painted
+	@param in face_nr - the visitable face which should be painted
+	Paints a visitable face green to show the user which parts of the moon can be flown over.
+*/
 function paintFeasibleFace(moon, face_nr){
 		
 	if (!core.contains(moon.locked, face_nr)){
@@ -105,7 +114,7 @@ function setup(){
             face: "None",
 			face_value: "0",
             score: 0,
-            dv: 0,
+            dv: tour.total_dv,
             time: max_mission_tof,
             mass: 2000,
 			leg_tof: 50,
@@ -115,12 +124,12 @@ function setup(){
             rp_upper: 5.0,
 
             back: function() { 
-                if (!traj_view) {
+                if (!traj_view) { // when in moon view going back to trajectory view
 					gui.scene = scene_trajectory;
 					switch_scene(null);
                     gui.control.set_face_defaults();
                 }
-				else if (tour.m_seq.length > 1  && face_select_phase){
+				else if (tour.m_seq.length > 1  && face_select_phase){ // when in trajectory view selecting the next face to visit going back to moon selection phase
 				
 					tour.mission_epoch -= tour.x[tour.x.length-1];
 					gui.control.time += tour.x[tour.x.length-1];
@@ -136,7 +145,11 @@ function setup(){
 					tour.m_seq[tour.m_seq.length-1].unhighlight();
 					tour.x  = tour.x.slice(0, tour.x.length-4);
 					tour.m_seq = tour.m_seq.slice(0, tour.m_seq.length-1);
-					gui.control.dv -= tour.leg_dvs[tour.leg_dvs.length-1];
+					//gui.control.dv -= tour.leg_dvs[tour.leg_dvs.length-1];
+					
+					tour.total_dv -= tour.leg_dvs[tour.leg_dvs.length-1];
+					gui.control.dv = tour.total_dv;
+					
 					tour.leg_dvs = tour.leg_dvs.slice(0, tour.leg_dvs.length-1);
 					tour.leg_v_infs = tour.leg_v_infs.slice(0, tour.leg_v_infs.length-1);
 					tour.end_leg_v_infs = tour.end_leg_v_infs.slice(0, tour.end_leg_v_infs.length-1);
@@ -147,11 +160,16 @@ function setup(){
 					gui.control.moon = tour.m_seq[tour.m_seq.length-1].name;				
 					tour.m_seq[tour.m_seq.length-1].highlight();
 					
+					core.calculate_sc_mass();
+					gui.control.mass = tour.m_sc;
+					
 					face_select_phase = false;
+					
+					gui.instructions.innerHTML = "Select the next moon to visit!";
 					
 					if (tour.leg_arcs.length > 0)colour_arcs();
 				}
-				else if (tour.m_seq.length > 0  && !face_select_phase){
+				else if (tour.m_seq.length > 0  && !face_select_phase){ // when in traj view selecting the next moon to visit going back to face selection phase
 					
 					var n = tour.flyby_scores[tour.flyby_scores.length-1];
 					gui.control.score -= n[1];
@@ -162,6 +180,9 @@ function setup(){
 					face_select_phase = true;
 					
 					gui.control.set_face_defaults();
+					
+					gui.instructions.innerHTML = "Select the next face to visit!";
+					
 				}
             },
 			
@@ -179,8 +200,7 @@ function setup(){
 								gui.control.face = "None";
 								gui.control.face_value = 0;
 								
-								if(gui.control.time > 50) gui.control.leg_tof = 50;
-								else gui.control.leg_tof = gui.control.time;
+								if(gui.control.time < gui.control.leg_tof) gui.control.leg_tof = gui.control.time;
 								
 								gui.control.beta_lower = -6.2;
 								gui.control.beta_upper = 6.2;
@@ -194,7 +214,7 @@ function setup(){
         gui.load_big_moon_model(moons[i]);
     }
 
-	var gui_setup = new dat.GUI({ height : 13 * 32 - 1 });
+	var gui_setup = new dat.GUI({ height : 13 * 32 - 1, width: 280 });
 	
     gui_setup.add(gc, 'moon').name('Moon').listen();
 	gui_setup.add(gc, 'face').name('Face No.').onChange(function(newValue){if (gui.last_selected == null || newValue==null || newValue == undefined) gc.face = "None";}).listen();
@@ -202,8 +222,8 @@ function setup(){
 	
 	gui_setup.add(gc, 'score').name('Score').onChange(function(newValue){if (newValue < 0) gc.score = 0; if (newValue > 324) gc.score = 324;}).listen();
 	gui_setup.add(gc, 'dv').name('DV').listen();
-	gui_setup.add(gc, 'time').name('Time').listen();
-	gui_setup.add(gc, 'mass').name('Mass').listen();
+	gui_setup.add(gc, 'time').name('Remaining Time').listen();
+	gui_setup.add(gc, 'mass').name('S/C Mass').listen();
 	
 	var bounds_folder = gui_setup.addFolder('Flyby Bounds');
 	bounds_folder.add(gc, 'leg_tof', 1, 50).listen().name('Max Leg TOF');
@@ -237,7 +257,7 @@ function setup_traj_vis() {
         gui.clickable_objects.push(moons[i].vis_model);
         gui.scene_trajectory.add(gui.create_moon_orbit(moons[i]));
     }
-    
+
     // create and add Jupiter
     gui.scene_trajectory.add(gui.create_jupiter_vis_model());
     
@@ -262,7 +282,7 @@ function setup_traj_vis() {
 	scene_trajectory.add(camera_trajectory);
 	
     // create and add light to the scene
-    var ambient = new THREE.AmbientLight( 0x555555 );
+    var ambient = new THREE.AmbientLight( 0x999999 );
     var light = new THREE.PointLight( 0xFFFFDD );
     light.position.set( -1500, 10, -50 );
     scene_trajectory.add( light );
@@ -309,6 +329,10 @@ function setup_moon_vis(){
     }
 }
 
+/**
+	@param in moon: Moon object whose scene should be visualised. If null switch to trajectory scene.
+	Switches between the scenes (moon and trajectory). 
+*/
 function switch_scene(moon){
 	if (moon===null){
 		
@@ -365,9 +389,12 @@ function apply_solution(){
     }
     
     gui.control.time -= ind.x[3];
-    gui.control.dv += ind.f;
+	tour.total_dv += ind.f;
+	gui.control.dv = tour.total_dv;
 	tour.leg_dvs.push(ind.f);
 	gui.control.set_face_defaults();
+	 core.calculate_sc_mass();
+	 gui.control.mass = tour.m_sc;
     gui.show_trajectory();
     
     controls.update();
@@ -378,25 +405,41 @@ function apply_solution(){
 	if (tour.m_seq.length > 0){
 		tour.m_seq[tour.m_seq.length-1].highlight();
 	}
+	
+	gui.instructions.innerHTML = "Select the next face to visit!";
     
     face_select_phase = true;
     
 }
 
+/**
+	Colours the visual models of leg arcs based on their dv and order.
+	Older arcs are made transparent and invisible not to clutter the scene.
+*/
 function colour_arcs(){
 	
 	tour.leg_arcs[tour.leg_arcs.length-1].material.opacity = 1;
 	tour.leg_arcs[tour.leg_arcs.length-1].material.transparent = true;
 	
+	if (tour.leg_dvs[tour.leg_dvs.length-1] <= 5) tour.leg_arcs[tour.leg_arcs.length-1].material.color = new THREE.Color(0x00ff00);
+	else if (tour.leg_dvs[tour.leg_dvs.length-1] <= 200) tour.leg_arcs[tour.leg_arcs.length-1].material.color = new THREE.Color(0xffff00);
+	else tour.leg_arcs[tour.leg_arcs.length-1].material.color = new THREE.Color(0xff0000);
+	
 	if(tour.leg_arcs.length > 1){
+	
+		tour.leg_arcs[tour.leg_arcs.length-2].material.color = new THREE.Color(0x999999);
+	
 		for (var i = tour.leg_arcs.length-2; i >= 0; i--){
 			tour.leg_arcs[i].material.opacity = (tour.leg_arcs[i+1].material.opacity)/2;
-			if (tour.leg_arcs[i].material.opacity < 0.01) tour.leg_arcs[i].material.transparent = true;
+			if (tour.leg_arcs[i].material.opacity < 0.05) tour.leg_arcs[i].material.transparent = true;
 		}
 	}
 }
 
-
+/**
+	Creates an Arc object for the last leg and adds the visual representation to the trajectory scene.
+	Afterwards it colour the arcs in an appropriate colour. Moons are placed in coprrect positions.
+*/
 function show_trajectory(){
 	var arc = new core.Arc();
 	arc.create();
@@ -406,7 +449,10 @@ function show_trajectory(){
 	move_moons(tour.mission_epoch);
 }
 
-
+/**
+	@param in epoch - the epoch [MJD] for which the correct moon ephemerides should be calculated for 
+	Positions the vis_models of the moons (in trajectory scene) based on the epoch. 
+*/
 function move_moons(epoch){
 	for (var i in moons) {
 		var eph = core.planet_ephemerides(epoch, moons[i]);
@@ -415,6 +461,10 @@ function move_moons(epoch){
     }
 }
 
+/**
+	@param in busy - [boolean] display the loading wheel if busy is true, hide it otherwise
+	Displays a loading wheel on the right hand corner of the canvas when the trajectory parameters are being optimised
+*/
 function toggle_busy(busy){
 	if (busy) {
 		gui.busy.style.display = "block";
@@ -499,12 +549,14 @@ function single_mouse_click(event) {
 			
 			//CASE 2.
 			if (face_select_phase){
-				for (var m = 0; m < tour.m_seq.length; m++){
-					if (intersects[0].object.name === tour.m_seq[tour.m_seq.length-1].name){
-					
-						gui.scene = gui.scene_moon;
-						gui.switch_scene(tour.m_seq[tour.m_seq.length-1]);
-						gui.show_feas_faces(tour.mission_epoch, current_moon, tour.leg_v_infs[tour.leg_v_infs.length-1]);
+				for (var m = 0; m < moons.length; m++){
+					if (intersects[0].object.name === moons[m].name){
+						gui.switch_scene(moons[m]);
+						
+						if (intersects[0].object.name === tour.m_seq[tour.m_seq.length-1].name){
+							gui.show_feas_faces(tour.mission_epoch, current_moon, tour.leg_v_infs[tour.leg_v_infs.length-1]);
+						}
+						
 						break;
 					}
 				}
@@ -531,6 +583,8 @@ function single_mouse_click(event) {
 				core.prob.set_rp(rps);
                 core.pop = core.create_population(core.prob);
                 core.solver.steps = GENERATIONS;
+				
+				gui.instructions.innerHTML = "Optimising trajectory...";
 				
 				// gui.control.set_face_defaults();
 				//gui.show_trajectory(tour.m_seq, tour.v_inf, ref_epoch, tour.x); 
@@ -597,10 +651,15 @@ function double_mouse_click(event) {
 					current_moon.set_face_value(i,0);
 					gui.scene = gui.scene_trajectory;
 					
+					clearPaint(current_moon);
+					current_moon.feasibles = {faces: [], beta: [], rp: []};
+					
 					gui.switch_scene(null);
 					
 					//gui.show_trajectory(tour.m_seq, tour.v_inf, ref_epoch, tour.x); 
 					face_select_phase = false;
+					
+					gui.instructions.innerHTML = "Select the next moon to visit!";
 					
 					if (gui.control.time < 1) {
 						var end_game_popup = confirm("GAME OVER! \n\n	Your score was:\n\t" + gui.control.score + " Points" +
@@ -632,8 +691,65 @@ function double_mouse_click(event) {
 	}
 }
 
+/**
+	Checks whether the browser supports and can initialise webGL properly.
+	If not, it redirects the user to a webGL troubleshooting page
+*/
+function webGL_check(){
+	
+	if (!window.WebGLRenderingContext) {
+		// the browser doesn't even know what WebGL is
+		window.location = "http://get.webgl.org";
+		return false;
+	} else {
+		var canvas = gui.container.getElementsByTagName('canvas')[0];
+		var context = canvas.getContext("webgl");
+		if (!context) {
+			// browser supports WebGL but initialization failed.
+			window.location = "http://get.webgl.org/troubleshooting";
+			return false;
+		}
+		
+		else {
+			console.log("Passed webGL check!");
+			return true;
+		}
+  }
+	
+}
+
+
+    // Indicator for calculation
+    gui.busy = document.createElement( 'div' );
+    gui.busy.style.display = "none";
+    gui.busy.style.position = "fixed";
+    gui.busy.style.right = "8px";
+    gui.busy.style.bottom = "8px";
+    img = document.createElement( 'img' );
+    img.src = "resources/images/busy.gif"
+    img.alt = "busy ..."
+    gui.busy.appendChild( img );
+    document.body.appendChild( gui.busy );
+	
+	//instructions for the player
+	gui.instructions = document.createElement( 'div' );
+    gui.instructions.style.display = "block";
+    gui.instructions.style.position = "fixed";
+    gui.instructions.style.left = "20px";
+    gui.instructions.style.top = "20px";
+	gui.instructions.style.color = "#00ff00"
+	gui.instructions.style.fontSize = "large";
+	gui.instructions.style.fontWeight = "bold";
+	gui.instructions.innerHTML = "Select the next face to visit!";
+	
+    document.body.appendChild( gui.instructions );
+
+
 
 // TODO: decide which functions shall be private and which not - exposing all seems unnecessary ~Marcus
+
+gui.webGL_check = webGL_check;
+
 
 gui.scene_trajectory = scene_trajectory;
 
