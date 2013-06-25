@@ -237,7 +237,7 @@ function setup_traj_vis() {
         gui.clickable_objects.push(moons[i].vis_model);
         gui.scene_trajectory.add(gui.create_moon_orbit(moons[i]));
     }
-
+    
     // create and add Jupiter
     gui.scene_trajectory.add(gui.create_jupiter_vis_model());
     
@@ -245,6 +245,10 @@ function setup_traj_vis() {
     var jupiter_helper_coords = gui.create_helper_coordinate_system(new THREE.Vector3(0,0,0), 30);
     gui.scene_trajectory.add(jupiter_helper_coords);
 
+    // create and add skybox
+    gui.skybox = gui.create_skybox();
+    //gui.scene_trajectory.add(skybox);
+    
     // create and add the trajectory view camera
 	var camera_trajectory = new THREE.PerspectiveCamera(
       15,     // Field of view
