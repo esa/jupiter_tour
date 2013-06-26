@@ -6,7 +6,7 @@ var scene_trajectory = new THREE.Scene();
       15,     // Field of view
       window.innerWidth / window.innerHeight,  // Aspect ratio
       0.1,    // Near
-      10000   // Far
+      20000   // Far
 	);
 	camera_trajectory.name = "Camera trajectory";
 	camera_trajectory.position.set( -70, -900, 200 );
