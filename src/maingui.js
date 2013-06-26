@@ -1,8 +1,11 @@
 (function(){
 
+// create the main scene containing the jupiter-centric view. The variable will be later
+// moved to the gui namespace
 var scene_trajectory = new THREE.Scene();
-    // create and add the trajectory view camera
-	camera_trajectory = new THREE.PerspectiveCamera(
+
+// create the trajectory view camera and add it to the scene
+var	camera_trajectory = new THREE.PerspectiveCamera(
       15,     // Field of view
       window.innerWidth / window.innerHeight,  // Aspect ratio
       0.1,    // Near
@@ -261,12 +264,39 @@ function setup_traj_vis() {
     // TODO: I do not like these clickable_objects array ~Marcus
 	gui.clickable_objects = [];
 
-    // create and add the moon visualizations together with their orbits
+    // create and add the moon visualizations together with their orbits and names sprites
     for (i in moons) {
         moons[i].vis_model = gui.create_moon_vis_model(moons[i], ref_epoch);
         gui.scene_trajectory.add(moons[i].vis_model);
         gui.clickable_objects.push(moons[i].vis_model);
         gui.scene_trajectory.add(gui.create_moon_orbit(moons[i]));
+
+		// here we create the text sprite
+		var canvas = document.createElement('canvas');
+		var size = 512; 
+		canvas.width = size;
+		canvas.height = size;
+		var context = canvas.getContext('2d');
+		context.fillStyle = '#00BFFF'; 
+		context.textAlign = 'center';
+		context.font = '60px Verdana';
+		context.fillText(moons[i].name, size / 2, size / 2);
+
+		var text_texture = new THREE.Texture(canvas);
+		text_texture.needsUpdate = true;
+
+		var mat = new THREE.SpriteMaterial({
+		    map: text_texture,
+		    transparent: true,
+		    useScreenCoordinates: false,
+		    color: 0xffffff // CHANGED
+		});
+		
+		var text_sprite = new THREE.Sprite( mat );
+		text_sprite.position.set( moons[i].vis_model.position.x, moons[i].vis_model.position.y,moons[i].vis_model.position.z+5);
+		text_sprite.scale.set( 64, 64, 1.0 ); // imageWidth, imageHeight
+		gui.scene_trajectory.add( text_sprite );
+		moons[i].vis_label = text_sprite
     }
 	
     // create and add Jupiter
@@ -455,6 +485,7 @@ function move_moons(epoch){
 		var eph = core.planet_ephemerides(epoch, moons[i]);
 		var newpos = new THREE.Vector3(eph.r[0], eph.r[1], eph.r[2]);
 		moons[i].vis_model.position = newpos.divideScalar(ARC_SCALE);
+		moons[i].vis_label.position.set( moons[i].vis_model.position.x, moons[i].vis_model.position.y,moons[i].vis_model.position.z+5);
     }
 }
 
