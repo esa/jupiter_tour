@@ -765,9 +765,8 @@ function webGL_check(){
     gui.instructions.style.position = "fixed";
     gui.instructions.style.left = "20px";
     gui.instructions.style.top = "20px";
-	gui.instructions.style.color = "#00ff00"
-	gui.instructions.style.fontSize = "large";
-	gui.instructions.style.fontWeight = "bold";
+	gui.instructions.style.color = "#00BFFF";
+	gui.instructions.style.fontSize = "small";
 	gui.instructions.innerHTML = "Select the next face to visit!";
 	
     document.body.appendChild( gui.instructions );
