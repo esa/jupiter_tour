@@ -1,6 +1,17 @@
 (function(){
 
 var scene_trajectory = new THREE.Scene();
+    // create and add the trajectory view camera
+	camera_trajectory = new THREE.PerspectiveCamera(
+      15,     // Field of view
+      window.innerWidth / window.innerHeight,  // Aspect ratio
+      0.1,    // Near
+      10000   // Far
+	);
+	camera_trajectory.name = "Camera trajectory";
+	camera_trajectory.position.set( -70, -900, 200 );
+	camera_trajectory.lookAt(scene_trajectory.position);
+	scene_trajectory.add(camera_trajectory);
 
 function update() {
     // get camera temporary
@@ -10,7 +21,7 @@ function update() {
         // cast a Ray through the origin of  he mouse position towards the camera direction
         var vector = new THREE.Vector3( gui.mouse.x, gui.mouse.y, 1 );
         gui.projector.unprojectVector( vector, camera );
-        var ray = new THREE.Ray( camera.position, vector.subSelf(camera.position).normalize() );
+        var ray = new THREE.Raycaster( camera.position, vector.subVectors(vector, camera.position).normalize() );
 
         // create an array containing all objects in the scene with which the ray intersects
         var intersects = ray.intersectObjects(gui.clickable_objects);
@@ -265,17 +276,7 @@ function setup_traj_vis() {
     var jupiter_helper_coords = gui.create_helper_coordinate_system(new THREE.Vector3(0,0,0), 30);
     gui.scene_trajectory.add(jupiter_helper_coords);
 
-    // create and add the trajectory view camera
-	var camera_trajectory = new THREE.PerspectiveCamera(
-      15,     // Field of view
-      window.innerWidth / window.innerHeight,  // Aspect ratio
-      0.1,    // Near
-      10000   // Far
-	);
-	camera_trajectory.name = "Camera trajectory";
-	camera_trajectory.position.set( -70, -900, 200 );
-	camera_trajectory.lookAt(scene_trajectory.position);
-	scene_trajectory.add(camera_trajectory);
+
 	
     // create and add light to the scene
     var ambient = new THREE.AmbientLight( 0x999999 );
@@ -491,7 +492,7 @@ function single_mouse_click(event) {
     var vector = new THREE.Vector3(mousex, mousey+0.025, 0.5);
 
     gui.projector.unprojectVector(vector, core.get_camera(gui.scene));
-    var ray = new THREE.Ray(core.get_camera(gui.scene).position, vector.subSelf(core.get_camera(gui.scene).position).normalize());
+    var ray = new THREE.Raycaster(core.get_camera(gui.scene).position, vector.subVectors(vector, core.get_camera(gui.scene).position).normalize());
 
     var intersects = ray.intersectObjects(gui.clickable_objects);
 
@@ -612,7 +613,7 @@ function double_mouse_click(event) {
     var vector = new THREE.Vector3(mousex, mousey+0.025, 0.5);
 
     gui.projector.unprojectVector(vector, core.get_camera(gui.scene));
-    var ray = new THREE.Ray(core.get_camera(gui.scene).position, vector.subSelf(core.get_camera(gui.scene).position).normalize());
+    var ray = new THREE.Raycaster(core.get_camera(gui.scene).position, vector.subVectors(vector, core.get_camera(gui.scene).position).normalize());
 
     var intersects = ray.intersectObjects(gui.clickable_objects);
 	
