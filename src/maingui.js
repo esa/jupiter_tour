@@ -271,20 +271,24 @@ function setup_traj_vis() {
         gui.clickable_objects.push(moons[i].vis_model);
         gui.scene_trajectory.add(gui.create_moon_orbit(moons[i]));
 
-		// here we create the text sprite
+		// We create a canvas element ...
 		var canvas = document.createElement('canvas');
-		var size = 512; 
-		canvas.width = size;
-		canvas.height = size;
+		var canvas_w = 512; 
+		var canvas_h = 256; 
+		canvas.width = canvas_w;
+		canvas.height = canvas_h;
+		
 		var context = canvas.getContext('2d');
-		context.fillStyle = '#00BFFF'; 
+		context.fillStyle = '#01A9DB'; 
 		context.textAlign = 'center';
-		context.font = '60px Verdana';
-		context.fillText(moons[i].name, size / 2, size / 2);
+		context.font = '96px Verdana';
+		context.fillText(moons[i].name, canvas_w / 2, canvas_h/2);
 
+		// ... transform it into a texture ...
 		var text_texture = new THREE.Texture(canvas);
 		text_texture.needsUpdate = true;
 
+		// ... defining a material ...
 		var mat = new THREE.SpriteMaterial({
 		    map: text_texture,
 		    transparent: true,
@@ -292,9 +296,10 @@ function setup_traj_vis() {
 		    color: 0xffffff // CHANGED
 		});
 		
+		// ... used to build the 2D sprite
 		var text_sprite = new THREE.Sprite( mat );
 		text_sprite.position.set( moons[i].vis_model.position.x, moons[i].vis_model.position.y,moons[i].vis_model.position.z+5);
-		text_sprite.scale.set( 64, 64, 1.0 ); // imageWidth, imageHeight
+		text_sprite.scale.set( canvas_w/4, canvas_h/4, 1.0 ); // imageWidth, imageHeight
 		gui.scene_trajectory.add( text_sprite );
 		moons[i].vis_label = text_sprite
     }
