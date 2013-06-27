@@ -57,7 +57,7 @@ describe("Astrofunctions", function() {
 
     var fitness = 20577.830110061255;
 
-    prob = new core.mga_part([io, europa], [[1, 100]], ref_epoch, v_inf);
+    var prob = new core.mga_part([io, europa], [[1, 100]], ref_epoch, v_inf);
    
     expect(prob.objfun(chr)).toBeRoughly(fitness, 1);
     });
@@ -74,7 +74,7 @@ describe("Astrofunctions", function() {
     var fitness1 = 6237.4336110824097;
     var fitness2 = 21105.977080107088;
 
-    prob = new core.mga_part([io, io], [[1, 100]], ref_epoch, v_inf);
+    var prob = new core.mga_part([io, io], [[1, 100]], ref_epoch, v_inf);
     
     expect(prob.objfun(chr1)).toBeRoughly(fitness1, 1);
     expect(prob.objfun(chr2)).toBeRoughly(fitness2, 1);
@@ -91,7 +91,7 @@ describe("Astrofunctions", function() {
     var fitness1 = 2.904560048816230e+03;
     var fitness2 = 384.8879838688004;
 
-    prob = new core.mga_part([callisto, ganymede], [[1, 100]], ref_epoch+500, v_inf);
+    var prob = new core.mga_part([callisto, ganymede], [[1, 100]], ref_epoch+500, v_inf);
 
     expect(prob.objfun(chr1)).toBeRoughly(fitness1, 1);
     expect(prob.objfun(chr2)).toBeRoughly(fitness2, 1);
@@ -108,7 +108,7 @@ describe("Astrofunctions", function() {
     var fitness1 = 11718.454322803005;
     var fitness2 = 3775.353428651762;
 
-    prob = new core.mga_part([io, europa, ganymede, callisto], [[1, 100],[1,100],[1,100]], ref_epoch+666, v_inf);
+    var prob = new core.mga_part([io, europa, ganymede, callisto], [[1, 100],[1,100],[1,100]], ref_epoch+666, v_inf);
 
     expect(prob.objfun(chr1)).toBeRoughly(fitness1, 1);
     expect(prob.objfun(chr2)).toBeRoughly(fitness2, 1);
@@ -154,5 +154,58 @@ describe("Astrofunctions", function() {
     expect(core.propagate_lagrangian(r0, v0, t, MU_JUP).r).toBeRoughly3d(r, 1e-4);
     expect(core.propagate_lagrangian(r0, v0, t, MU_JUP).v).toBeRoughly3d(v, 1e-4);
     });
+
+
+  it("should set the correct bounds for instantiating mga_incipit problems", function() {
+    
+    // values from mga_part in PyGMO
+
+    var tof_seq = [[111, 222],[333,444],[555,666]]
+
+    var prob = new core.mga_incipit([io, io, europa], tof_seq, [ref_epoch, ref_epoch + 4018]);
+   
+    expect(prob.bounds[0][0]).toEqual(ref_epoch);
+    expect(prob.bounds[0][1]).toEqual(ref_epoch + 4018);
+    expect(prob.bounds[1][0]).toEqual(0);
+    expect(prob.bounds[1][1]).toEqual(1);
+    expect(prob.bounds[2][0]).toEqual(0);
+    expect(prob.bounds[2][1]).toEqual(1);
+    expect(prob.bounds[3][0]).toEqual(tof_seq[0][0]);
+    expect(prob.bounds[3][1]).toEqual(tof_seq[0][1]);    
+
+    expect(prob.bounds[4][0]).toEqual(-2 * Math.PI);
+    expect(prob.bounds[4][1]).toEqual(2 * Math.PI);
+    expect(prob.bounds[5][0]).toEqual(1.0273747604708459);
+    expect(prob.bounds[5][1]).toEqual(2.0949904188338353);
+    expect(prob.bounds[6][0]).toEqual(1e-05);
+    expect(prob.bounds[6][1]).toEqual(0.99999);
+    expect(prob.bounds[7][0]).toEqual(tof_seq[1][0]);
+    expect(prob.bounds[7][1]).toEqual(tof_seq[1][1]);    
+
+    expect(prob.bounds[8][0]).toEqual(-2 * Math.PI);
+    expect(prob.bounds[8][1]).toEqual(2 * Math.PI);
+    expect(prob.bounds[9][0]).toEqual(1.0273747604708459);
+    expect(prob.bounds[9][1]).toEqual(2.0949904188338353);
+    expect(prob.bounds[10][0]).toEqual(1e-05);
+    expect(prob.bounds[10][1]).toEqual(0.99999);
+    expect(prob.bounds[11][0]).toEqual(tof_seq[1][0]);
+    expect(prob.bounds[11][1]).toEqual(tof_seq[1][1]);    
+    
+    });    
+    
+  it("should compute the correct DV for the default capture in the jovian system", function() {
+
+    var chr = [60428.66035001467, 0.68079074476921864, 0.50042217392913912, 197.8893315154337, 1.5583224294092572, 1.027374760470847, 4.7172297538947875e-05, 187.2839907864838, 1.1704153578684833, 1.3768789572061273, 0.18952609594974831, 71.009762894912797];
+
+    var fitness = 96.58384920324356;
+
+    var tof_seq = [[100, 200],[3,200],[4,100]];
+    
+    var prob = new core.mga_incipit([io, io, europa], tof_seq, [ref_epoch, ref_epoch + 4018]);
+
+    expect(prob.objfun(chr)).toBeRoughly(fitness, 1);
+    
+    });    
+    
     
 });

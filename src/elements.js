@@ -97,6 +97,7 @@
         vis_model.name = moon.name;
         return vis_model;
     }
+
 	
     /* create and returns the moon_name_sprite (that is the sprite containing the moon name) */
     function create_moon_name_sprite(moon, ep) {
@@ -140,6 +141,50 @@
         return moon_name_sprite;
     }
 
+	// creates a particle system with N stars at a radius R
+    
+	function create_star_field( R, N, size) {
+		var stars = new THREE.Geometry();
+		for (var i=0; i<N; i++) {
+		  var u = Math.random();
+		  var v = Math.random();
+		  var theta = 2*Math.PI*u;
+		  var phi = Math.acos(2*v-1);
+		  stars.vertices.push(new THREE.Vector3(
+			R*Math.sin(theta)*Math.cos(phi),
+			R*Math.sin(theta)*Math.sin(phi),
+			R*Math.cos(theta)
+		  ));
+		}
+		 star_stuff = new THREE.ParticleBasicMaterial({
+    		color: 0x666666,
+    		map: THREE.ImageUtils.loadTexture(
+    	  		"resources/images/particle.png"
+    		),
+    		blending: THREE.AdditiveBlending,
+    		transparent: true
+		});
+		star_stuff.size = size
+		return new THREE.ParticleSystem(stars, star_stuff);
+	}
+	
+    function create_skybox(R) {
+        var imagePrefix = "resources/images/skybox-";
+        var directions  = ["xpos", "xneg", "ypos", "yneg", "zpos", "zneg"];
+        var imageSuffix = ".png";
+        var skyGeometry = new THREE.CubeGeometry( R, R, R );	
+
+        
+        var materialArray = [];
+        for (var i = 0; i < 6; i++)
+            materialArray.push( new THREE.MeshBasicMaterial({
+                map: THREE.ImageUtils.loadTexture( imagePrefix + directions[i] + imageSuffix ),
+                side: THREE.BackSide
+            }));
+        var yMaterial = new THREE.MeshFaceMaterial( materialArray );
+        return new THREE.Mesh( skyGeometry, yMaterial );
+    }
+
     /* uses a loader to load the truncated icosahedron */
     function load_big_moon_model(moon) {
         var loader = new THREE.JSONLoader();
@@ -164,7 +209,10 @@ gui.create_moon_vis_model = create_moon_vis_model;
 gui.create_moon_name_sprite = create_moon_name_sprite;
 gui.create_jupiter_vis_model = create_jupiter_vis_model;
 gui.create_moon_orbit = create_moon_orbit;
+gui.create_skybox = create_skybox;
+gui.create_star_field = create_star_field;
 gui.create_helper_coordinate_system = create_helper_coordinate_system;
 gui.load_big_moon_model = load_big_moon_model
+
 
 })();

@@ -26,8 +26,8 @@ function Moon(name, a, e, i, LAN, w, M, radius, mu, model) {
 	// These function apply and remove green colour from the moons vis_model. 
     // Used to indicate the moon currently being visited in the trajectory scene
 	this.highlight = function() {
-        this.vis_model.material.emissive = new THREE.Color(0x00ff00);
-		this.vis_model.material.ambient = new THREE.Color(0x00ff00);  
+        this.vis_model.material.emissive = new THREE.Color(0x2EFE64);
+		this.vis_model.material.ambient = new THREE.Color(0x2EFE64);  
     };
 								  
 	this.unhighlight = function() {
@@ -53,8 +53,8 @@ function Moon(name, a, e, i, LAN, w, M, radius, mu, model) {
     this.animate = function() {
         
         var ROTATIONY = 0.005;  // Rotation speed
-        var SCALESPEED = 0.15;  // Speed of scaling animation
-        var MAXSIZE = 12;       // Maximal size of the moon by for hovering
+        var SCALESPEED = 0.075;  // Speed of scaling animation
+        var MAXSIZE = 10;       // Maximal size of the moon by for hovering
         
         // Funny Rotation
         this.vis_model.rotation.setY((this.vis_model.rotation.y + ROTATIONY) % (2 * Math.PI));
