@@ -278,8 +278,6 @@ function setup_traj_vis() {
     }
 	
 
-
-
     // create and add Jupiter
     gui.scene_trajectory.add(gui.create_jupiter_vis_model());
     
@@ -287,9 +285,12 @@ function setup_traj_vis() {
     var jupiter_helper_coords = gui.create_helper_coordinate_system(new THREE.Vector3(0,0,0), 30);
     gui.scene_trajectory.add(jupiter_helper_coords);
 
-    // create and add skybox
+    // create and add the starry background
     gui.scene_trajectory.add(gui.create_skybox(60000));
-	gui.scene_trajectory.add(gui.create_star_field(20000,10000));
+	gui.scene_trajectory.add(gui.create_star_field(20000,2500,100));
+	gui.scene_trajectory.add(gui.create_star_field(20000,5000,200));
+	gui.scene_trajectory.add(gui.create_star_field(20000,2000,300));
+	gui.scene_trajectory.add(gui.create_star_field(20000,500,400));
 
     
     // create and add the trajectory view camera

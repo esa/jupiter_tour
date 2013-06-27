@@ -141,8 +141,9 @@
         return moon_name_sprite;
     }
 
-	// creates a particle systenm with N stars at a radius R
-    function create_star_field( R, N) {
+	// creates a particle system with N stars at a radius R
+    
+	function create_star_field( R, N, size) {
 		var stars = new THREE.Geometry();
 		for (var i=0; i<N; i++) {
 		  var u = Math.random();
@@ -155,7 +156,15 @@
 			R*Math.cos(theta)
 		  ));
 		}
-		var star_stuff = new THREE.ParticleBasicMaterial();
+		 star_stuff = new THREE.ParticleBasicMaterial({
+    		color: 0x666666,
+    		map: THREE.ImageUtils.loadTexture(
+    	  		"resources/images/particle.png"
+    		),
+    		blending: THREE.AdditiveBlending,
+    		transparent: true
+		});
+		star_stuff.size = size
 		return new THREE.ParticleSystem(stars, star_stuff);
 	}
 	
