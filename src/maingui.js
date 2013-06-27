@@ -179,7 +179,7 @@ function setup(){
 					
 					face_select_phase = false;
 					
-					gui.instructions.innerHTML = "Select the next moon to visit!";
+					gui.instructions.innerHTML = "You are currently on " + tour.m_seq[tour.m_seq.length-1].name + " where you have already selected an area to visit. <br><br> You may now select the next moon to travel to.";
 					
 					if (tour.leg_arcs.length > 0)colour_arcs();
 				}
@@ -195,7 +195,7 @@ function setup(){
 					
 					gui.control.set_face_defaults();
 					
-					gui.instructions.innerHTML = "Select the next face to visit!";
+					gui.instructions.innerHTML = "You are currently on " + tour.m_seq[tour.m_seq.length-1].name + ". <br><br> In the close-up view, you need to select (double-clicking) an area you would like to visit.";
 					
 				}
             },
@@ -411,7 +411,7 @@ function apply_solution(){
 		tour.m_seq[tour.m_seq.length-1].highlight();
 	}
 	
-	gui.instructions.innerHTML = "Select the next face to visit!";
+	gui.instructions.innerHTML = "You are currently on " + tour.m_seq[tour.m_seq.length-1].name + ". <br><br> In the close-up view, you need to select (double-clicking) an area you would like to visit.";
     
     face_select_phase = true;
     
@@ -590,7 +590,7 @@ function single_mouse_click(event) {
                 core.pop = core.create_population(core.prob);
                 core.solver.steps = GENERATIONS;
 				
-				gui.instructions.innerHTML = "Optimising trajectory...";
+				gui.instructions.innerHTML = "Evolving trajectory...";
 				
 				// gui.control.set_face_defaults();
 				//gui.show_trajectory(tour.m_seq, tour.v_inf, ref_epoch, tour.x); 
@@ -665,7 +665,7 @@ function double_mouse_click(event) {
 					//gui.show_trajectory(tour.m_seq, tour.v_inf, ref_epoch, tour.x); 
 					face_select_phase = false;
 					
-					gui.instructions.innerHTML = "Select the next moon to visit!";
+					gui.instructions.innerHTML = "You are currently on " + tour.m_seq[tour.m_seq.length-1].name + " where you have already selected an area to visit. <br><br> You may now select the next moon to travel to.";
 					
 					if (gui.control.time < 1) {
 						var end_game_popup = confirm("GAME OVER! \n\n	Your score was:\n\t" + gui.control.score + " Points" +
