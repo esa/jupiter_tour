@@ -266,42 +266,15 @@ function setup_traj_vis() {
 
     // create and add the moon visualizations together with their orbits and names sprites
     for (i in moons) {
+		// Add the moon model
         moons[i].vis_model = gui.create_moon_vis_model(moons[i], ref_epoch);
         gui.scene_trajectory.add(moons[i].vis_model);
         gui.clickable_objects.push(moons[i].vis_model);
+		// Add the moon orbit
         gui.scene_trajectory.add(gui.create_moon_orbit(moons[i]));
-
-		// We create a canvas element ...
-		var canvas = document.createElement('canvas');
-		var canvas_w = 512; 
-		var canvas_h = 256; 
-		canvas.width = canvas_w;
-		canvas.height = canvas_h;
-		
-		var context = canvas.getContext('2d');
-		context.fillStyle = '#01A9DB'; 
-		context.textAlign = 'center';
-		context.font = '96px Verdana';
-		context.fillText(moons[i].name, canvas_w / 2, canvas_h/2);
-
-		// ... transform it into a texture ...
-		var text_texture = new THREE.Texture(canvas);
-		text_texture.needsUpdate = true;
-
-		// ... defining a material ...
-		var mat = new THREE.SpriteMaterial({
-		    map: text_texture,
-		    transparent: true,
-		    useScreenCoordinates: false,
-		    color: 0xffffff // CHANGED
-		});
-		
-		// ... used to build the 2D sprite
-		var text_sprite = new THREE.Sprite( mat );
-		text_sprite.position.set( moons[i].vis_model.position.x, moons[i].vis_model.position.y,moons[i].vis_model.position.z+5);
-		text_sprite.scale.set( canvas_w/4, canvas_h/4, 1.0 ); // imageWidth, imageHeight
-		gui.scene_trajectory.add( text_sprite );
-		moons[i].vis_label = text_sprite
+		// Add the moon name sprite
+		moons[i].name_sprite = gui.create_moon_name_sprite(moons[i], ref_epoch);
+		gui.scene_trajectory.add( moons[i].name_sprite );
     }
 	
     // create and add Jupiter
@@ -490,7 +463,7 @@ function move_moons(epoch){
 		var eph = core.planet_ephemerides(epoch, moons[i]);
 		var newpos = new THREE.Vector3(eph.r[0], eph.r[1], eph.r[2]);
 		moons[i].vis_model.position = newpos.divideScalar(ARC_SCALE);
-		moons[i].vis_label.position.set( moons[i].vis_model.position.x, moons[i].vis_model.position.y,moons[i].vis_model.position.z+5);
+		moons[i].name_sprite.position.set( moons[i].vis_model.position.x, moons[i].vis_model.position.y,moons[i].vis_model.position.z+5);
     }
 }
 

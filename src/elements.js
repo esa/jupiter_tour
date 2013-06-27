@@ -89,15 +89,56 @@
         });
         var geo = new THREE.SphereGeometry((moon.radius/1000000), 24, 24);
         var vis_model = new THREE.Mesh( geo, moon_material);
-        
+		
         // Getting position with respect to reference epoch
         var eph = core.planet_ephemerides(ep, moon);
-        vis_model.position.setX(eph.r[0] / 10000000);
-        vis_model.position.setY(eph.r[1] / 10000000);
-        vis_model.position.setZ(eph.r[2] / 10000000);
+		var newpos = new THREE.Vector3(eph.r[0], eph.r[1], eph.r[2]);
+		vis_model.position = newpos.divideScalar(ARC_SCALE);
         vis_model.rotation.setX(1.57);
         vis_model.name = moon.name;
         return vis_model;
+    }
+	
+    /* create and returns the moon_name_sprite (that is the sprite containing the moon name) */
+    function create_moon_name_sprite(moon, ep) {
+
+		// The moon name will appear north from the moon center at this distance (in m)
+		z_offset = 50000000;
+	
+		// We create a canvas element ...
+		var canvas = document.createElement('canvas');
+		var canvas_w = 512; 
+		var canvas_h = 256; 
+		canvas.width = canvas_w;
+		canvas.height = canvas_h;
+		
+		var context = canvas.getContext('2d');
+		context.fillStyle = '#01A9DB'; 
+		context.textAlign = 'center';
+		context.font = '96px Verdana';
+		context.fillText(moon.name, canvas_w / 2, canvas_h/2);
+
+		// ... transform it into a texture ...
+		var text_texture = new THREE.Texture(canvas);
+		text_texture.needsUpdate = true;
+
+		// ... defining a material ...
+		var mat = new THREE.SpriteMaterial({
+		    map: text_texture,
+		    transparent: true,
+		    useScreenCoordinates: false,
+		    color: 0xffffff // CHANGED
+		});
+		
+		// ... used to build the 2D sprite
+		var moon_name_sprite = new THREE.Sprite( mat );
+		
+		// Getting moon position with respect to reference epoch
+        var eph = core.planet_ephemerides(ep, moon);
+		var newpos = new THREE.Vector3(eph.r[0], eph.r[1], eph.r[2] + z_offset);
+		moon_name_sprite.position = newpos.divideScalar(ARC_SCALE);
+		moon_name_sprite.scale.set( canvas_w/4, canvas_h/4, 1.0 ); // imageWidth, imageHeight
+        return moon_name_sprite;
     }
 
     /* uses a loader to load the truncated icosahedron */
@@ -121,6 +162,7 @@
     }
     
 gui.create_moon_vis_model = create_moon_vis_model;
+gui.create_moon_name_sprite = create_moon_name_sprite;
 gui.create_jupiter_vis_model = create_jupiter_vis_model;
 gui.create_moon_orbit = create_moon_orbit;
 gui.create_helper_coordinate_system = create_helper_coordinate_system;
