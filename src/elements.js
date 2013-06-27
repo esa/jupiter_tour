@@ -144,7 +144,7 @@
         var imagePrefix = "resources/images/skybox-";
         var directions  = ["xpos", "xneg", "ypos", "yneg", "zpos", "zneg"];
         var imageSuffix = ".png";
-        var skyGeometry = new THREE.CubeGeometry( 1000, 1000, 1000 );	
+        var skyGeometry = new THREE.CubeGeometry( 21000, 21000, 21000 );	
         
         var materialArray = [];
         for (var i = 0; i < 6; i++)

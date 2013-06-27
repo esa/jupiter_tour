@@ -9,7 +9,7 @@ var	camera_trajectory = new THREE.PerspectiveCamera(
       15,     // Field of view
       window.innerWidth / window.innerHeight,  // Aspect ratio
       0.1,    // Near
-      20000   // Far
+      40000   // Far
 	);
 	camera_trajectory.name = "Camera trajectory";
 	camera_trajectory.position.set( -70, -900, 200 );
@@ -286,7 +286,7 @@ function setup_traj_vis() {
 
     // create and add skybox
     gui.skybox = gui.create_skybox();
-    //gui.scene_trajectory.add(skybox);
+    gui.scene_trajectory.add(gui.skybox);
     
     // create and add the trajectory view camera
 	var camera_trajectory = new THREE.PerspectiveCamera(
