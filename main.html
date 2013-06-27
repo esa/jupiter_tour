@@ -42,9 +42,22 @@
 <script type="text/javascript" src="src/problems/mga_part.js"></script>
 <script type="text/javascript" src="src/jDE/jde.js"></script>
 <script type="text/javascript" src="src/maingui.js"></script>
-<script type="text/javascript">
-	
 
+<!-- Code to display the information box (a walkhrough tutorial) -->
+<script src="http://code.jquery.com/jquery-1.9.1.js"></script>
+<script src="http://code.jquery.com/ui/1.10.2/jquery-ui.js"></script>
+<link rel=stylesheet href="http://code.jquery.com/ui/1.10.2/themes/smoothness/jquery-ui.css" />
+<link rel=stylesheet href="css/info_button.css"/>
+<script src="lib/info_button.js"></script>
+<div id="infoButton"></div>
+<div id="infoBox" title="Info">
+Welcome to our Jupiter Moon Hopper game. <br> <br>Prove that you can design your very own <br> 'vacation' on the Jupiter moons <br>
+<br> The game starts at Ganymede, click there to change view and select an area you want to visit. </a>
+</div>
+<!-- ------------------------------------------------------------ -->
+
+
+<script type="text/javascript">
 
 /** 
 	Function which is run when the website is loaded. 
@@ -59,6 +72,7 @@ var init = function() {
     gui.current_moon = tour.m_seq[tour.m_seq.length-1];
     gui.projector = new THREE.Projector();
     gui.container = document.createElement( 'div' );
+	gui.instructions = document.getElementById('infoBox');
 	
     document.body.appendChild( gui.container );
 

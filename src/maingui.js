@@ -725,31 +725,18 @@ function webGL_check(){
 }
 
 
-    // Indicator for calculation
-    gui.busy = document.createElement( 'div' );
-    gui.busy.style.display = "none";
-    gui.busy.style.position = "fixed";
-    gui.busy.style.right = "8px";
-    gui.busy.style.bottom = "8px";
-    img = document.createElement( 'img' );
-    img.src = "resources/images/busy.gif"
-    img.alt = "busy ..."
-    gui.busy.appendChild( img );
-    document.body.appendChild( gui.busy );
+// Indicator for calculation
+gui.busy = document.createElement( 'div' );
+gui.busy.style.display = "none";
+gui.busy.style.position = "fixed";
+gui.busy.style.right = "8px";
+gui.busy.style.bottom = "8px";
+img = document.createElement( 'img' );
+img.src = "resources/images/busy.gif"
+img.alt = "busy ..."
+gui.busy.appendChild( img );
+document.body.appendChild( gui.busy );
 	
-	//instructions for the player
-	gui.instructions = document.createElement( 'div' );
-    gui.instructions.style.display = "block";
-    gui.instructions.style.position = "fixed";
-    gui.instructions.style.left = "20px";
-    gui.instructions.style.top = "20px";
-	gui.instructions.style.color = "#00BFFF";
-	gui.instructions.style.fontSize = "small";
-	gui.instructions.innerHTML = "Select the next face to visit!";
-	
-    document.body.appendChild( gui.instructions );
-
-
 
 // TODO: decide which functions shall be private and which not - exposing all seems unnecessary ~Marcus
 

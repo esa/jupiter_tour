@@ -44,7 +44,6 @@
         var material = new THREE.LineBasicMaterial( {vertexColors:THREE.VertexColors } );
         
         return new THREE.Line(geometry, material, THREE.LinePieces );
-
     }
     
     
@@ -102,8 +101,8 @@
     /* create and returns the moon_name_sprite (that is the sprite containing the moon name) */
     function create_moon_name_sprite(moon, ep) {
 
-		// The moon name will appear north from the moon center at this distance (in m)
-		z_offset = 50000000;
+		// The moon name will appear north from the moon center at this distance
+		z_offset = 50000000; // (in meters)
 	
 		// We create a canvas element ...
 		var canvas = document.createElement('canvas');
