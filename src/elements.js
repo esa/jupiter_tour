@@ -97,6 +97,7 @@
         vis_model.name = moon.name;
         return vis_model;
     }
+
 	
     /* create and returns the moon_name_sprite (that is the sprite containing the moon name) */
     function create_moon_name_sprite(moon, ep) {
@@ -139,12 +140,14 @@
 		moon_name_sprite.scale.set( canvas_w/4, canvas_h/4, 1.0 ); // imageWidth, imageHeight
         return moon_name_sprite;
     }
+
     
     function create_skybox() {
         var imagePrefix = "resources/images/skybox-";
         var directions  = ["xpos", "xneg", "ypos", "yneg", "zpos", "zneg"];
         var imageSuffix = ".png";
         var skyGeometry = new THREE.CubeGeometry( 21000, 21000, 21000 );	
+
         
         var materialArray = [];
         for (var i = 0; i < 6; i++)

@@ -287,6 +287,7 @@ function setup_traj_vis() {
     // create and add skybox
     gui.skybox = gui.create_skybox();
     gui.scene_trajectory.add(gui.skybox);
+
     
     // create and add the trajectory view camera
 	var camera_trajectory = new THREE.PerspectiveCamera(
