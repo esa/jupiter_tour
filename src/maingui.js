@@ -1,6 +1,20 @@
 (function(){
 
+// create the main scene containing the jupiter-centric view. The variable will be later
+// moved to the gui namespace
 var scene_trajectory = new THREE.Scene();
+
+// create the trajectory view camera and add it to the scene
+var	camera_trajectory = new THREE.PerspectiveCamera(
+      15,     // Field of view
+      window.innerWidth / window.innerHeight,  // Aspect ratio
+      0.1,    // Near
+      20000   // Far
+	);
+	camera_trajectory.name = "Camera trajectory";
+	camera_trajectory.position.set( -70, -900, 200 );
+	camera_trajectory.lookAt(scene_trajectory.position);
+	scene_trajectory.add(camera_trajectory);
 
 function update() {
     // get camera temporary
@@ -10,7 +24,7 @@ function update() {
         // cast a Ray through the origin of  he mouse position towards the camera direction
         var vector = new THREE.Vector3( gui.mouse.x, gui.mouse.y, 1 );
         gui.projector.unprojectVector( vector, camera );
-        var ray = new THREE.Ray( camera.position, vector.subSelf(camera.position).normalize() );
+        var ray = new THREE.Raycaster( camera.position, vector.subVectors(vector, camera.position).normalize() );
 
         // create an array containing all objects in the scene with which the ray intersects
         var intersects = ray.intersectObjects(gui.clickable_objects);
@@ -250,12 +264,39 @@ function setup_traj_vis() {
     // TODO: I do not like these clickable_objects array ~Marcus
 	gui.clickable_objects = [];
 
-    // create and add the moon visualizations together with their orbits
+    // create and add the moon visualizations together with their orbits and names sprites
     for (i in moons) {
         moons[i].vis_model = gui.create_moon_vis_model(moons[i], ref_epoch);
         gui.scene_trajectory.add(moons[i].vis_model);
         gui.clickable_objects.push(moons[i].vis_model);
         gui.scene_trajectory.add(gui.create_moon_orbit(moons[i]));
+
+		// here we create the text sprite
+		var canvas = document.createElement('canvas');
+		var size = 512; 
+		canvas.width = size;
+		canvas.height = size;
+		var context = canvas.getContext('2d');
+		context.fillStyle = '#00BFFF'; 
+		context.textAlign = 'center';
+		context.font = '60px Verdana';
+		context.fillText(moons[i].name, size / 2, size / 2);
+
+		var text_texture = new THREE.Texture(canvas);
+		text_texture.needsUpdate = true;
+
+		var mat = new THREE.SpriteMaterial({
+		    map: text_texture,
+		    transparent: true,
+		    useScreenCoordinates: false,
+		    color: 0xffffff // CHANGED
+		});
+		
+		var text_sprite = new THREE.Sprite( mat );
+		text_sprite.position.set( moons[i].vis_model.position.x, moons[i].vis_model.position.y,moons[i].vis_model.position.z+5);
+		text_sprite.scale.set( 64, 64, 1.0 ); // imageWidth, imageHeight
+		gui.scene_trajectory.add( text_sprite );
+		moons[i].vis_label = text_sprite
     }
 
     // create and add Jupiter
@@ -280,6 +321,7 @@ function setup_traj_vis() {
 	camera_trajectory.position.set( -70, -900, 200 );
 	camera_trajectory.lookAt(scene_trajectory.position);
 	scene_trajectory.add(camera_trajectory);
+
 	
     // create and add light to the scene
     var ambient = new THREE.AmbientLight( 0x999999 );
@@ -458,6 +500,7 @@ function move_moons(epoch){
 		var eph = core.planet_ephemerides(epoch, moons[i]);
 		var newpos = new THREE.Vector3(eph.r[0], eph.r[1], eph.r[2]);
 		moons[i].vis_model.position = newpos.divideScalar(ARC_SCALE);
+		moons[i].vis_label.position.set( moons[i].vis_model.position.x, moons[i].vis_model.position.y,moons[i].vis_model.position.z+5);
     }
 }
 
@@ -495,7 +538,7 @@ function single_mouse_click(event) {
     var vector = new THREE.Vector3(mousex, mousey+0.025, 0.5);
 
     gui.projector.unprojectVector(vector, core.get_camera(gui.scene));
-    var ray = new THREE.Ray(core.get_camera(gui.scene).position, vector.subSelf(core.get_camera(gui.scene).position).normalize());
+    var ray = new THREE.Raycaster(core.get_camera(gui.scene).position, vector.subVectors(vector, core.get_camera(gui.scene).position).normalize());
 
     var intersects = ray.intersectObjects(gui.clickable_objects);
 
@@ -616,7 +659,7 @@ function double_mouse_click(event) {
     var vector = new THREE.Vector3(mousex, mousey+0.025, 0.5);
 
     gui.projector.unprojectVector(vector, core.get_camera(gui.scene));
-    var ray = new THREE.Ray(core.get_camera(gui.scene).position, vector.subSelf(core.get_camera(gui.scene).position).normalize());
+    var ray = new THREE.Raycaster(core.get_camera(gui.scene).position, vector.subVectors(vector, core.get_camera(gui.scene).position).normalize());
 
     var intersects = ray.intersectObjects(gui.clickable_objects);
 	
@@ -737,9 +780,8 @@ function webGL_check(){
     gui.instructions.style.position = "fixed";
     gui.instructions.style.left = "20px";
     gui.instructions.style.top = "20px";
-	gui.instructions.style.color = "#00ff00"
-	gui.instructions.style.fontSize = "large";
-	gui.instructions.style.fontWeight = "bold";
+	gui.instructions.style.color = "#00BFFF";
+	gui.instructions.style.fontSize = "small";
 	gui.instructions.innerHTML = "Select the next face to visit!";
 	
     document.body.appendChild( gui.instructions );
