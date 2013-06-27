@@ -286,11 +286,13 @@ function setup_traj_vis() {
     gui.scene_trajectory.add(jupiter_helper_coords);
 
     // create and add the starry background
+	// first we create a skybok of dimension 60000
     gui.scene_trajectory.add(gui.create_skybox(60000));
+	// then we create several star_fields at 20000 distance and with different sizes
 	gui.scene_trajectory.add(gui.create_star_field(20000,2500,100));
 	gui.scene_trajectory.add(gui.create_star_field(20000,5000,200));
 	gui.scene_trajectory.add(gui.create_star_field(20000,2000,300));
-	gui.scene_trajectory.add(gui.create_star_field(20000,500,400));
+	gui.scene_trajectory.add(gui.create_star_field(20000,500,1400));
 
     
     // create and add the trajectory view camera
