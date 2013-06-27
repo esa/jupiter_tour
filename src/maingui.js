@@ -292,20 +292,7 @@ function setup_traj_vis() {
 	gui.scene_trajectory.add(gui.create_star_field(20000,2500,100));
 	gui.scene_trajectory.add(gui.create_star_field(20000,5000,200));
 	gui.scene_trajectory.add(gui.create_star_field(20000,2000,300));
-	gui.scene_trajectory.add(gui.create_star_field(20000,500,1400));
-
-    
-    // create and add the trajectory view camera
-	var camera_trajectory = new THREE.PerspectiveCamera(
-      15,     // Field of view
-      window.innerWidth / window.innerHeight,  // Aspect ratio
-      0.1,    // Near
-      10000   // Far
-	);
-	camera_trajectory.name = "Camera trajectory";
-	camera_trajectory.position.set( -70, -900, 200 );
-	camera_trajectory.lookAt(scene_trajectory.position);
-	scene_trajectory.add(camera_trajectory);
+	gui.scene_trajectory.add(gui.create_star_field(20000,500,500));
 	
     // create and add light to the scene
     var ambient = new THREE.AmbientLight( 0x999999 );
