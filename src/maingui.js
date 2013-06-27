@@ -9,7 +9,7 @@ var	camera_trajectory = new THREE.PerspectiveCamera(
       15,     // Field of view
       window.innerWidth / window.innerHeight,  // Aspect ratio
       0.1,    // Near
-      40000   // Far
+      70000   // Far
 	);
 	camera_trajectory.name = "Camera trajectory";
 	camera_trajectory.position.set( -70, -900, 200 );
@@ -276,6 +276,9 @@ function setup_traj_vis() {
 		moons[i].name_sprite = gui.create_moon_name_sprite(moons[i], ref_epoch);
 		gui.scene_trajectory.add( moons[i].name_sprite );
     }
+	
+
+
 
     // create and add Jupiter
     gui.scene_trajectory.add(gui.create_jupiter_vis_model());
@@ -285,8 +288,8 @@ function setup_traj_vis() {
     gui.scene_trajectory.add(jupiter_helper_coords);
 
     // create and add skybox
-    gui.skybox = gui.create_skybox();
-    gui.scene_trajectory.add(gui.skybox);
+    gui.scene_trajectory.add(gui.create_skybox(60000));
+	gui.scene_trajectory.add(gui.create_star_field(20000,10000));
 
     
     // create and add the trajectory view camera
