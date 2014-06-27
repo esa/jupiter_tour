@@ -1,0 +1,231 @@
+/* Plugin Menu */
+
+.menu-container {
+    height: 80%;
+    width: 15%;
+    text-align: center;
+    order: 3;
+}
+.menu-container .content-container {
+    height: 100%;
+    width: 50%;
+    display: inline-block;
+    border: solid #19A3FF;
+}
+.menu-container .content-container h3 {
+    width: 90%;
+    white-space: nowrap;
+    cursor: default;
+    display: inline-block;
+    background: url(/img/logo.svg) no-repeat;
+    background-size: contain;
+    background-position: center;
+}
+.menu-container .content-container .button {
+    display: inline-block;
+    text-decoration: none;
+    pointer-events: all;
+    box-sizing: border-box;
+    color: #000000;
+    padding: 1vmin;
+    width: 90%;
+    background-color: #19A3FF;
+    border: none;
+    cursor: pointer;
+    margin: 0px 0px 2% 0px;
+}
+.menu-container .content-container .button.disabled {
+    pointer-events: none;
+    background-color: #cccccc;
+    opacity: 0.2;
+    cursor: default;
+}
+.menu-container .content-container .button:hover {
+    background-color: #1c93e3;
+    border-color: #1c93e3;
+}
+.browser-container {
+    width: 40%;
+    height: 40%;
+    z-index: 10;
+    background-color: #333333;
+    box-shadow: 0vmin 0vmin 1.5vmin #000000;
+    -moz-box-shadow: 0vmin 0vmin 1.5vmin #000000;
+    -webkit-box-shadow: 0vmin 0vmin 1.5vmin #000000;
+    border: solid #19A3FF;
+}
+.browser-container .busy-container {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(51, 51, 51, 0.9);
+    pointer-events: all;
+}
+.browser-list {
+    top: 5%;
+    width: 90%;
+    height: 75%;
+    border: solid 0.2em #19A3FF;
+    overflow-y: auto;
+    overflow-x: hidden;
+    pointer-events: all;
+    box-sizing: border-box;
+}
+.browser-list ul {
+    list-style-type: none;
+    margin: 2% 2% 2% 2%;
+    padding: 0px;
+}
+.browser-list .savegame-entry {
+    color: #000000;
+    background-color: #19A3FF;
+    padding: 1vmin;
+    font-size: 2vmin;
+    cursor: pointer;
+    margin-bottom: 0.5%;
+}
+.savegame-entry .name {
+    display: inline-block;
+    width: 50%;
+    height: 100%;
+    overflow: hidden;
+}
+.savegame-entry .tip {
+    display: inline-block;
+    width: 50%;
+    text-align: right;
+    height: 100%;
+    overflow: hidden;
+}
+.browser-list .savegame-entry:hover {
+    background-color: #1c93e3;
+}
+.browser-tools {
+    bottom: 5%;
+    width: 90%;
+    height: 10%;
+    display: flex;
+    justify-content: space-between;
+}
+.browser-tools .button {
+    display: inline-block;
+    pointer-events: all;
+    box-sizing: border-box;
+    color: #000000;
+    background-color: #19A3FF;
+    border: none;
+    cursor: pointer;
+    margin: 0px 0px 0px 2%;
+    width: 15%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    float: right;
+}
+.browser-tools .button:hover {
+    background-color: #1c93e3;
+    border-color: #1c93e3;
+}
+.browser-tools .text-input {
+    display: table-cell;
+    width: 60%;
+    height: 100%;
+    box-sizing: border-box;
+    margin: 0px 2% 0px 0px;
+    padding: 2%;
+    border: 0.2em solid #1c93e3;
+    background-color: #333333;
+    color: #cccccc;
+    outline: none;
+}
+.browser-background {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0px;
+    left: 0px;
+    z-index: 8;
+    pointer-events: all;
+}
+/* Plugin Loader */
+
+.loader {
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    margin: auto;
+    z-index: 7;
+    text-align: center;
+    background-color: #333333;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 100%;
+}
+.flightengineer-container {
+    height: 80%;
+    width: 35%;
+    order: 1;
+}
+.flightengineer-container .content-container {
+    height: 100%;
+    width: 90%;
+    box-sizing: border-box;
+    display: inline-block;
+    border: solid #19A3FF;
+}
+.flightengineer-container .title {
+    width: 100%;
+    text-align: center;
+    height: 10%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.flightengineer-container .values-container {
+    display: block;
+    box-sizing: border-box;
+    text-align: left;
+    padding-left: 1%;
+    height: 90%;
+    width: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    border-top: 0.2em solid #1c93e3;
+}
+.missionfeed-container {
+    height: 80%;
+    width: 35%;
+    order: 2;
+}
+.missionfeed-container .content-container {
+    height: 100%;
+    width: 90%;
+    display: block;
+    border: solid #19A3FF;
+    box-sizing: border-box;
+}
+.missionfeed-container .title {
+    width: 100%;
+    text-align: center;
+    height: 10%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.missionfeed-container .feed {
+    text-align: left;
+    border-top: 0.2em solid #1c93e3;
+    overflow-x: hidden;
+    overflow-y: auto;
+    height: 90%;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 1%;
+}

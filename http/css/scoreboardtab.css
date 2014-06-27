@@ -1,0 +1,11 @@
+div.tooltip {
+    position: absolute;
+    text-align: center;
+    width: auto;
+    height: auto;
+    font-size: 1.5vmin;
+    padding: 0.1%;
+    background-color: #333333;
+    color: #19A3FF;
+    pointer-events: none;
+}

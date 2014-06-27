@@ -1,0 +1,66 @@
+.dashboard {
+    width: 90%;
+    height: 60%;
+    overflow: hidden;
+}
+.tab-links {
+    height: 10%;
+    width: 100%;
+    display: block;
+}
+.tab-link a {
+    text-decoration: none;
+    color: #000000;
+    font-size: 2.5vmin;
+}
+.tab-link a:focus {
+    outline: 0;
+}
+.tab-links-wrapper {
+    width: 50%;
+    height: 100%;
+    display: table;
+    border-spacing: 0.2vmin 0;
+    margin: 0 -0.2vmin;
+}
+.tab-link {
+    width: 10%;
+    height: 100%;
+    display: table-cell;
+    vertical-align: middle;
+    text-align: center;
+    background-color: #cccccc;
+}
+.tab-link.active {
+    background-color: #ffffff;
+    background-color: #1c93e3;
+}
+.tab-link:hover {
+    cursor: pointer;
+    background-color: #1c93e3;
+    color: #000000;
+}
+.tab-link.active:hover {
+    cursor: pointer;
+    background-color: #1c93e3;
+    color: #000000;
+}
+.tab-contents {
+    height: 90%;
+    width: 100%;
+    display: block;
+    background-color: rgba(255, 255, 255, 1);
+    overflow-x: hidden;
+    overflow-y: auto;
+    position: relative;
+}
+.tab {
+    padding: 0.5vmin;
+    box-sizing: border-box;
+    height: 100%;
+    width: 100%;
+    display: none;
+}
+.tab.active {
+    display: inline-block;
+}

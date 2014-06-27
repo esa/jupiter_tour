@@ -1,0 +1,152 @@
+<div>
+    <h3 style="display:inline-block;margin-right:5%">Mission 1: Road to Jupiter</h3>
+    <a class="button mission" id="mission1">start mission</a>
+    <img src="/img/earthlaunch.jpg" style="display:block;width:15%;height:auto;">
+    <div id="mission1feed">
+        <p>Before you can actually map the moons of Jupiter, you somehow need to get there. Dou you have what it takes to get from Earth to Jupiter?</p>
+        <div>
+            <h4 style="margin-bottom:0px">Mission details</h4>
+            <ul>
+                <li>
+                    Starting epoch: 56000 - 58000 MJD
+                </li>
+                <li>
+                    Spacecraft:
+                    <ul>
+                        <li>
+                            Initial mass: 2000 kg
+                        </li>
+                        <li>
+                            Propulsion: 1000 kg
+                        </li>
+                        <li>
+                            Specific impulse: 3500 s
+                        </li>
+                        <li>
+                            Maximum thrust: 0.105 N
+                        </li>
+                    </ul>
+                </li>
+                <li>
+                    Winning conditions:
+                    <ul>
+                        <li>
+                            Target: Jupiter
+                        </li>
+                        <li>
+                            Spacecraft mass &#8805; 1000 kg
+                        </li>
+                        <li>
+                            Mission duration &#8804; 15 years
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <hr>
+
+
+    <h3 style="display:inline-block;margin-right:5%">Mission 2: Grand tour</h3>
+    <a class="button mission" id="mission2">start mission</a>
+    <img src="/img/jupitermoons.jpg" style="display:block;width:15%;height:auto;">
+    <div id="mission2feed">
+        <p>This mission is set up like the originally stated GTOC 6 problem statement. The goal sounds simple: Map the surfaces of Jupiter's moons in the given timeframe and with the given spacecraft.</p>
+        <div>
+            <h4 style="margin-bottom:0px">Mission details</h4>
+            <ul>
+                <li>
+                    Starting epoch: 58849 MJD
+                </li>
+                <li>
+                    Spacecraft:
+                    <ul>
+                        <li>
+                            Initial mass: 2000 kg
+                        </li>
+                        <li>
+                            Propulsion: 1000 kg
+                        </li>
+                        <li>
+                            Specific impulse: 3500 s
+                        </li>
+                        <li>
+                            Maximum thrust: 0.105 N
+                        </li>
+                    </ul>
+                </li>
+                <li>
+                    Winning conditions:
+                    <ul>
+                        <li>
+                            Facepoints: 324
+                        </li>
+                        <li>
+                            Spacecraft mass &#8805; 1000 kg
+                        </li>
+                        <li>
+                            Mission duration &#8804; 4 years
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <hr>
+
+
+    <h3 style="display:inline-block;margin-right:5%">Mission 3: GTOC 7 preparation exercise</h3>
+    <a class="button mission" id="mission3">start mission</a>
+    <img src="/img/chariklo.jpg" style="display:block;width:15%;height:auto;">
+    <div id="mission3feed">
+        <p>Remember the GTOC 7 preparation exercise? Try to find a solution now in jupiter tour.</p>
+        <div>
+            <h4 style="margin-bottom:0px">Mission details</h4>
+            <ul>
+                <li>
+                    Starting epoch: 56000 - 58000 MJD
+                </li>
+                <li>
+                    Spacecraft:
+                    <ul>
+                        <li>
+                            Initial mass: 2000 kg
+                        </li>
+                        <li>
+                            Propulsion: 1000 kg
+                        </li>
+                        <li>
+                            Specific impulse: 3500 s
+                        </li>
+                        <li>
+                            Maximum thrust: 0.105 N
+                        </li>
+                    </ul>
+                </li>
+                <li>
+                    Winning conditions:
+                    <ul>
+                        <li>
+                            Target: Chariklo
+                        </li>
+                        <li>
+                            Spacecraft mass &#8805; 1000 kg
+                        </li>
+                        <li>
+                            Mission duration &#8804; 15 years
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <hr>
+</div>
+
+<script>
+    $('.button.mission').click(function() {
+        var gameID = $(this).attr('id');
+        replaceCookie('gameID', gameID, 1);
+        window.location.href = '/game/index.html';
+    });
+</script>

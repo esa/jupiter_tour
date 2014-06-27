@@ -1,0 +1,32 @@
+/* Namespace GUI 
+    Contains all graphical stuff
+*/
+var gui = {
+    POSITION_SCALE: 1 / 10000000,
+
+    ScreenDirections: {
+        LEFT: 0,
+        RIGHT: 1,
+        UP: 2,
+        DOWN: 3
+    },
+
+    /* No object shall have this ID!*/
+    NULL_ID: 0
+};
+
+(function () {
+    var idSeed = 0;
+
+    function updateIDSeed(seed) {
+        idSeed = Math.max(idSeed, seed);
+    }
+
+    function createID() {
+        return idSeed++;
+    }
+
+    //Exposed Interface
+    gui.createID = createID;
+    gui.updateIDSeed = updateIDSeed;
+})();

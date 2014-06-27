@@ -1,0 +1,14 @@
+.busy-indicator {
+    position: absolute;
+    right: 2vmin;
+    bottom: 2vmin;
+}
+.busy-indicator img {
+    height: 2vmin;
+    width: auto;
+}
+.notifyjs-corner {
+    pointer-events: none;
+    cursor: default;
+    opacity: 0.9;
+}

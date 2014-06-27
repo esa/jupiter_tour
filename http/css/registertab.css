@@ -1,0 +1,36 @@
+.savegame-browser-list {
+    width: 50%;
+    height: 70%;
+    border: 1px solid #cccccc;
+    overflow-y: scroll;
+    overflow-x: hidden;
+}
+.savegame-browser-list ul {
+    list-style-type: none;
+    margin: 2% 2% 2% 2%;
+    padding: 0px;
+}
+.savegame-browser-list .savegame-entry {
+    color: #000000;
+    background-color: #19A3FF;
+    padding: 1vmin;
+    font-size: 2vmin;
+    cursor: pointer;
+    margin-bottom: 0.5%;
+}
+.savegame-entry .name {
+    display: inline-block;
+    width: 50%;
+    height: 100%;
+    overflow: hidden;
+}
+.savegame-entry .tip {
+    display: inline-block;
+    width: 50%;
+    text-align: right;
+    height: 100%;
+    overflow: hidden;
+}
+.savegame-browser-list .savegame-entry:hover {
+    background-color: #1c93e3;
+}

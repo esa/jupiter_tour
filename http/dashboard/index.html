@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Jupiter Tour | Dashboard</title>
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto">
+    <link rel="stylesheet" type="text/css" href="../css/global.css">
+    <link rel="stylesheet" type="text/css" href="../css/dashboard.css">
+    <link rel="stylesheet" type="text/css" href="../css/registertab.css">
+    <link rel="stylesheet" type="text/css" href="../css/scoreboardtab.css">
+
+    <script type="text/javascript" src="../js/jquery.js"></script>
+    <script type="text/javascript" src="../js/d3.js"></script>
+    <script type="text/javascript" src="../js/dashboard.js"></script>
+    <script type="text/javascript" src="../js/scoreboard.js"></script>
+</head>
+
+<body>
+    <img class="title-image" src="../img/title.svg">
+
+    <div class="dashboard container center-horizontally center-vertically">
+        <div class="tab-links">
+            <div class="tab-links-wrapper">
+                <div class="tab-link active">
+                    <a href="#newstab">news</a>
+                </div>
+                <div class="tab-link">
+                    <a href="#missiontab">mission</a>
+                </div>
+                <div class="tab-link">
+                    <a href="#scoreboardtab">scoreboard</a>
+                </div>
+                <% if(user) { %>
+                    <div class="tab-link">
+                        <a href="#profiletab">profile</a>
+                    </div>
+                    <% } else { %>
+                        <div class="tab-link">
+                            <a href="#signintab">sign in</a>
+                        </div>
+                        <% } %>
+            </div>
+        </div>
+        <div class="tab-contents">
+            <div id="newstab" class="tab active">
+            </div>
+            <div id="missiontab" class="tab">
+            </div>
+            <div id="scoreboardtab" class="tab">
+            </div>
+            <div id="signintab" class="tab">
+            </div>
+            <div id="profiletab" class="tab">
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

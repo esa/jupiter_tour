@@ -1,0 +1,35 @@
+<div style="width:100%;height:100%;position:relative;">
+    <div id="scoretabs" class="score-tab-links center-horizontally" style="display:inline-table;width:80%;height:10%;text-decoration:none;color:#000000;font-size:2.5vmin;">
+        <div class="tab-link active">
+            <a href="#1">road to jupiter</a>
+        </div>
+        <div class="tab-link">
+            <a href="#2">grand tour</a>
+        </div>
+        <div class="tab-link">
+            <a href="#3">chariklo</a>
+        </div>
+    </div>
+    <div id="scorechart" style="position:absolute;left:0px;bottom:0px;width:100%;height:85%;display:inline-flex;justify-content:center;align-items:center;">
+    </div>
+</div>
+</div>
+<script>
+    $(document).ready(function() {
+        $('.score-tab-links .tab-link').on('click', function(event) {
+            event.preventDefault();
+            var div = $(this).children(':first').attr('href');
+            $(this).addClass('active').siblings().removeClass('active');
+            $.ajax({
+                type: 'GET',
+                url: '/scoreboard',
+                data: {
+                    missionID: div.substr(1)
+                },
+                success: createScoreBoard
+            });
+        });
+
+        $('.score-tab-links .tab-link.active').trigger('click');
+    });
+</script>
