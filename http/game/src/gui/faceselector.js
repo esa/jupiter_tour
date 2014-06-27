@@ -439,16 +439,21 @@ gui.FaceSelector.prototype._updateMapElements = function () {
     this._svgElement.selectAll('path.jupiter').attr('d', this._path.pointRadius(this._jupiterRadius));
     this._svgElement.selectAll('path.visit').attr('d', this._path.pointRadius(this._visitRadius));
     this._svgElement.selectAll('text').each(function (d3Face) {
-        var bounds = self._path.bounds(d3Face);
-        var pos = self._path.centroid(d3Face);
-        d3.select(this).attr('x', pos[0]);
-        d3.select(this).attr('y', pos[1]);
+        if (d3Face.properties.faceValue) {
+            d3.select(this).style('display', 'block');
+            var bounds = self._path.bounds(d3Face);
+            var pos = self._path.centroid(d3Face);
+            d3.select(this).attr('x', pos[0]);
+            d3.select(this).attr('y', pos[1]);
 
-        // TODO: Not very happy with this solution...
-        if (bounds[1][0] - bounds[0][0] < 200) {
-            d3.select(this).attr('fill', '#ffffff');
+            // TODO: Not very happy with this solution...
+            if (bounds[1][0] - bounds[0][0] < 200) {
+                d3.select(this).attr('fill', '#ffffff');
+            } else {
+                d3.select(this).attr('fill', 'transparent');
+            }
         } else {
-            d3.select(this).attr('fill', 'transparent');
+            d3.select(this).style('display', 'none');
         }
     });
 };
@@ -457,7 +462,7 @@ gui.FaceSelector.prototype._updateMap = function () {
     var self = this;
 
     var surface = this._orbitingBody.getD3Surface();
-    //TODO: There's a bug where the text is not in the correct position. 
+    //TODO: There's a bug where the text is not in the correct position.
     // Update 26.6.2014: Not sure if the bug still exists...
     this._svgElement.selectAll('text').data(surface.features).text(function (d3Face) {
         return d3Face.properties.faceValue;
