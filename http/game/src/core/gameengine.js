@@ -3,7 +3,6 @@
 */
 core.GameEngine = function () {
     var self = this;
-    this._worldSize = 1e5;
     this._mousePosition = {
         posX: 0,
         posY: 0
