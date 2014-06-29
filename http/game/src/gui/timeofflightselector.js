@@ -20,8 +20,8 @@ gui.TimeOfFlightSelector = function (orbitingBody) {
     this._containerWidthFactor = 0.88;
     this._containerMarginFactorL = 0.12;
     this._containerMarginFactorT = 0.24;
-    this._marginLR = 0.5e10;
-    this._marginUD = 1e10;
+    this._marginLR = 0.3e11;
+    this._marginUD = 0.5e11;
 
     this._numOrbits = 5;
     this._maxTimeOfFlight = this._orbitingBody.getMaxTimeOfFlyby() * utility.SEC_TO_DAY;

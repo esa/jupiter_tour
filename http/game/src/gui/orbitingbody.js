@@ -35,7 +35,7 @@ gui.OrbitingBody = function (id, name, centralBody, orbitalElements, orbitalElem
 
     var material = new THREE.MeshPhongMaterial();
     material.map = THREE.ImageUtils.loadTexture(meshMaterialURL);
-    var meshGeometry = new THREE.SphereGeometry(this._radius * this._scale, 24, 24);
+    var meshGeometry = new THREE.SphereGeometry(this._radius * this._scale, 100, 100);
     var mesh = new THREE.Mesh(meshGeometry, material);
     var orbSVs = this.orbitalStateVectorsAtEpoch(this._refEpoch);
     this._position = orbSVs.position;

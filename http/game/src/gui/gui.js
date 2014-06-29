@@ -4,6 +4,8 @@
 var gui = {
     POSITION_SCALE: 1 / 10000000,
 
+    UNIVERSUM_SIZE: 1e5,
+
     ScreenDirections: {
         LEFT: 0,
         RIGHT: 1,

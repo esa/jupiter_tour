@@ -1,10 +1,9 @@
 /* Class Universum.
     Inherits THREE.Object3D
-    Universum has ID 1.
 */
 gui.Universum = function (radius, centralBodyIsStar) {
     THREE.Object3D.call(this);
-    this._id = 1;
+    this._id = gui.createID();
 
     var imageURLPrefix = 'res/img/skybox';
     var directions = ['xpos', 'xneg', 'ypos', 'yneg', 'zpos', 'zneg'];

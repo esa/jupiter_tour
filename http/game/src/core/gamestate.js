@@ -112,5 +112,9 @@ core.GameState.prototype = {
 
     markWinning: function () {
         this._isWinning = true;
+    },
+
+    setScore: function (score) {
+        this._score = score;
     }
 };

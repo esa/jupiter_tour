@@ -1,9 +1,6 @@
 {
     "mission": {
         "id": 3,
-        "positionScale": 1e-9,
-        "universumRadius": 90000,
-
 
         "maximumMissionDuration": 5478.75,
         "launchConstraints": {
@@ -16,8 +13,8 @@
             "timeOfFlightBounds": [1, 500]
         },
         "funIsInvalidState": "return [];",
-        "funIsWinningState": "var score = gameState.getScore(); return (score >= 1);",
-        "funGetWinningProgress": "var score = gameState.getScore(); return score;",
+        "funIsWinningState": "var orbBodyID = gameState.getOrbitingBody().getID(); if(orbBodyID == 11) {gameState.setScore(Math.ceil(100/(1+gameState.getTotalDeltaV()))); return true;} else {return false;};",
+        "funGetWinningProgress": "var score = gameState.getScore(); return score/100;",
 
         "centralBody": {
             "id": 2,
@@ -25,7 +22,7 @@
             "isStar": true,
             "sgp": 1.32712440018e20,
             "radius": 696342e3,
-            "scale": 0.000000015,
+            "scale": 0.000000005,
             "meshMaterialURL": "res/img/sunsurface.jpg"
         },
 
@@ -54,7 +51,7 @@
                 "minRadiusFactor": 1.1,
                 "maxRadiusFactor": 100,
                 "maxTimeOfFlyby": 3650,
-                "scale": 0.000001,
+                "scale": 0.0000002,
                 "meshMaterialURL": "res/img/mercurysurface.jpg",
                 "surface": {
                     "type": 0,
@@ -87,7 +84,7 @@
                 "minRadiusFactor": 1.1,
                 "maxRadiusFactor": 100,
                 "maxTimeOfFlyby": 3650,
-                "scale": 0.0000005,
+                "scale": 0.0000001,
                 "meshMaterialURL": "res/img/venussurface.jpg",
                 "surface": {
                     "type": 0,
@@ -120,7 +117,7 @@
                 "minRadiusFactor": 1.1,
                 "maxRadiusFactor": 100,
                 "maxTimeOfFlyby": 3650,
-                "scale": 0.0000005,
+                "scale": 0.0000001,
                 "meshMaterialURL": "res/img/earthsurface.jpg",
                 "surface": {
                     "type": 0,
@@ -153,7 +150,7 @@
                 "minRadiusFactor": 1.1,
                 "maxRadiusFactor": 100,
                 "maxTimeOfFlyby": 3650,
-                "scale": 0.000001,
+                "scale": 0.0000002,
                 "meshMaterialURL": "res/img/marssurface.jpg",
                 "surface": {
                     "type": 0,
@@ -186,7 +183,7 @@
                 "minRadiusFactor": 1.1,
                 "maxRadiusFactor": 100,
                 "maxTimeOfFlyby": 3650,
-                "scale": 0.0000003,
+                "scale": 0.00000005,
                 "meshMaterialURL": "res/img/jupitersurface.jpg",
                 "surface": {
                     "type": 0,
@@ -219,7 +216,7 @@
                 "minRadiusFactor": 1.1,
                 "maxRadiusFactor": 100,
                 "maxTimeOfFlyby": 3650,
-                "scale": 0.0000003,
+                "scale": 0.00000005,
                 "meshMaterialURL": "res/img/saturnsurface.jpg",
                 "surface": {
                     "type": 0,
@@ -252,7 +249,7 @@
                 "minRadiusFactor": 1.1,
                 "maxRadiusFactor": 100,
                 "maxTimeOfFlyby": 3650,
-                "scale": 0.000001,
+                "scale": 0.0000002,
                 "meshMaterialURL": "res/img/uranussurface.jpg",
                 "surface": {
                     "type": 0,
@@ -285,7 +282,7 @@
                 "minRadiusFactor": 1.1,
                 "maxRadiusFactor": 100,
                 "maxTimeOfFlyby": 3650,
-                "scale": 0.000001,
+                "scale": 0.0000002,
                 "meshMaterialURL": "res/img/neptunesurface.jpg",
                 "surface": {
                     "type": 0,
@@ -310,12 +307,12 @@
                 "minRadiusFactor": 1.1,
                 "maxRadiusFactor": 100,
                 "maxTimeOfFlyby": 3650,
-                "scale": 0.00005,
+                "scale": 0.00001,
                 "meshMaterialURL": "res/img/chariklosurface.jpg",
                 "surface": {
                     "type": 0,
                     "values": {
-                        "0": 1
+                        "0": 0
                     }
                 }
             }
