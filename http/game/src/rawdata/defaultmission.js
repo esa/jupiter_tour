@@ -3,8 +3,6 @@
 rawdata.defaultMission = {
     mission: {
         id: 2,
-        positionScale: 1e-7,
-        universumRadius: 100000,
 
 
         maximumMissionDuration: 1461,
@@ -20,7 +18,7 @@ rawdata.defaultMission = {
             isStar: false,
             sgp: 126686534.92180e9,
             radius: 71492000,
-            scale: 1e-7,
+            scale: 1e-6,
             meshMaterialURL: 'res/img/jupitersurface.jpg'
         },
 
@@ -41,7 +39,7 @@ rawdata.defaultMission = {
                 minRadiusFactor: 1.02737476047,
                 maxRadiusFactor: 2.09499041883,
                 maxTimeOfFlyby: 30,
-                scale: 1e-6,
+                scale: 0.000005,
                 meshMaterialURL: 'res/img/iosurface.jpg',
                 surface: {
                     type: 1,
@@ -97,7 +95,7 @@ rawdata.defaultMission = {
                 minRadiusFactor: 1.03203074952,
                 maxRadiusFactor: 2.28122998078,
                 maxTimeOfFlyby: 30,
-                scale: 1e-6,
+                scale: 0.000005,
                 meshMaterialURL: 'res/img/europasurface.jpg',
                 surface: {
                     type: 1,
@@ -153,7 +151,7 @@ rawdata.defaultMission = {
                 minRadiusFactor: 1.01898253607,
                 maxRadiusFactor: 1.759301442678,
                 maxTimeOfFlyby: 30,
-                scale: 1e-6,
+                scale: 0.000005,
                 meshMaterialURL: 'res/img/ganymedesurface.jpg',
                 surface: {
                     type: 1,
@@ -209,7 +207,7 @@ rawdata.defaultMission = {
                 minRadiusFactor: 1.0207641196,
                 maxRadiusFactor: 1.83056478405,
                 maxTimeOfFlyby: 30,
-                scale: 1e-6,
+                scale: 0.000005,
                 meshMaterialURL: 'res/img/callistosurface.jpg',
                 surface: {
                     type: 1,

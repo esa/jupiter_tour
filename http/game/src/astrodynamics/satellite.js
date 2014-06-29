@@ -183,11 +183,19 @@ astrodynamics.Satellite.prototype = {
         return 2 * Math.PI * Math.sqrt(Math.pow(orbitalElements.semiMajorAxis, 3) / this._centralBodySGP);
     },
 
-    getSemiMajorAxis: function (epoch) {
+    getPeriapsis: function (epoch) {
         var orbitalElements = this._orbitalElements;
         if (epoch != null) {
             orbitalElements = this._getOrbitalElementsAtEpoch(epoch);
         }
-        return orbitalElements.semiMajorAxis;
+        return this.orbitalStateVectorsAtEccentricAnomaly(0, orbitalElements).position.clone();
+    },
+
+    getApoapsis: function (epoch) {
+        var orbitalElements = this._orbitalElements;
+        if (epoch != null) {
+            orbitalElements = this._getOrbitalElementsAtEpoch(epoch);
+        }
+        return this.orbitalStateVectorsAtEccentricAnomaly(Math.PI, orbitalElements).position.clone();
     }
 };

@@ -14,12 +14,12 @@ gui.CentralBody = function (id, name, sgp, radius, scale, isStar, meshMaterialUR
         mesh.add(light);
         var material = new THREE.MeshBasicMaterial();
         material.map = THREE.ImageUtils.loadTexture(meshMaterialURL);
-        var meshGeometry = new THREE.SphereGeometry(radius * scale, 24, 24);
+        var meshGeometry = new THREE.SphereGeometry(radius * scale, 100, 100);
         mesh.add(new THREE.Mesh(meshGeometry, material));
     } else {
         var material = new THREE.MeshPhongMaterial();
         material.map = THREE.ImageUtils.loadTexture(meshMaterialURL)
-        var meshGeometry = new THREE.SphereGeometry(radius * scale, 24, 24);
+        var meshGeometry = new THREE.SphereGeometry(radius * scale, 100, 100);
         mesh = new THREE.Mesh(meshGeometry, material);
         mesh.position = this._position.asTHREE();
     }

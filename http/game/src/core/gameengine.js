@@ -3,6 +3,7 @@
 */
 core.GameEngine = function () {
     var self = this;
+    this._worldSize = 1e5;
     this._mousePosition = {
         posX: 0,
         posY: 0
@@ -25,7 +26,7 @@ core.GameEngine = function () {
         configuration: {}
     };
     this._scene = new THREE.Scene();
-    this._camera = new THREE.PerspectiveCamera(15, window.innerWidth / window.innerHeight, 1e1, 1e5);
+    this._camera = new THREE.PerspectiveCamera(15, window.innerWidth / window.innerHeight, 1, gui.UNIVERSUM_SIZE * 2);
     // We need to have physics and gui to have the same up axis. It saves us some transformations.
     this._camera.up.set(0, 0, 1);
     if (Detector.webgl) {
@@ -581,7 +582,15 @@ core.GameEngine.prototype = {
         var self = this;
         this._setBusy();
 
-        gui.POSITION_SCALE = mission.positionScale;
+        var maxApoapsis = 0;
+        var minPeriapsis = Number.POSITIVE_INFINITY;
+        for (var orbBodyID in mission.orbitingBodies) {
+            var orbitalElements = mission.orbitingBodies[orbBodyID].orbitalElements;
+            maxApoapsis = Math.max(maxApoapsis, orbitalElements.sma * (1 + orbitalElements.ecc));
+            minPeriapsis = Math.min(minPeriapsis, orbitalElements.sma * (1 - orbitalElements.ecc));
+        }
+
+        gui.POSITION_SCALE = gui.UNIVERSUM_SIZE / (1e2 * maxApoapsis);
 
         this._launchConstraints = mission.launchConstraints;
 
@@ -593,11 +602,7 @@ core.GameEngine.prototype = {
 
         this._scene.add(this._centralBody.getBodyMesh());
 
-        var universum = new gui.Universum(mission.universumRadius, mission.centralBody.isStar);
-        this._scene.add(universum);
 
-        var maxSMA = 0;
-        var minSMA = Number.POSITIVE_INFINITY;
         for (var orbBodyID in mission.orbitingBodies) {
             var id = parseInt(orbBodyID);
             maxObjectID = Math.max(maxObjectID, id);
@@ -611,15 +616,15 @@ core.GameEngine.prototype = {
             this._orbitingBodyMeshs.push(orbitingBody.getBodyMesh());
             this._scene.add(orbitingBody.getOrbitMesh());
             this._scene.add(orbitingBody.getBodyMesh());
-
-            maxSMA = Math.max(maxSMA, orbitingBody.getSemiMajorAxis());
-            minSMA = Math.min(minSMA, orbitingBody.getSemiMajorAxis());
         }
 
         gui.updateIDSeed(maxObjectID + 1);
 
-        this._cameraController.setMaxRadius(maxSMA * 8);
-        this._cameraController.setMinRadius(minSMA * 5);
+        var universum = new gui.Universum(gui.UNIVERSUM_SIZE, mission.centralBody.isStar);
+        this._scene.add(universum);
+
+        this._cameraController.setMaxRadius(maxApoapsis * 8);
+        this._cameraController.setMinRadius(minPeriapsis * 5);
 
         this._funIsInvalidState = Function('gameState', mission.funIsInvalidState);
         this._funIsWinningState = Function('gameState', mission.funIsWinningState);
