@@ -13,8 +13,8 @@
             "timeOfFlightBounds": [1, 500]
         },
         "funIsInvalidState": "return [];",
-        "funIsWinningState": "var score = gameState.getScore(); return (score >= 1);",
-        "funGetWinningProgress": "var score = gameState.getScore(); return score;",
+        "funIsWinningState": "var orbBodyID = gameState.getOrbitingBody().getID(); if(orbBodyID == 7) {gameState.setScore(Math.ceil(100/(1+gameState.getTotalDeltaV()))); return true;} else {return false;};",
+        "funGetWinningProgress": "var score = gameState.getScore(); return score/100;",
 
         "centralBody": {
             "id": 2,
@@ -188,7 +188,7 @@
                 "surface": {
                     "type": 0,
                     "values": {
-                        "0": 1
+                        "0": 0
                     }
                 }
             },
