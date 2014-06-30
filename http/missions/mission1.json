@@ -83,7 +83,7 @@
                 "radius": 6052000,
                 "minRadiusFactor": 1.1,
                 "maxRadiusFactor": 100,
-                "maxTimeOfFlyby": 3650,
+                "maxTimeOfFlyby": 1000,
                 "scale": 0.0000001,
                 "meshMaterialURL": "res/img/venussurface.jpg",
                 "surface": {
