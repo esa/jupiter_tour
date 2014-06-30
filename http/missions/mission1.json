@@ -321,9 +321,9 @@
                     "invalidReasonIDs": [],
                     "spacecraft": {
                         "mass": 2000,
-                        "emptyMass": 1000,
-                        "maxThrust": 0.105,
-                        "specificImpulse": 3500,
+                        "emptyMass": 1500,
+                        "maxThrust": 1.0,
+                        "specificImpulse": 311,
                         "isLanded": true
                     }
                 }
