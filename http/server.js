@@ -46,7 +46,7 @@ var Server = {};
     var ENABLE_HTTPS = false;
     var SESSION_ID_LENGTH = 48;
     var SESSION_CLEANING_INTERVAL = 300;
-    var FILE_CACHING_TIME = 0 * 24 * 60 * 60; //TODO: Change after testing.
+    var FILE_CACHING_TIME = 1 * 24 * 60 * 60;
     var DATABASE_NAME = 'jupitertour';
 
     var htmlTemplates = {
