@@ -42,7 +42,7 @@ var Server = {};
     // Server Configuration
     var SESSION_TIMEOUT = 30 * 60;
     var VERBOSE = true;
-    var PORT = 8000;
+    var PORT = 8080;
     var ENABLE_HTTPS = false;
     var SESSION_ID_LENGTH = 48;
     var SESSION_CLEANING_INTERVAL = 300;
