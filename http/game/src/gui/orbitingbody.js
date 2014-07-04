@@ -1,14 +1,15 @@
 /* Class OrbitingBody: Model & View 
     Inherits Satellite
 */
-gui.OrbitingBody = function (id, name, centralBody, orbitalElements, orbitalElementDerivatives, refEpoch, sgp, radius, minRadiusFactor, maxRadiusFactor, maxTimeOfFlyby, scale, meshMaterialURL, surface) {
+gui.OrbitingBody = function (id, name, centralBody, orbitalElements, orbitalElementDerivatives, refEpoch, sgp, radius, minRadiusFactor, maxRadiusFactor, maxTimeOfFlight, maxLaunchDelay, scale, meshMaterialURL, surface) {
     astrodynamics.Satellite.call(this, centralBody, orbitalElements, orbitalElementDerivatives, refEpoch, sgp);
     this._id = id;
     this._name = name;
     this._radius = radius;
     this._minRadius = radius * minRadiusFactor;
     this._maxRadius = radius * maxRadiusFactor;
-    this._maxTimeOfFlyby = maxTimeOfFlyby * utility.DAY_TO_SEC;
+    this._maxTimeOfFlight = maxTimeOfFlight * utility.DAY_TO_SEC;
+    this._maxLaunchDelay = maxLaunchDelay * utility.DAY_TO_SEC;
     this._isMouseOver = false;
     this._isActivated = false;
     this._isFaceViewOpened = false;
@@ -21,6 +22,7 @@ gui.OrbitingBody = function (id, name, centralBody, orbitalElements, orbitalElem
     this._orbitPositions = 400;
     this._configuration = null;
     this._surfaceType = surface.type;
+    this._vehicle = null;
 
     switch (this._surfaceType) {
     case model.SurfaceTypes.TRUNCATED_ICOSAHEDRON:
@@ -129,14 +131,16 @@ gui.OrbitingBody.prototype.isInConfigurationMode = function () {
     return this._configurationMode;
 };
 
-gui.OrbitingBody.prototype.onActivated = function (epoch, velocityInf) {
-    this._surface.updateFaces(epoch, velocityInf);
+gui.OrbitingBody.prototype.onActivated = function (epoch, vehicle) {
+    this._surface.updateFaces(epoch, vehicle.getVelocityInf());
     this._highlight();
+    this._vehicle = vehicle.clone();
     this._isActivated = true;
 };
 
 gui.OrbitingBody.prototype.onDeactivated = function () {
     this._unhighlight();
+    this._vehicle = null;
     this._isActivated = false;
 };
 
@@ -216,8 +220,12 @@ gui.OrbitingBody.prototype.getMaxRadius = function () {
     return this._maxRadius;
 };
 
-gui.OrbitingBody.prototype.getMaxTimeOfFlyby = function () {
-    return this._maxTimeOfFlyby;
+gui.OrbitingBody.prototype.getMaxTimeOfFlight = function () {
+    return this._maxTimeOfFlight;
+};
+
+gui.OrbitingBody.prototype.getMaxLaunchDelay = function () {
+    return this._maxLaunchDelay;
 };
 
 gui.OrbitingBody.prototype.isFaceVisited = function (faceID) {
@@ -273,7 +281,8 @@ gui.OrbitingBody.prototype.getTotalFlybyScore = function () {
     return this._surface.getTotalFlybyScore();
 };
 
-gui.OrbitingBody.prototype.resetSurface = function () {
+gui.OrbitingBody.prototype.reset = function () {
+    this._vehicle = null;
     this._surface.reset();
 };
 

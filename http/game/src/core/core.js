@@ -9,10 +9,9 @@ var core = {};
     var GameStatePhases = {
         ORBITING_BODY_OVERVIEW: 0,
         ORBITING_BODY_SELECTION: 1,
-        ORBITING_BODY_FLYBY_CONFIGURATION: 2,
+        TRANSFER_CONFIGURATION: 2,
         SOLVING: 3,
-        ORBITING_BODY_OVERVIEW_LOCKED: 4,
-        LAUNCH_CONFIGURATION: 5
+        ORBITING_BODY_OVERVIEW_LOCKED: 4
     };
 
     var GameEvents = {

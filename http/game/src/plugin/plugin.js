@@ -726,7 +726,7 @@ var plugin = {};
                 var gameState = eventData.gameState;
                 $('#feEpoch').text(utility.round(gameState.getEpoch()) + ' MJD');
                 $('#fePassedDays').text(utility.round(gameState.getPassedDays()));
-                $('#feVInfinity').text(gameState.getVelocityInf().toString(2));
+                $('#feVInfinity').text(gameState.getVehicle().getVelocityInf().toString(2));
                 $('#feTotalDeltaV').text(utility.round(gameState.getTotalDeltaV()) + ' m/s');
                 $('#feScore').text(gameState.getScore());
                 $('#feSOI').text(gameState.getOrbitingBody().getName());

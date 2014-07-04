@@ -1,8 +1,8 @@
-/* Class OrbitingBodyHUD 
+/* Class OrbitingBodySelector 
     Consider this class abstract.
     Inherit from it and make sure you have at least the members this._backgroundElement and this._containerElement which point to divs in your child class.
 */
-gui.OrbitingBodyHUD = function (orbitingBody) {
+gui.OrbitingBodySelector = function (orbitingBody) {
     var self = this;
     this._id = gui.createID();
     this._orbitingBody = orbitingBody;
@@ -42,8 +42,8 @@ gui.OrbitingBodyHUD = function (orbitingBody) {
         self._onMouseMove(event);
     });
 };
-gui.OrbitingBodyHUD.prototype = {
-    constructor: gui.OrbitingBodyHUD,
+gui.OrbitingBodySelector.prototype = {
+    constructor: gui.OrbitingBodySelector,
 
     _onMove: function () {},
 

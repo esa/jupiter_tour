@@ -1,9 +1,9 @@
 /* Class TimeOfFlightSelector 
     Provides the time of flight selection graphical user interface. 
-    Inherits OrbitingBodyHUD
+    Inherits OrbitingBodySelector
 */
 gui.TimeOfFlightSelector = function (orbitingBody) {
-    gui.OrbitingBodyHUD.call(this, orbitingBody);
+    gui.OrbitingBodySelector.call(this, orbitingBody);
     var self = this;
     this._configuration = {
         timeOfFlightBounds: [],
@@ -11,7 +11,7 @@ gui.TimeOfFlightSelector = function (orbitingBody) {
         betaBounds: [-2 * Math.PI, 2 * Math.PI]
     };
 
-    this._backgroundName = 'timeofflightselector';
+    this._backgroundName = 'simpleselector';
     this._backgroundHeightFactorLR = 0.1;
     this._backgroundHeightFactorUD = 0.1;
     this._backgroundWidthFactorLR = 2.08;
@@ -24,7 +24,7 @@ gui.TimeOfFlightSelector = function (orbitingBody) {
     this._marginUD = 0.5e11;
 
     this._numOrbits = 5;
-    this._maxTimeOfFlight = this._orbitingBody.getMaxTimeOfFlyby() * utility.SEC_TO_DAY;
+    this._maxTimeOfFlight = this._orbitingBody.getMaxTimeOfFlight() * utility.SEC_TO_DAY;
 
     var backgroundHeight = Math.round(window.innerHeight * this._backgroundHeightFactorUD);
     var backgroundWidth = Math.round(backgroundHeight * this._backgroundWidthFactorUD);
@@ -34,7 +34,7 @@ gui.TimeOfFlightSelector = function (orbitingBody) {
     this._backgroundElement.className = 'timeofflight-selector unselectable';
     this._backgroundElement.style.width = utility.toPixelString(backgroundWidth);
     this._backgroundElement.style.height = utility.toPixelString(backgroundHeight);
-    this._backgroundElement.style.backgroundImage = 'url(res/svg/timeofflightselectorviewup.svg)';
+    this._backgroundElement.style.backgroundImage = 'url(res/svg/' + this._backgroundName + 'viewup.svg)';
     this._backgroundElement.style.display = 'none';
     this._backgroundElement.oncontextmenu = function () {
         return false;
@@ -153,7 +153,7 @@ gui.TimeOfFlightSelector = function (orbitingBody) {
     this._backgroundElement.appendChild(this._containerElement);
     document.body.appendChild(this._backgroundElement);
 };
-gui.TimeOfFlightSelector.prototype = Object.create(gui.OrbitingBodyHUD.prototype);
+gui.TimeOfFlightSelector.prototype = Object.create(gui.OrbitingBodySelector.prototype);
 gui.TimeOfFlightSelector.prototype.constructor = gui.TimeOfFlightSelector;
 
 gui.TimeOfFlightSelector.prototype._updateSliders = function () {

@@ -144,9 +144,9 @@ gui.ScoreHUD.prototype = {
             $(this._epochText).text((Math.round(gameState.getPassedDays() * 100) / 100) + ' days');
         }
         var totalDeltaV = gameState.getTotalDeltaV();
-        var spacecraftTotalDV = gameState.getSpacecraft().getTotalDeltaV();
-        var remainingDV = spacecraftTotalDV - totalDeltaV;
-        var deltaVPercentage = Math.max(0, (spacecraftTotalDV - totalDeltaV) / spacecraftTotalDV) * 100;
+        var vehicleTotalDV = gameState.getVehicle().getTotalDeltaV();
+        var remainingDV = vehicleTotalDV - totalDeltaV;
+        var deltaVPercentage = Math.max(0, (vehicleTotalDV - totalDeltaV) / vehicleTotalDV) * 100;
         deltaVPercentage = Math.round(deltaVPercentage * 100) / 100;
         remainingDV = Math.round(remainingDV * 100) / 100;
         $(this._deltaVText).html(remainingDV + ' m/s<br>(' + deltaVPercentage + '%)');
