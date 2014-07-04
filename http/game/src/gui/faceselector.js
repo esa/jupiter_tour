@@ -1,9 +1,9 @@
 /* Class FaceSelector 
     Provides the face selection graphical user interface. 
-    Inherits OrbitingBodyHUD
+    Inherits OrbitingBodySelector
 */
 gui.FaceSelector = function (orbitingBody) {
-    gui.OrbitingBodyHUD.call(this, orbitingBody);
+    gui.OrbitingBodySelector.call(this, orbitingBody);
     var self = this;
     this._configuration = {
         faceID: gui.NULL_ID,
@@ -24,7 +24,7 @@ gui.FaceSelector = function (orbitingBody) {
     this._marginUD = 0.2e8;
 
     this._numOrbits = 5;
-    this._maxTimeOfFlight = this._orbitingBody.getMaxTimeOfFlyby() * utility.SEC_TO_DAY;
+    this._maxTimeOfFlight = this._orbitingBody.getMaxTimeOfFlight() * utility.SEC_TO_DAY;
 
     this._betaRadiusBoundsEnabled = false;
 
@@ -41,7 +41,7 @@ gui.FaceSelector = function (orbitingBody) {
     this._backgroundElement.className = 'face-selector unselectable';
     this._backgroundElement.style.width = utility.toPixelString(backgroundWidth);
     this._backgroundElement.style.height = utility.toPixelString(backgroundHeight);
-    this._backgroundElement.style.backgroundImage = 'url(res/svg/faceselectorviewup.svg)';
+    this._backgroundElement.style.backgroundImage = 'url(res/svg/' + this._backgroundName + 'viewup.svg)';
     this._backgroundElement.style.display = 'none';
     this._backgroundElement.oncontextmenu = function () {
         return false;
@@ -303,7 +303,7 @@ gui.FaceSelector = function (orbitingBody) {
 
     this._setBetaRadiusBoundsEnabled(this._betaRadiusBoundsEnabled);
 };
-gui.FaceSelector.prototype = Object.create(gui.OrbitingBodyHUD.prototype);
+gui.FaceSelector.prototype = Object.create(gui.OrbitingBodySelector.prototype);
 gui.FaceSelector.prototype.constructor = gui.FaceSelector;
 
 gui.FaceSelector.prototype._onClick = function (d3Face) {

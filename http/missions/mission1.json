@@ -3,15 +3,7 @@
         "id": 1,
 
         "maximumMissionDuration": 5478.75,
-        "launchConstraints": {
-            "launcher": {
-                "name": "Ariane 5",
-                "deltaV": 6000,
-                "imageURL": "res/img/ariane5.jpg"
-            },
-            "launchEpochBounds": [56000, 58000],
-            "timeOfFlightBounds": [1, 500]
-        },
+
         "funIsInvalidState": "return [];",
         "funIsWinningState": "var orbBodyID = gameState.getOrbitingBody().getID(); if(orbBodyID == 7) {gameState.setScore(Math.floor((1 - gameEngine._funGetTimeUsage(gameState)) * 10000 + (1 - gameState.getTotalDeltaV() / gameState.getSpacecraft().getTotalDeltaV()) * 10000)); return true;} else {return false;};",
         "funGetWinningProgress": "var score = gameState.getScore(); return score/20000;",
@@ -50,7 +42,8 @@
                 "radius": 2440000,
                 "minRadiusFactor": 1.1,
                 "maxRadiusFactor": 50,
-                "maxTimeOfFlyby": 1000,
+                "maxTimeOfFlight": 1000,
+                "maxLaunchDelay": 2000,
                 "scale": 0.0000002,
                 "meshMaterialURL": "res/img/mercurysurface.jpg",
                 "surface": {
@@ -83,7 +76,8 @@
                 "radius": 6052000,
                 "minRadiusFactor": 1.1,
                 "maxRadiusFactor": 50,
-                "maxTimeOfFlyby": 1000,
+                "maxTimeOfFlight": 1000,
+                "maxLaunchDelay": 2000,
                 "scale": 0.0000001,
                 "meshMaterialURL": "res/img/venussurface.jpg",
                 "surface": {
@@ -116,7 +110,8 @@
                 "radius": 6378000,
                 "minRadiusFactor": 1.1,
                 "maxRadiusFactor": 50,
-                "maxTimeOfFlyby": 2500,
+                "maxTimeOfFlight": 2500,
+                "maxLaunchDelay": 2000,
                 "scale": 0.0000001,
                 "meshMaterialURL": "res/img/earthsurface.jpg",
                 "surface": {
@@ -149,7 +144,8 @@
                 "radius": 3397000,
                 "minRadiusFactor": 1.1,
                 "maxRadiusFactor": 50,
-                "maxTimeOfFlyby": 3650,
+                "maxTimeOfFlight": 3650,
+                "maxLaunchDelay": 2000,
                 "scale": 0.0000002,
                 "meshMaterialURL": "res/img/marssurface.jpg",
                 "surface": {
@@ -182,7 +178,8 @@
                 "radius": 71492000,
                 "minRadiusFactor": 1.1,
                 "maxRadiusFactor": 50,
-                "maxTimeOfFlyby": 3650,
+                "maxTimeOfFlight": 3650,
+                "maxLaunchDelay": 2000,
                 "scale": 0.00000005,
                 "meshMaterialURL": "res/img/jupitersurface.jpg",
                 "surface": {
@@ -215,7 +212,8 @@
                 "radius": 60330000,
                 "minRadiusFactor": 1.1,
                 "maxRadiusFactor": 50,
-                "maxTimeOfFlyby": 3650,
+                "maxTimeOfFlight": 3650,
+                "maxLaunchDelay": 2000,
                 "scale": 0.00000005,
                 "meshMaterialURL": "res/img/saturnsurface.jpg",
                 "surface": {
@@ -248,7 +246,8 @@
                 "radius": 25362000,
                 "minRadiusFactor": 1.1,
                 "maxRadiusFactor": 50,
-                "maxTimeOfFlyby": 3650,
+                "maxTimeOfFlight": 3650,
+                "maxLaunchDelay": 2000,
                 "scale": 0.0000002,
                 "meshMaterialURL": "res/img/uranussurface.jpg",
                 "surface": {
@@ -281,7 +280,8 @@
                 "radius": 24622000,
                 "minRadiusFactor": 1.1,
                 "maxRadiusFactor": 50,
-                "maxTimeOfFlyby": 3650,
+                "maxTimeOfFlight": 3650,
+                "maxLaunchDelay": 2000,
                 "scale": 0.0000002,
                 "meshMaterialURL": "res/img/neptunesurface.jpg",
                 "surface": {
@@ -310,21 +310,28 @@
                         "chromosome": [],
                         "deltaV": 0,
                         "timeOfFlight": 0,
-                        "mappedFaceID": "",
-                        "dsmRating": 1
+                        "mappedFaceID": ""
                     },
                     "score": 0,
                     "totalDeltaV": 0,
-                    "velocityInf": [0, 0, 0],
                     "mappedFaces": {},
-                    "isRoot": true,
-                    "invalidReasonIDs": [],
-                    "spacecraft": {
-                        "mass": 2200,
-                        "emptyMass": 1500,
-                        "maxThrust": 1.0,
-                        "specificImpulse": 311,
-                        "isLanded": true
+                    "vehicle": {
+                        "isLanded": true,
+                        "velocityInf": [0, 0, 0],
+                        "stages": [
+                            {
+                                "propulsionType": 1,
+                                "mass": 2200,
+                                "emptyMass": 1500,
+                                "thrust": 1.0,
+                                "specificImpulse": 311
+                        }, {
+                                "propulsionType": 0,
+                                "mass": 777000,
+                                "emptyMass": 180000,
+                                "thrust": 12940000,
+                                "specificImpulse": 430
+                        }]
                     }
                 }
             }

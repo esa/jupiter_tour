@@ -1,7 +1,7 @@
 /* Class GameState. 
     Contains all informations about the current gamestate.
 */
-core.GameState = function (orbitingBody, epoch, passedDays, totalDeltaV, score, spacecraft, velocityInf, mappedFaces, transferLeg) {
+core.GameState = function (orbitingBody, epoch, passedDays, totalDeltaV, score, vehicle, mappedFaces, transferLeg) {
     this._orbitingBody = orbitingBody;
     this._transferLeg = transferLeg || {
         chromosome: [],
@@ -16,15 +16,13 @@ core.GameState = function (orbitingBody, epoch, passedDays, totalDeltaV, score, 
     this._passedDays = passedDays;
     this._score = score;
     this._totalDeltaV = totalDeltaV;
-    this._velocityInf = velocityInf.clone();
     this._mappedFaces = {};
     for (var faceID in mappedFaces) {
         this._mappedFaces[faceID] = mappedFaces[faceID].clone();
     }
-    this._isRoot = false;
     this._invalidReasonIDs = [];
     this._isWinning = false;
-    this._spacecraft = spacecraft.clone();
+    this._vehicle = vehicle.clone();
 
     if (transferLeg && transferLeg.periapsisCoords) {
         if (this._mappedFaces[this._transferLeg.mappedFaceID]) {
@@ -70,10 +68,6 @@ core.GameState.prototype = {
         return this._totalDeltaV;
     },
 
-    getVelocityInf: function () {
-        return this._velocityInf.clone();
-    },
-
     getMappedFaces: function () {
         var mappedFaces = {};
         for (var faceID in this._mappedFaces) {
@@ -94,16 +88,8 @@ core.GameState.prototype = {
         return this._invalidReasonIDs.clone();
     },
 
-    isRoot: function () {
-        return this._isRoot;
-    },
-
-    getSpacecraft: function () {
-        return this._spacecraft.clone();
-    },
-
-    markRoot: function () {
-        this._isRoot = true;
+    getVehicle: function () {
+        return this._vehicle.clone();
     },
 
     markInvalid: function (invalidReasonIDs) {
