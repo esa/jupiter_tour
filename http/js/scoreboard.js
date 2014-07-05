@@ -78,7 +78,7 @@ function createScoreBoard(response) {
             return x(barValue(d));
         })
         .attr('stroke', 'white')
-        .attr('fill', '#19A3FF');
+        .attr('fill', '#0099CC');
     // bar value labels
     barsContainer.selectAll('text').data(sortedData).enter().append('text')
         .attr('x', function (d) {

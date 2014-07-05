@@ -54,13 +54,13 @@ a {
     color: #000000;
     padding: 1vmin;
     width: auto;
-    background-color: #19A3FF;
+    background-color: #0099CC;
     border: none;
     cursor: pointer;
     margin: 0px;
 }
 .button:hover {
-    background-color: #0099CC;
+    background-color: #19A3FF;
 }
 .title-image {
     position: absolute;
