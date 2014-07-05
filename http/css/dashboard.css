@@ -33,16 +33,16 @@
 }
 .tab-link.active {
     background-color: #ffffff;
-    background-color: #1c93e3;
+    background-color: #0099CC;
 }
 .tab-link:hover {
     cursor: pointer;
-    background-color: #1c93e3;
+    background-color: #0099CC;
     color: #000000;
 }
 .tab-link.active:hover {
     cursor: pointer;
-    background-color: #1c93e3;
+    background-color: #0099CC;
     color: #000000;
 }
 .tab-contents {
