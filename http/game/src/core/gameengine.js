@@ -430,7 +430,7 @@ core.GameEngine.prototype = {
             var id = this._checkForOrbitingBodyHover();
             if (id == orbBody.getID()) {
                 this._gameHistoryManager.lock();
-                orbBody.openConfigurationWindow();
+                orbBody.openConfigurationWindow(this._gameState.getEpoch());
                 this._setGameStatePhase(core.GameStatePhases.TRANSFER_CONFIGURATION);
             }
             break;

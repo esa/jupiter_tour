@@ -37,7 +37,7 @@ gui.FaceSelector = function (orbitingBody) {
     var backgroundWidth = Math.round(backgroundHeight * this._backgroundWidthFactorUD);
 
     this._backgroundElement = document.createElement('div');
-    this._backgroundElement.id = 'background' + this._id;
+    this._backgroundElement.id = this._backgroundName + this._id;
     this._backgroundElement.className = 'face-selector unselectable';
     this._backgroundElement.style.width = utility.toPixelString(backgroundWidth);
     this._backgroundElement.style.height = utility.toPixelString(backgroundHeight);

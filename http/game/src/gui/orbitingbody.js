@@ -121,7 +121,11 @@ gui.OrbitingBody.prototype.onConfigurationWindowOut = function () {
 };
 
 gui.OrbitingBody.prototype.onConfigurationDone = function (isConfirmed, configuration) {
-    this._flybySelector.hide();
+    if (this._vehicle.isLanded()) {
+        this._launchSelector.hide();
+    } else {
+        this._flybySelector.hide();
+    }
     this._bodyMesh.scale.set(1, 1, 1);
     if (isConfirmed) {
         this._configuration = utility.clone(configuration);
@@ -148,9 +152,13 @@ gui.OrbitingBody.prototype.onDeactivated = function () {
     this._isActivated = false;
 };
 
-gui.OrbitingBody.prototype.openConfigurationWindow = function () {
+gui.OrbitingBody.prototype.openConfigurationWindow = function (epoch) {
     this._bodyMesh.scale.set(4, 4, 4);
-    this._flybySelector.show(true);
+    if (this._vehicle.isLanded()) {
+        this._launchSelector.show(true, epoch);
+    } else {
+        this._flybySelector.show(true);
+    }
     this._configurationMode = true;
 };
 
