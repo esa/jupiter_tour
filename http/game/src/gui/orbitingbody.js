@@ -24,16 +24,20 @@ gui.OrbitingBody = function (id, name, centralBody, orbitalElements, orbitalElem
     this._surfaceType = surface.type;
     this._vehicle = null;
 
+    this._flybySelector = null;
+
     switch (this._surfaceType) {
     case model.SurfaceTypes.TRUNCATED_ICOSAHEDRON:
         this._surface = new model.TruncatedIcosahedronSurface(this, surface.values);
-        this._hud = new gui.FaceSelector(this);
+        this._flybySelector = new gui.FaceSelector(this);
         break;
     case model.SurfaceTypes.SPHERE:
         this._surface = new model.SphericalSurface(this, surface.values);
-        this._hud = new gui.TimeOfFlightSelector(this);
+        this._flybySelector = new gui.TimeOfFlightSelector(this);
         break;
     }
+
+    this._launchSelector = new gui.LaunchSelector(this);
 
     var material = new THREE.MeshPhongMaterial();
     material.map = THREE.ImageUtils.loadTexture(meshMaterialURL);
@@ -91,7 +95,7 @@ gui.OrbitingBody.prototype._unhighlight = function () {
 };
 
 gui.OrbitingBody.prototype.onViewChange = function (viewDistance) {
-    this._hud.onViewChange(viewDistance);
+    this._flybySelector.onViewChange(viewDistance);
 };
 
 gui.OrbitingBody.prototype.onMouseOver = function () {
@@ -117,7 +121,7 @@ gui.OrbitingBody.prototype.onConfigurationWindowOut = function () {
 };
 
 gui.OrbitingBody.prototype.onConfigurationDone = function (isConfirmed, configuration) {
-    this._hud.hide();
+    this._flybySelector.hide();
     this._bodyMesh.scale.set(1, 1, 1);
     if (isConfirmed) {
         this._configuration = utility.clone(configuration);
@@ -146,7 +150,7 @@ gui.OrbitingBody.prototype.onDeactivated = function () {
 
 gui.OrbitingBody.prototype.openConfigurationWindow = function () {
     this._bodyMesh.scale.set(4, 4, 4);
-    this._hud.show(true);
+    this._flybySelector.show(true);
     this._configurationMode = true;
 };
 
@@ -157,14 +161,14 @@ gui.OrbitingBody.prototype.update = function (screenPosition) {
         if (size < this._maxSize) {
             this._bodyMesh.scale.multiplyScalar(1 + this._scaleSpeed);
         } else {
-            if (!this._hud.isVisible()) {
-                this._hud.show(false);
+            if (!this._flybySelector.isVisible()) {
+                this._flybySelector.show(false);
             }
         }
     } else {
         if (!this._configurationMode && !this._configurationWindowHover) {
-            if (this._hud.isVisible()) {
-                this._hud.hide();
+            if (this._flybySelector.isVisible()) {
+                this._flybySelector.hide();
             }
             if (size > 3) {
                 this._bodyMesh.scale.multiplyScalar(1 - this._scaleSpeed);
@@ -173,7 +177,7 @@ gui.OrbitingBody.prototype.update = function (screenPosition) {
             }
         }
     }
-    this._hud.update(screenPosition);
+    this._flybySelector.update(screenPosition);
 };
 
 gui.OrbitingBody.prototype._displayOrbitAtEpoch = function (epoch) {
@@ -266,6 +270,10 @@ gui.OrbitingBody.prototype.getFaceRadiusBounds = function (faceID) {
 
 gui.OrbitingBody.prototype.getConfiguration = function () {
     return this._configuration;
+};
+
+gui.OrbitingBody.prototype.getVehicle = function () {
+    return this._vehicle;
 };
 
 gui.OrbitingBody.prototype.computeFlybyFaceAndCoords = function (epoch, velocityInf, beta, radius) {
