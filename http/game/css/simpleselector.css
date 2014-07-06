@@ -1,4 +1,4 @@
-.timeofflight-selector {
+.simple-selector {
     position: absolute;
     z-index: 5;
     background-size: cover;
@@ -6,20 +6,20 @@
     pointer-events: none;
     cursor: default;
 }
-.timeofflight-selector .container {
+.simple-selector .container {
     pointer-events: none;
     display: block;
     padding: 2%;
     box-sizing: border-box;
     position: relative;
 }
-.timeofflight-selector .context-wrapper {
+.simple-selector .context-wrapper {
     display: block;
     position: relative;
     height: 100%;
     width: 100%;
 }
-.timeofflight-selector .toolbox-wrapper {
+.simple-selector .toolbox-wrapper {
     display: block;
     position: absolute;
     top: 0px;
@@ -27,41 +27,41 @@
     width: 100%;
     height: 100%;
 }
-.timeofflight-selector .toolbox-wrapper .col1 {
+.simple-selector .toolbox-wrapper .col1 {
     height: 100%;
     width: 75%;
     display: inline-block;
 }
-.timeofflight-selector .toolbox-wrapper .col2 {
+.simple-selector .toolbox-wrapper .col2 {
     height: 100%;
     width: 25%;
     display: inline-block;
     position: relative;
 }
-.timeofflight-selector .toolbox-wrapper .col1 .row1 {
+.simple-selector .toolbox-wrapper .col1 .row1 {
     display: block;
     width: 100%;
     height: 50%;
 }
-.timeofflight-selector .toolbox-wrapper .col1 .row2 {
+.simple-selector .toolbox-wrapper .col1 .row2 {
     display: block;
     width: 100%;
     height: 50%;
 }
-.timeofflight-selector .toolbox-wrapper .col1 .col1 {
+.simple-selector .toolbox-wrapper .col1 .col1 {
     width: 25%;
     height: 100%;
     display: inline-block;
     position: relative;
 }
-.timeofflight-selector .toolbox-wrapper .col1 .col2 {
+.simple-selector .toolbox-wrapper .col1 .col2 {
     width: 75%;
     height: 100%;
     display: inline-block;
     position: relative;
     pointer-events: all;
 }
-.timeofflight-selector .title-wrapper {
+.simple-selector .title-wrapper {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -71,7 +71,7 @@
     width: 100%;
     height: 100%;
 }
-.timeofflight-selector .title {
+.simple-selector .title {
     pointer-events: none;
     text-align: center;
     width: 100%;
@@ -79,13 +79,13 @@
     font-weight: bold;
     display: inline-block;
 }
-.timeofflight-selector .icon {
+.simple-selector .icon {
     height: auto;
     width: 80%;
     max-height: 100%;
     display: inline-block;
 }
-.timeofflight-selector .button {
+.simple-selector .button {
     pointer-events: all;
     height: 45%;
     width: 100%;
@@ -96,7 +96,7 @@
     opacity: 0.8;
     filter: alpha(opacity=80);
 }
-.timeofflight-selector .button:hover {
+.simple-selector .button:hover {
     opacity: 1;
     filter: alpha(opacity=100);
 }

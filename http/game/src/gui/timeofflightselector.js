@@ -30,8 +30,8 @@ gui.TimeOfFlightSelector = function (orbitingBody) {
     var backgroundWidth = Math.round(backgroundHeight * this._backgroundWidthFactorUD);
 
     this._backgroundElement = document.createElement('div');
-    this._backgroundElement.id = 'background' + this._id;
-    this._backgroundElement.className = 'timeofflight-selector unselectable';
+    this._backgroundElement.id = this._backgroundName + this._id;
+    this._backgroundElement.className = 'simple-selector unselectable';
     this._backgroundElement.style.width = utility.toPixelString(backgroundWidth);
     this._backgroundElement.style.height = utility.toPixelString(backgroundHeight);
     this._backgroundElement.style.backgroundImage = 'url(res/svg/' + this._backgroundName + 'viewup.svg)';

@@ -11,8 +11,6 @@ gui.LaunchSelector = function (orbitingBody) {
         timeOfFlightBounds: []
     };
 
-    //TODO this._configuration.velocityBounds = orbitingBody.get
-
     this._backgroundName = 'simpleselector';
     this._backgroundHeightFactorLR = 0.1;
     this._backgroundHeightFactorUD = 0.1;
@@ -27,13 +25,16 @@ gui.LaunchSelector = function (orbitingBody) {
 
     this._numOrbits = 5;
     this._maxTimeOfFlight = this._orbitingBody.getMaxTimeOfFlight() * utility.SEC_TO_DAY;
+    this._maxLaunchDelay = this._orbitingBody.getMaxLaunchDelay() * utility.SEC_TO_DAY;
+
+    this._epoch = 0;
 
     var backgroundHeight = Math.round(window.innerHeight * this._backgroundHeightFactorUD);
     var backgroundWidth = Math.round(backgroundHeight * this._backgroundWidthFactorUD);
 
     this._backgroundElement = document.createElement('div');
-    this._backgroundElement.id = 'background' + this._id;
-    this._backgroundElement.className = 'timeofflight-selector unselectable';
+    this._backgroundElement.id = this._backgroundName + this._id;
+    this._backgroundElement.className = 'simple-selector unselectable';
     this._backgroundElement.style.width = utility.toPixelString(backgroundWidth);
     this._backgroundElement.style.height = utility.toPixelString(backgroundHeight);
     this._backgroundElement.style.backgroundImage = 'url(res/svg/' + this._backgroundName + 'viewup.svg)';
@@ -165,7 +166,7 @@ gui.LaunchSelector.prototype._updateSliders = function () {
 
 gui.LaunchSelector.prototype._resetSelection = function () {
     this._configuration.timeOfFlightBounds = [1, this._maxTimeOfFlight];
-    this._configuration.radiusBounds = [this._orbitingBody.getMinRadius() / this._orbitingBody.getRadius(), this._orbitingBody.getMaxRadius() / this._orbitingBody.getRadius()];
+    this._configuration.launchEpochBounds = [this._epoch, this._epoch + this._maxLaunchDelay];
     this._updateSliders();
 };
 
@@ -181,24 +182,27 @@ gui.LaunchSelector.prototype._onResize = function () {
 
 gui.LaunchSelector.prototype._confirmAndClose = function () {
     this._configuration.timeOfFlightBounds = [this._timeOfFlightRangeSlider.min(), this._timeOfFlightRangeSlider.max()];
-    this._configuration.radiusBounds = [this._launchEpochRangeSlider.min(), this._launchEpochRangeSlider.max()];
+    this._configuration.launchEpochBounds = [this._launchEpochRangeSlider.min(), this._launchEpochRangeSlider.max()];
     this.hide();
     this._orbitingBody.onConfigurationDone(true, this._configuration);
 };
 
-gui.LaunchSelector.prototype.show = function (editable) {
+gui.LaunchSelector.prototype.show = function (editable, epoch) {
     this._editable = editable;
+    this._epoch = epoch != null ? epoch : 0;
 
     this._backgroundElement.style.display = 'block';
     if (this._editable) {
         this._titleWrapper.style.display = 'none';
         this._toolBoxWrapper.style.display = 'block';
+        this._configuration.velocityBounds = [0, this._orbitingBody.getVehicle().getDeltaV()];
         this._timeOfFlightRangeSlider.show();
         this._launchEpochRangeSlider.show();
         this._resetSelection();
     } else {
         this._titleWrapper.style.display = 'flex';
         this._toolBoxWrapper.style.display = 'none';
+        this._configuration.velocityBounds = [];
         this._timeOfFlightRangeSlider.hide();
         this._launchEpochRangeSlider.hide();
     }
