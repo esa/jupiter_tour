@@ -1,90 +1,48 @@
 {
     "mission": {
         "id": 3,
-
-        "maximumMissionDuration": 5478.75,
+        "maximumMissionDuration": 60,
         "launchConstraints": {
             "launcher": {
-                "name": "Ariane 5",
-                "deltaV": 6000,
-                "imageURL": "res/img/ariane5.jpg"
+                "name": "The ISS cannon",
+                "deltaV": 500,
+                "imageURL": "res/img/iss_launch.jpg"
             },
-            "launchEpochBounds": [56000, 58000],
-            "timeOfFlightBounds": [1, 500]
+            "launchEpochBounds": [60000, 60001],
+            "timeOfFlightBounds": [1e-3, 1]
         },
         "funIsInvalidState": "return [];",
         "funIsWinningState": "var orbBodyID = gameState.getOrbitingBody().getID(); if(orbBodyID == 11) {gameState.setScore(Math.ceil(100/(1+gameState.getTotalDeltaV()))); return true;} else {return false;};",
         "funGetWinningProgress": "var score = gameState.getScore(); return score/100;",
 
         "centralBody": {
-            "id": 2,
-            "name": "Sun",
-            "isStar": true,
-            "sgp": 1.32712440018e20,
-            "radius": 696342e3,
-            "scale": 0.000000005,
-            "meshMaterialURL": "res/img/sunsurface.jpg"
+            "id": 1,
+            "name": "Earth",
+            "isStar": false,
+            "sgp": 398600.4418e9,
+            "radius": 6378000,
+            "scale": 0.00009,
+            "meshMaterialURL": "res/img/earthsurface.jpg"
         },
 
         "orbitingBodies": {
-            "3": {
-                "name": "Mercury",
-                "sgp": 22032e9,
+            "2": {
+                "name": "ISS",
+                "sgp": 0.0,
                 "refEpoch": 51544.5,
                 "orbitalElements": {
-                    "sma": 57909226538.0405,
-                    "ecc": 0.20563593,
-                    "incl": 0.12225994793212572,
-                    "lan": 0.8435309954891992,
-                    "ap": 0.5083625809358163,
-                    "ma": 3.050705107870811
-                },
-                "orbitalElementDerivatives": {
-                    "dsma": 55351.212270000003628,
-                    "decc": 1.9060000000000000472e-05,
-                    "dincl": -0.00010380328272943754051,
-                    "dlan": -0.0021876098216166337505,
-                    "dap": 0.0049884599254773967503,
-                    "dma": 2608.7875041604243052
-                },
-                "radius": 2440000,
-                "minRadiusFactor": 1.1,
-                "maxRadiusFactor": 100,
-                "maxTimeOfFlyby": 3650,
-                "scale": 0.0000002,
-                "meshMaterialURL": "res/img/mercurysurface.jpg",
-                "surface": {
-                    "type": 0,
-                    "values": {
-                        "0": 0
-                    }
-                }
-            },
-            "4": {
-                "name": "Venus",
-                "sgp": 324859e9,
-                "refEpoch": 51544.5,
-                "orbitalElements": {
-                    "sma": 108209474530.86914,
+                    "sma": 6578000.86914,
                     "ecc": 0.00677672,
                     "incl": 0.05924827411109566,
                     "lan": 1.3383157224083446,
                     "ap": 0.9585806336304322,
                     "ma": 0.8792381000505897
                 },
-                "orbitalElementDerivatives": {
-                    "dsma": 583431.69689999998081,
-                    "decc": -4.106999999999999811e-05,
-                    "dincl": -1.3768902468983265977e-05,
-                    "dlan": -0.0048466777546257869616,
-                    "dap": 0.0048935099999116256006,
-                    "dma": 1021.328502750165967
-                },
                 "radius": 6052000,
                 "minRadiusFactor": 1.1,
                 "maxRadiusFactor": 100,
-                "maxTimeOfFlyby": 3650,
-                "scale": 0.0000001,
+                "maxTimeOfFlyby": 0.5,
+                "scale": 0.0000015,
                 "meshMaterialURL": "res/img/venussurface.jpg",
                 "surface": {
                     "type": 0,
@@ -93,31 +51,23 @@
                     }
                 }
             },
-            "5": {
-                "name": "Earth",
-                "sgp": 398600.4418e9,
+            "3": {
+                "name": "Junk 1",
+                "sgp": 0.0,
                 "refEpoch": 51544.5,
                 "orbitalElements": {
-                    "sma": 149598261141.44247,
+                    "sma": 6478000.44247,
                     "ecc": 0.01671123,
                     "incl": -2.6720990848033185e-07,
                     "lan": 0,
                     "ap": 1.7966014740491711,
                     "ma": -0.04316391697638581
                 },
-                "orbitalElementDerivatives": {
-                    "dsma": 840740.03502000006847,
-                    "decc": -4.3919999999999999622e-05,
-                    "dincl": -0.00022596219320209946302,
-                    "dlan": 0,
-                    "dap": 0.0056421894029068412821,
-                    "dma": 628.30193571151869492
-                },
                 "radius": 6378000,
                 "minRadiusFactor": 1.1,
                 "maxRadiusFactor": 100,
-                "maxTimeOfFlyby": 3650,
-                "scale": 0.0000001,
+                "maxTimeOfFlyby": 0.5,
+                "scale": 0.0000015,
                 "meshMaterialURL": "res/img/earthsurface.jpg",
                 "surface": {
                     "type": 0,
@@ -126,32 +76,24 @@
                     }
                 }
             },
-            "6": {
-                "name": "Mars",
-                "sgp": 42828e9,
+            "4": {
+                "name": "Junk 2",
+                "sgp": 0.0,
                 "refEpoch": 51544.5,
                 "orbitalElements": {
-                    "sma": 227943822413.85965,
-                    "ecc": 0.0933941,
-                    "incl": 0.03228320542488929,
-                    "lan": 0.8649771297497417,
-                    "ap": -1.2828723009731817,
-                    "ma": 0.3384227896851049
+                    "sma": 6678000.44247,
+                    "ecc": 0.11671123,
+                    "incl": 0.3,
+                    "lan": 0.1,
+                    "ap": 2.7966014740491711,
+                    "ma": 1.24316391697638581
                 },
-                "orbitalElementDerivatives": {
-                    "dsma": 2763072.677370000165,
-                    "decc": 7.8819999999999994125e-05,
-                    "dincl": -0.00014191813200034009384,
-                    "dlan": -0.0051063696573531540401,
-                    "dap": 0.012862802745038572072,
-                    "dma": 334.05354524829886032
-                },
-                "radius": 3397000,
+                "radius": 6378000,
                 "minRadiusFactor": 1.1,
                 "maxRadiusFactor": 100,
-                "maxTimeOfFlyby": 3650,
-                "scale": 0.0000002,
-                "meshMaterialURL": "res/img/marssurface.jpg",
+                "maxTimeOfFlyby": 0.5,
+                "scale": 0.0000015,
+                "meshMaterialURL": "res/img/earthsurface.jpg",
                 "surface": {
                     "type": 0,
                     "values": {
@@ -159,156 +101,24 @@
                     }
                 }
             },
-            "7": {
-                "name": "Jupiter",
-                "sgp": 126686534e9,
+            "5": {
+                "name": "Junk 3",
+                "sgp": 0.0,
                 "refEpoch": 51544.5,
                 "orbitalElements": {
-                    "sma": 778340816645.8849,
-                    "ecc": 0.04838624,
-                    "incl": 0.02276602153047185,
-                    "lan": 1.7536005259699599,
-                    "ap": -1.4965400591228852,
-                    "ma": 0.34327067101878284
+                    "sma": 6778000.44247,
+                    "ecc": 0.211,
+                    "incl": 0.57,
+                    "lan": 0.1,
+                    "ap": 0.7966014740491711,
+                    "ma": -1.24316391697638581
                 },
-                "orbitalElementDerivatives": {
-                    "dsma": -17363824.886970002204,
-                    "decc": -0.00013253000000000000674,
-                    "dincl": -3.206414182008862152e-05,
-                    "dlan": 0.0035725329463972646006,
-                    "dap": 0.00013675736793511764078,
-                    "dma": 52.962602601071623099
-                },
-                "radius": 71492000,
+                "radius": 6378000,
                 "minRadiusFactor": 1.1,
                 "maxRadiusFactor": 100,
-                "maxTimeOfFlyby": 3650,
-                "scale": 0.00000005,
-                "meshMaterialURL": "res/img/jupitersurface.jpg",
-                "surface": {
-                    "type": 0,
-                    "values": {
-                        "0": 0
-                    }
-                }
-            },
-            "8": {
-                "name": "Saturn",
-                "sgp": 37931187e9,
-                "refEpoch": 51544.5,
-                "orbitalElements": {
-                    "sma": 1426666414094.0908,
-                    "ecc": 0.05386179,
-                    "incl": 0.04338874330931084,
-                    "lan": 1.9837835429754036,
-                    "ap": -0.36762823281234114,
-                    "ma": -0.744289273004183
-                },
-                "orbitalElementDerivatives": {
-                    "dsma": -187087097.47259998322,
-                    "decc": -0.00050991000000000002903,
-                    "dincl": 3.3791145114937016526e-05,
-                    "dlan": -0.0050383805308746396762,
-                    "dap": -0.0022740631353178452495,
-                    "dma": 21.343851232371715554
-                },
-                "radius": 60330000,
-                "minRadiusFactor": 1.1,
-                "maxRadiusFactor": 100,
-                "maxTimeOfFlyby": 3650,
-                "scale": 0.00000005,
-                "meshMaterialURL": "res/img/saturnsurface.jpg",
-                "surface": {
-                    "type": 0,
-                    "values": {
-                        "0": 0
-                    }
-                }
-            },
-            "9": {
-                "name": "Uranus",
-                "sgp": 5793939e9,
-                "refEpoch": 51544.5,
-                "orbitalElements": {
-                    "sma": 2870658170483.03,
-                    "ecc": 0.04725744,
-                    "incl": 0.013485074058964219,
-                    "lan": 1.2918390439753027,
-                    "ap": 1.6918759478238068,
-                    "ma": 2.48332127460649
-                },
-                "orbitalElementDerivatives": {
-                    "dsma": -293475119.41295999289,
-                    "decc": -4.3970000000000000837e-05,
-                    "dincl": -4.2400854315025041292e-05,
-                    "dlan": 0.00074012240273853822405,
-                    "dap": 0.0063817426537763049382,
-                    "dma": 7.4713003065480245724
-                },
-                "radius": 25362000,
-                "minRadiusFactor": 1.1,
-                "maxRadiusFactor": 100,
-                "maxTimeOfFlyby": 3650,
-                "scale": 0.0000002,
-                "meshMaterialURL": "res/img/uranussurface.jpg",
-                "surface": {
-                    "type": 0,
-                    "values": {
-                        "0": 0
-                    }
-                }
-            },
-            "10": {
-                "name": "Neptune",
-                "sgp": 6836529e9,
-                "refEpoch": 51544.5,
-                "orbitalElements": {
-                    "sma": 4498396416738.838,
-                    "ecc": 0.00859048,
-                    "incl": 0.030893086454925476,
-                    "lan": 2.300068641354461,
-                    "ap": -1.5152854923664414,
-                    "ma": -1.746809150875549
-                },
-                "orbitalElementDerivatives": {
-                    "dsma": 39330776.264609999955,
-                    "decc": 5.1050000000000000813e-05,
-                    "dincl": 6.1735786301543432166e-06,
-                    "dlan": -8.8778615863644366269e-05,
-                    "dap": -0.0055384184087685656844,
-                    "dma": 3.8184639383437590787
-                },
-                "radius": 24622000,
-                "minRadiusFactor": 1.1,
-                "maxRadiusFactor": 100,
-                "maxTimeOfFlyby": 3650,
-                "scale": 0.0000002,
-                "meshMaterialURL": "res/img/neptunesurface.jpg",
-                "surface": {
-                    "type": 0,
-                    "values": {
-                        "0": 0
-                    }
-                }
-            },
-            "11": {
-                "name": "Chariklo",
-                "sgp": 63.1e9,
-                "refEpoch": 53699.5,
-                "orbitalElements": {
-                    "sma": 2374118208009,
-                    "ecc": 0.17534,
-                    "incl": 0.40797071265,
-                    "lan": 5.24385919091,
-                    "ap": 4.22999742843,
-                    "ma": 0.18500490071
-                },
-                "radius": 248000,
-                "minRadiusFactor": 1.1,
-                "maxRadiusFactor": 100,
-                "maxTimeOfFlyby": 3650,
-                "scale": 0.00001,
-                "meshMaterialURL": "res/img/chariklosurface.jpg",
+                "maxTimeOfFlyby": 0.5,
+                "scale": 0.0000015,
+                "meshMaterialURL": "res/img/earthsurface.jpg",
                 "surface": {
                     "type": 0,
                     "values": {
@@ -327,7 +137,7 @@
                 "id": 1,
                 "parentID": null,
                 "gameState": {
-                    "orbitingBodyID": 5,
+                    "orbitingBodyID": 2,
                     "epoch": 56000,
                     "passedDays": 0,
                     "transferLeg": {
@@ -347,8 +157,8 @@
                     "spacecraft": {
                         "mass": 2000,
                         "emptyMass": 1000,
-                        "maxThrust": 0.105,
-                        "specificImpulse": 3500,
+                        "maxThrust": 1500.0,
+                        "specificImpulse": 250,
                         "isLanded": true
                     }
                 }
