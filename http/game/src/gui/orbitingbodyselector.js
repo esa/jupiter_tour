@@ -160,12 +160,13 @@ gui.OrbitingBodySelector.prototype = {
                 this._screenPosition = screenPosition.clone();
                 var valX = this._screenPosition.getX();
                 var valY = this._screenPosition.getY();
-                if (valX + $(this._backgroundElement).outerWidth() /
+                var bBox = this._boundingBox;
+                if (valX + (bBox.right - bBox.left) /
                     2 > window.innerWidth) {
                     this._viewDirection = gui.ScreenDirections.LEFT;
-                } else if (valX - $(this._backgroundElement).outerWidth() / 2 < 0) {
+                } else if (valX - (bBox.right - bBox.left) / 2 < 0) {
                     this._viewDirection = gui.ScreenDirections.RIGHT;
-                } else if (valY - $(this._backgroundElement).outerHeight() - this._orbitingBody.getRadius() / this._viewDistance * gui.POSITION_SCALE < 0) {
+                } else if (valY - (bBox.bottom - bBox.top) - this._orbitingBody.getRadius() * window.innerHeight * this._marginUD * this._bodyScale / this._viewDistance * gui.POSITION_SCALE < 0) {
                     this._viewDirection = gui.ScreenDirections.DOWN;
                 } else {
                     this._viewDirection = gui.ScreenDirections.UP;

@@ -24,6 +24,7 @@ gui.OrbitingBody = function (id, name, centralBody, orbitalElements, orbitalElem
     this._surfaceType = surface.type;
     this._vehicle = null;
 
+    this._launchSelector = new gui.LaunchSelector(this);
     this._flybySelector = null;
 
     switch (this._surfaceType) {
@@ -37,7 +38,6 @@ gui.OrbitingBody = function (id, name, centralBody, orbitalElements, orbitalElem
         break;
     }
 
-    this._launchSelector = new gui.LaunchSelector(this);
 
     var material = new THREE.MeshPhongMaterial();
     material.map = THREE.ImageUtils.loadTexture(meshMaterialURL);
@@ -96,6 +96,7 @@ gui.OrbitingBody.prototype._unhighlight = function () {
 
 gui.OrbitingBody.prototype.onViewChange = function (viewDistance) {
     this._flybySelector.onViewChange(viewDistance);
+    this._launchSelector.onViewChange(viewDistance);
 };
 
 gui.OrbitingBody.prototype.onMouseOver = function () {
@@ -165,18 +166,20 @@ gui.OrbitingBody.prototype.openConfigurationWindow = function (epoch) {
 gui.OrbitingBody.prototype.update = function (screenPosition) {
     this._bodyMesh.rotation.y += this._rotationY % (2 * Math.PI);
     var size = this._bodyMesh.scale.lengthManhattan();
+    var selector = this._vehicle != null ? this._vehicle.isLanded() ? this._launchSelector : this._flybySelector : this._flybySelector;
+
     if (this._isMouseOver) {
         if (size < this._maxSize) {
             this._bodyMesh.scale.multiplyScalar(1 + this._scaleSpeed);
         } else {
-            if (!this._flybySelector.isVisible()) {
-                this._flybySelector.show(false);
+            if (!selector.isVisible()) {
+                selector.show(false);
             }
         }
     } else {
         if (!this._configurationMode && !this._configurationWindowHover) {
-            if (this._flybySelector.isVisible()) {
-                this._flybySelector.hide();
+            if (selector.isVisible()) {
+                selector.hide();
             }
             if (size > 3) {
                 this._bodyMesh.scale.multiplyScalar(1 - this._scaleSpeed);
@@ -186,6 +189,7 @@ gui.OrbitingBody.prototype.update = function (screenPosition) {
         }
     }
     this._flybySelector.update(screenPosition);
+    this._launchSelector.update(screenPosition);
 };
 
 gui.OrbitingBody.prototype._displayOrbitAtEpoch = function (epoch) {
