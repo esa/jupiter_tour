@@ -5,7 +5,6 @@
 gui.LaunchSelector = function (orbitingBody) {
     gui.OrbitingBodySelector.call(this, orbitingBody);
     var self = this;
-
     this._epoch = 0;
 
     this._configuration = {
@@ -37,7 +36,6 @@ gui.LaunchSelector = function (orbitingBody) {
     var backgroundWidth = Math.round(backgroundHeight * this._backgroundWidthFactorUD);
 
     this._backgroundElement = document.createElement('div');
-    this._backgroundElement.id = 'launchselector' + this._orbitingBody.getName();
     this._backgroundElement.className = 'simple-selector unselectable';
     this._backgroundElement.style.width = utility.toPixelString(backgroundWidth);
     this._backgroundElement.style.height = utility.toPixelString(backgroundHeight);

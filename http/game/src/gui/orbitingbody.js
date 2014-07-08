@@ -38,7 +38,6 @@ gui.OrbitingBody = function (id, name, centralBody, orbitalElements, orbitalElem
         break;
     }
 
-
     var material = new THREE.MeshPhongMaterial();
     material.map = THREE.ImageUtils.loadTexture(meshMaterialURL);
     var meshGeometry = new THREE.SphereGeometry(this._radius * this._scale, 100, 100);
@@ -155,7 +154,7 @@ gui.OrbitingBody.prototype.onDeactivated = function () {
     this._isActivated = false;
 };
 
-gui.OrbitingBody.prototype.openConfigurationWindow = function () {
+gui.OrbitingBody.prototype.openConfigurationWindow = function (epoch) {
     this._bodyMesh.scale.set(4, 4, 4);
     if (this._vehicle.isLanded()) {
         this._launchSelector.show(true);
@@ -283,7 +282,7 @@ gui.OrbitingBody.prototype.getFaceRadiusBounds = function (faceID) {
 };
 
 gui.OrbitingBody.prototype.getConfiguration = function () {
-    return utility.clone(this._configuration);
+    return this._configuration != null ? utility.clone(this._configuration) : null;
 };
 
 gui.OrbitingBody.prototype.getDefaultConfiguration = function () {
@@ -293,6 +292,10 @@ gui.OrbitingBody.prototype.getDefaultConfiguration = function () {
         this._configuration = this._flybySelector.getDefaultConfiguration();
     }
     return utility.clone(this._configuration);
+};
+
+gui.OrbitingBody.prototype.getVehicle = function () {
+    return this._vehicle;
 };
 
 gui.OrbitingBody.prototype.getVehicle = function () {
