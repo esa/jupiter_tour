@@ -793,7 +793,7 @@ var plugin = {};
         case core.GameEvents.MISSION_ID_AVAILABLE:
             this._missionID = eventData.missionID;
             var self = this;
-            net.sendGETRequest('/dashboard/missiontab.html', 'html', {}, function (response) {
+            net.sendGETRequest('/dashboard/playtab.html', 'html', {}, function (response) {
                     var parser = new DOMParser;
                     var doc = parser.parseFromString(response, 'text/html');
                     self._feedDiv.innerHTML = doc.getElementById('mission' + self._missionID + 'feed').innerHTML;
