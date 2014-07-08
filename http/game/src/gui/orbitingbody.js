@@ -142,6 +142,8 @@ gui.OrbitingBody.prototype.isInConfigurationMode = function () {
 
 gui.OrbitingBody.prototype.onActivated = function (epoch, vehicle) {
     this._surface.updateFaces(epoch, vehicle.getVelocityInf());
+    this._flybySelector.onActivated(epoch);
+    this._launchSelector.onActivated(epoch);
     this._highlight();
     this._vehicle = vehicle.clone();
     this._isActivated = true;
@@ -153,10 +155,10 @@ gui.OrbitingBody.prototype.onDeactivated = function () {
     this._isActivated = false;
 };
 
-gui.OrbitingBody.prototype.openConfigurationWindow = function (epoch) {
+gui.OrbitingBody.prototype.openConfigurationWindow = function () {
     this._bodyMesh.scale.set(4, 4, 4);
     if (this._vehicle.isLanded()) {
-        this._launchSelector.show(true, epoch);
+        this._launchSelector.show(true);
     } else {
         this._flybySelector.show(true);
     }
@@ -281,7 +283,16 @@ gui.OrbitingBody.prototype.getFaceRadiusBounds = function (faceID) {
 };
 
 gui.OrbitingBody.prototype.getConfiguration = function () {
-    return this._configuration;
+    return utility.clone(this._configuration);
+};
+
+gui.OrbitingBody.prototype.getDefaultConfiguration = function () {
+    if (this._vehicle.isLanded()) {
+        this._configuration = this._launchSelector.getDefaultConfiguration();
+    } else {
+        this._configuration = this._flybySelector.getDefaultConfiguration();
+    }
+    return utility.clone(this._configuration);
 };
 
 gui.OrbitingBody.prototype.getVehicle = function () {

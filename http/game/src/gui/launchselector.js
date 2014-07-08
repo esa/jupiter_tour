@@ -5,7 +5,11 @@
 gui.LaunchSelector = function (orbitingBody) {
     gui.OrbitingBodySelector.call(this, orbitingBody);
     var self = this;
+
+    this._epoch = 0;
+
     this._configuration = {
+        problemType: astrodynamics.ProblemTypes.MGA1DSM,
         launchEpochBounds: [],
         velocityBounds: [],
         timeOfFlightBounds: []
@@ -73,7 +77,7 @@ gui.LaunchSelector = function (orbitingBody) {
     var col = document.createElement('div');
     col.className = 'col1';
     var img = document.createElement('img');
-    img.src = 'res/svg/clock.svg';
+    img.src = 'res/svg/calendar.svg';
     img.className = 'icon center-horizontally center-vertically';
     col.appendChild(img);
     row.appendChild(col);
@@ -85,17 +89,9 @@ gui.LaunchSelector = function (orbitingBody) {
     wrapper.style.height = '60%';
     wrapper.style.width = '90%';
 
-    var markerPositions = [];
-    var orbitalPeriod = this._orbitingBody.getOrbitalPeriod() * utility.SEC_TO_DAY;
-    for (var i = 1; i <= this._numOrbits; i++) {
-        markerPositions.push(orbitalPeriod * i);
-    }
-    this._timeOfFlightRangeSlider = new gui.RangeSlider(wrapper, {
-        rangeMarkerPositions: markerPositions
-    });
+    this._launchEpochRangeSlider = new gui.RangeSlider(wrapper);
     col.appendChild(wrapper);
     row.appendChild(col);
-
     toolBoxCol.appendChild(row);
 
     row = document.createElement('div');
@@ -104,7 +100,7 @@ gui.LaunchSelector = function (orbitingBody) {
     col = document.createElement('div');
     col.className = 'col1';
     img = document.createElement('img');
-    img.src = 'res/svg/calendar.svg';
+    img.src = 'res/svg/clock.svg';
     img.className = 'icon center-horizontally center-vertically';
     col.appendChild(img);
     row.appendChild(col);
@@ -115,7 +111,16 @@ gui.LaunchSelector = function (orbitingBody) {
     wrapper.className = 'rangeslider-wrapper center-vertically center-horizontally';
     wrapper.style.height = '60%';
     wrapper.style.width = '90%';
-    this._launchEpochRangeSlider = new gui.RangeSlider(wrapper);
+
+    var markerPositions = [];
+    var orbitalPeriod = this._orbitingBody.getOrbitalPeriod() * utility.SEC_TO_DAY;
+    for (var i = 1; i <= this._numOrbits; i++) {
+        markerPositions.push(orbitalPeriod * i);
+    }
+
+    this._timeOfFlightRangeSlider = new gui.RangeSlider(wrapper, {
+        rangeMarkerPositions: markerPositions
+    });
     col.appendChild(wrapper);
     row.appendChild(col);
     toolBoxCol.appendChild(row);
@@ -185,6 +190,10 @@ gui.LaunchSelector.prototype._confirmAndClose = function () {
     this._configuration.launchEpochBounds = [this._launchEpochRangeSlider.min(), this._launchEpochRangeSlider.max()];
     this.hide();
     this._orbitingBody.onConfigurationDone(true, this._configuration);
+};
+
+gui.LaunchSelector.prototype.onActivated = function (epoch) {
+    this._epoch = epoch;
 };
 
 gui.LaunchSelector.prototype.show = function (editable, epoch) {

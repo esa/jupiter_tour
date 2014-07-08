@@ -179,19 +179,8 @@ core.GameHistoryManager.prototype = {
                     var deltaV = transferLeg.deltaV;
                     var score = gameState.getScore();
                     var epoch = gameState.getEpoch();
-                    var velocityInf = gameState.getVelocityInf();
                     var mappedFaceID = transferLeg.mappedFaceID;
-                    var isRoot = gameState.isRoot();
-                    var invalidReasonIDs = gameState.getInvalidReasonIDs();
                     var mappedFaces = gameState.getMappedFaces();
-                    var isWinning = gameState.isWinning();
-
-                    var spacecraft = gameState.getSpacecraft();
-                    var specificImpulse = spacecraft.getSpecificImpulse();
-                    var maxThrust = spacecraft.getMaxThrust();
-                    var mass = spacecraft.getMass();
-                    var emptyMass = spacecraft.getEmptyMass();
-                    var isLanded = spacecraft.isLanded();
 
                     nodeResult.gameState.orbitingBodyID = orbitingBodyID;
                     nodeResult.gameState.epoch = epoch;
@@ -203,16 +192,26 @@ core.GameHistoryManager.prototype = {
                     nodeResult.gameState.passedDays = passedDays;
                     nodeResult.gameState.totalDeltaV = totalDeltaV;
                     nodeResult.gameState.score = score;
-                    nodeResult.gameState.velocityInf = velocityInf.asArray();
-                    nodeResult.gameState.isRoot = isRoot;
-                    nodeResult.gameState.isWinning = isWinning;
-                    nodeResult.gameState.invalidReasonIDs = invalidReasonIDs;
-                    nodeResult.gameState.spacecraft = {};
-                    nodeResult.gameState.spacecraft.specificImpulse = specificImpulse;
-                    nodeResult.gameState.spacecraft.maxThrust = maxThrust;
-                    nodeResult.gameState.spacecraft.mass = mass;
-                    nodeResult.gameState.spacecraft.emptyMass = emptyMass;
-                    nodeResult.gameState.spacecraft.isLanded = isLanded;
+
+                    var vehicle = gameState.getVehicle();
+                    var isLanded = vehicle.isLanded();
+                    var velocityInf = vehicle.getVelocityInf();
+                    var stages = vehicle.getStages();
+
+                    nodeResult.gameState.vehicle = {};
+                    nodeResult.gameState.vehicle.velocityInf = velocityInf.asArray();
+                    nodeResult.gameState.vehicle.isLanded = vehicle.isLanded();
+                    nodeResult.gameState.vehicle.stages = [];
+                    for (var i = 0; i < stages.length; i++) {
+                        var stage = stages[i];
+                        nodeResult.gameState.vehicle.stages.push({
+                            propulsionType: stage.getPropulsionType(),
+                            mass: stage.getMass(),
+                            emptyMass: stage.getEmptyMass(),
+                            thrust: stage.getThrust(),
+                            specificImpulse: stage.getSpecificImpulse()
+                        });
+                    }
                     nodeResult.gameState.mappedFaces = {};
                     for (var face in mappedFaces) {
                         for (var i = 0; i < mappedFaces[face].length; i++) {

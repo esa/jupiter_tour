@@ -75,6 +75,14 @@ model.Vehicle.prototype = {
         return Math.log((stage.getMass() + mass) / (stage.getEmptyMass() + mass)) * stage.getSpecificImpulse() * constants.STANDARD_ACCELERATION;
     },
 
+    getStages: function () {
+        var stages = [];
+        for (var i = 0; i < this._stages.length; i++) {
+            stages.push(this._stages[i].clone());
+        }
+        return stages;
+    },
+
     getTotalDeltaV: function () {
         return this._totalDeltaV;
     },

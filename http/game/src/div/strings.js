@@ -37,7 +37,7 @@ var strings = {};
         6: 'You mapped your selected face %d successfully.',
         7: 'You selected face %d for mapping but the spacecraft\'s trajectory only allowed to map face %d.',
         8: 'Your last flyby mapped face %d on %s.',
-        9: 'Welcome to Jupiter Tour!',
+        9: 'Welcome to space hopper!',
         10: 'Click here to get back and try another way.',
         11: 'Your last Flyby was at %s.',
         12: 'You can not select the same body at this point.'

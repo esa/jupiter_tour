@@ -5,7 +5,9 @@
 gui.TimeOfFlightSelector = function (orbitingBody) {
     gui.OrbitingBodySelector.call(this, orbitingBody);
     var self = this;
+
     this._configuration = {
+        problemType: astrodynamics.ProblemTypes.MGAPART,
         timeOfFlightBounds: [],
         radiusBounds: [],
         betaBounds: [-2 * Math.PI, 2 * Math.PI]

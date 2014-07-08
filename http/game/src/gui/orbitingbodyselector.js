@@ -13,6 +13,8 @@ gui.OrbitingBodySelector = function (orbitingBody) {
     this._isVisible = false;
     this._isEditable = false;
 
+    this._configuration = {};
+
     this._backgroundName = '';
     this._backgroundHeightFactorUD = 1;
     this._backgroundWidthFactorUD = 1;
@@ -50,6 +52,8 @@ gui.OrbitingBodySelector.prototype = {
     _onResize: function () {},
 
     _onMouseMove: function (event) {},
+
+    _resetSelection: function () {},
 
     _checkForMouseHover: function (event) {
         if (this._isVisible) {
@@ -150,6 +154,8 @@ gui.OrbitingBodySelector.prototype = {
         return this._isVisible;
     },
 
+    onActivated: function () {},
+
     show: function () {},
 
     hide: function () {},
@@ -180,5 +186,10 @@ gui.OrbitingBodySelector.prototype = {
 
     onViewChange: function (viewDistance) {
         this._viewDistance = viewDistance;
+    },
+
+    getDefaultConfiguration: function () {
+        this._resetSelection();
+        return utility.clone(this._configuration);
     }
 };

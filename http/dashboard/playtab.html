@@ -4,7 +4,7 @@
         <br><a class="button mission" id="mission1">start mission</a>
         <img src="/img/earthlaunch.jpg" style="display:block;width:100%;height:auto;">
     </div>
-    
+
     <div id="mission1feed">
         <p>Dou you have what it takes to get from Earth to Jupiter? In your first assignment a powerful launch helps to make things easy (maybe).</p>
         <div>
@@ -97,8 +97,7 @@
                     </ul>
                 </li>
                 <li>
-                    <b>Score system</b>: Points are awarded for each face of a galilean moon visited. A moon face is considered as visited if 
-                    the periapsis of the relative fly-by hyperbola is aligned with it. You can see the exact point visited on the surface as a small dot appearing on it at each fly-by.
+                    <b>Score system</b>: Points are awarded for each face of a galilean moon visited. A moon face is considered as visited if the periapsis of the relative fly-by hyperbola is aligned with it. You can see the exact point visited on the surface as a small dot appearing on it at each fly-by.
                 </li>
             </ul>
         </div>
@@ -156,7 +155,7 @@
 </div>
 
 <script>
-    $('.button.mission').click(function() {
+    $('.button.mission').click(function () {
         var gameID = $(this).attr('id');
         replaceCookie('gameID', gameID, 1);
         window.location.href = '/game/index.html';

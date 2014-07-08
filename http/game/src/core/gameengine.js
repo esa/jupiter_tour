@@ -103,7 +103,6 @@ core.GameEngine.prototype = {
                 var configuration = orbBody.getConfiguration();
                 if (configuration) {
                     this._userAction.configuration = utility.clone(configuration);
-                    this._userAction.configuration.problemType = astrodynamics.ProblemTypes.MGAPART;
                     this._setGameStatePhase(core.GameStatePhases.ORBITING_BODY_SELECTION);
                 } else {
                     this._gameHistoryManager.unlock();
@@ -430,7 +429,7 @@ core.GameEngine.prototype = {
             var id = this._checkForOrbitingBodyHover();
             if (id == orbBody.getID()) {
                 this._gameHistoryManager.lock();
-                orbBody.openConfigurationWindow(this._gameState.getEpoch());
+                orbBody.openConfigurationWindow();
                 this._setGameStatePhase(core.GameStatePhases.TRANSFER_CONFIGURATION);
             }
             break;
@@ -443,21 +442,20 @@ core.GameEngine.prototype = {
 
                 this._userAction.nextOrbitingBody = nextBody;
 
-                var problem;
+                var problem = null;
+
                 var configuration = this._userAction.configuration;
+
                 switch (configuration.problemType) {
                 case astrodynamics.ProblemTypes.MGAPART:
-                    problem = new astrodynamics.MGAPart(orbBody, nextBody, this._gameState.getEpoch(), this._gameState.getVelocityInf(), configuration.timeOfFlightBounds, configuration.radiusBounds, configuration.betaBounds);
+                    problem = new astrodynamics.MGAPart(orbBody, nextBody, this._gameState.getEpoch(), this._gameState.getVehicle().getVelocityInf(), configuration.timeOfFlightBounds, configuration.radiusBounds, configuration.betaBounds);
                     break;
 
                 case astrodynamics.ProblemTypes.MGA1DSM:
-                    if (nextBody.getID() == orbBody.getID()) {
-                        this._notificationManager.dispatchInfoMsg(strings.toText(strings.GameInfos.SAME_BODY_FORBIDDEN));
-                        return;
-                    }
                     problem = new astrodynamics.MGA1DSM(orbBody, nextBody, configuration.launchEpochBounds, configuration.velocityBounds, configuration.timeOfFlightBounds);
                     break;
                 }
+
                 this._solver = new algorithm.JDE(problem);
 
                 this._setBusy();
@@ -484,35 +482,17 @@ core.GameEngine.prototype = {
 
                 var problem = null;
 
-                if (this._gameState.getVehicle().isLanded()) {
-                    if (nextBody.getID() == orbBody.getID()) {
-                        this._notificationManager.dispatchInfoMsg(strings.toText(strings.GameInfos.SAME_BODY_FORBIDDEN));
-                        this._gameHistoryManager.unlock();
-                        return;
-                    }
-                    var configuration = this._userAction.configuration;
-                    configuration.problemType = astrodynamics.ProblemTypes.MGA1DSM;
-                    configuration.launchEpochBounds = [this._gameState.getEpoch(), this._gameState.getEpoch() + orbBody.getMaxLaunchDelay()];
-                    configuration.velocityBounds = [0, this._gameState.getDeltaV()];
-                    configuration.timeOfFlightBounds = [1, orbBody.getMaxTimeOfFlight() * utility.SEC_TO_DAY];
+                var configuration = orbBody.getDefaultConfiguration();
+                this._userAction.configuration = configuration;
 
+                switch (configuration.problemType) {
+                case astrodynamics.ProblemTypes.MGA1DSM:
                     problem = new astrodynamics.MGA1DSM(orbBody, nextBody, configuration.launchEpochBounds, configuration.velocityBounds, configuration.timeOfFlightBounds);
-                } else {
-                    var configuration = this._userAction.configuration;
-                    configuration.problemType = astrodynamics.ProblemTypes.MGAPART;
-                    switch (orbBody.getSurfaceType()) {
-                    case model.SurfaceTypes.SPHERE:
-                        delete configuration.faceID;
-                        break;
-                    case model.SurfaceTypes.TRUNCATED_ICOSAHEDRON:
-                        configuration.faceID = gui.NULL_ID;
-                        break;
-                    }
-                    configuration.timeOfFlightBounds = [1, orbBody.getMaxTimeOfFlight() * utility.SEC_TO_DAY];
-                    configuration.radiusBounds = [orbBody.getMinRadius() / orbBody.getRadius(), orbBody.getMaxRadius() / orbBody.getRadius()];
-                    configuration.betaBounds = [-2 * Math.PI, 2 * Math.PI];
+                    break;
 
-                    problem = new astrodynamics.MGAPart(orbBody, nextBody, this._gameState.getEpoch(), this._gameState.getVelocityInf(), configuration.timeOfFlightBounds, configuration.radiusBounds, configuration.betaBounds);
+                case astrodynamics.ProblemTypes.MGAPART:
+                    problem = new astrodynamics.MGAPart(orbBody, nextBody, this._gameState.getEpoch(), this._gameState.getVehicle().getVelocityInf(), configuration.timeOfFlightBounds, configuration.radiusBounds, configuration.betaBounds);
+                    break;
                 }
 
                 this._solver = new algorithm.JDE(problem);
@@ -529,27 +509,16 @@ core.GameEngine.prototype = {
                 nextBody.onMouseOut();
                 this._userAction.nextOrbitingBody = nextBody;
 
-                switch (orbBody.getSurfaceType()) {
-                case model.SurfaceTypes.SPHERE:
-                    delete this._userAction.configuration.faceID;
-                    break;
-                case model.SurfaceTypes.TRUNCATED_ICOSAHEDRON:
-                    this._userAction.configuration.faceID = gui.NULL_ID;
-                    break;
-                }
+                var problem = null;
 
-                var problem;
                 var configuration = this._userAction.configuration;
+
                 switch (configuration.problemType) {
                 case astrodynamics.ProblemTypes.MGAPART:
-                    problem = new astrodynamics.MGAPart(orbBody, nextBody, this._gameState.getEpoch(), this._gameState.getVelocityInf(), configuration.timeOfFlightBounds, configuration.radiusBounds, configuration.betaBounds);
+                    problem = new astrodynamics.MGAPart(orbBody, nextBody, this._gameState.getEpoch(), this._gameState.getVehicle().getVelocityInf(), configuration.timeOfFlightBounds, configuration.radiusBounds, configuration.betaBounds);
                     break;
 
                 case astrodynamics.ProblemTypes.MGA1DSM:
-                    if (nextBody.getID() == orbBody.getID()) {
-                        this._notificationManager.dispatchInfoMsg(strings.toText(strings.GameInfos.SAME_BODY_FORBIDDEN));
-                        return;
-                    }
                     problem = new astrodynamics.MGA1DSM(orbBody, nextBody, configuration.launchEpochBounds, configuration.velocityBounds, configuration.timeOfFlightBounds);
                     break;
                 }
@@ -666,6 +635,11 @@ core.GameEngine.prototype = {
             }
             var vehicle = new model.Vehicle(new geometry.Vector3().fromArray(gameState.vehicle.velocityInf), stages, gameState.vehicle.isLanded);
 
+            var dsmResult = null;
+            if (node.parentID != null) {
+                dsmResult = gameStates[node.parentID].getVehicle().performManeuver(deltaV, timeOfFlight * utility.DAY_TO_SEC);
+            }
+
             var leg = null;
             if (node.parentID != null) {
                 switch (problemType) {
@@ -675,7 +649,7 @@ core.GameEngine.prototype = {
                 default:
                     leg = new gui.Leg(chromosome, previousOBody, currentOBody, new geometry.Vector3().fromArray(previousNode.gameState.vehicle.velocityInf), previousNode.gameState.epoch);
                 }
-                leg.setGradient(dsmRating);
+                leg.setGradient(dsmResult.performance);
             }
             var mappedFaceID = gameState.transferLeg.mappedFaceID;
             var mappedFaces = {};
@@ -687,11 +661,6 @@ core.GameEngine.prototype = {
                         mappedFaces[faceID] = [new geometry.Vector2().fromArray(gameState.mappedFaces[faceID][i])];
                     }
                 }
-            }
-
-            var dsmResult = null;
-            if (node.parentID != null) {
-                dsmResult = gameStates[node.parentID].getVehicle().performManeuver(deltaV, timeOfFlight * utility.DAY_TO_SEC);
             }
 
             var transferLeg = {
