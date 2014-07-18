@@ -29,7 +29,7 @@ core.GameHistoryManager.prototype = {
         var id = node.getKey();
         var parent = node.getParent();
         var name = gameState.getOrbitingBody().getName();
-        var dsmRating = transferLeg.dsmRating;
+        var gravityLoss = transferLeg.gravityLoss;
         var passedDays = gameState.getPassedDays();
         var totalDeltaV = gameState.getTotalDeltaV();
         var score = gameState.getScore();
@@ -41,7 +41,7 @@ core.GameHistoryManager.prototype = {
         result.hasHiddenSiblings = false;
         result.properties = {};
         result.properties.name = name;
-        result.properties.dsmRating = dsmRating;
+        result.properties.gravityLoss = gravityLoss;
         result.properties.passedDays = passedDays;
         result.properties.totalDeltaV = totalDeltaV;
         result.properties.score = score;
@@ -67,10 +67,11 @@ core.GameHistoryManager.prototype = {
 
             this._historyHUD.add(currentNode.getKey(), nextNode.getKey(), {
                 name: gameState.getOrbitingBody().getName(),
-                dsmRating: gameState.getTransferLeg().dsmRating,
+                gravityLoss: gameState.getTransferLeg().gravityLoss,
                 passedDays: gameState.getPassedDays(),
                 totalDeltaV: gameState.getTotalDeltaV(),
-                score: gameState.getScore()
+                score: gameState.getScore(),
+                isVehicleLanded: gameState.getVehicle().isLanded()
             });
         }
     },
@@ -170,7 +171,7 @@ core.GameHistoryManager.prototype = {
                 nodeResult.gameState.transferLeg = {};
                 nodeResult.gameState.transferLeg.chromosome = transferLeg.chromosome;
                 if (!compressed) {
-                    var dsmRating = transferLeg.dsmRating;
+                    var gravityLoss = transferLeg.gravityLoss;
                     var problemType = transferLeg.problemType;
                     var timeOfFlight = transferLeg.timeOfFlight;
                     var orbitingBodyID = gameState.getOrbitingBody().getID();
@@ -184,7 +185,7 @@ core.GameHistoryManager.prototype = {
 
                     nodeResult.gameState.orbitingBodyID = orbitingBodyID;
                     nodeResult.gameState.epoch = epoch;
-                    nodeResult.gameState.transferLeg.dsmRating = dsmRating;
+                    nodeResult.gameState.transferLeg.gravityLoss = gravityLoss;
                     nodeResult.gameState.transferLeg.mappedFaceID = mappedFaceID;
                     nodeResult.gameState.transferLeg.deltaV = deltaV;
                     nodeResult.gameState.transferLeg.problemType = problemType;

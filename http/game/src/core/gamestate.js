@@ -8,7 +8,7 @@ core.GameState = function (orbitingBody, epoch, passedDays, totalDeltaV, score, 
         deltaV: 0,
         timeOfFlight: 0,
         visualization: null,
-        dsmRating: 1,
+        gravityLoss: 1,
         mappedFaceID: '',
         problemType: null
     };
@@ -45,7 +45,7 @@ core.GameState.prototype = {
             timeOfFlight: this._transferLeg.timeOfFlight,
             deltaV: this._transferLeg.deltaV,
             visualization: this._transferLeg.visualization,
-            dsmRating: this._transferLeg.dsmRating,
+            gravityLoss: this._transferLeg.gravityLoss,
             mappedFaceID: this._transferLeg.mappedFaceID,
             problemType: this._transferLeg.problemType
         };

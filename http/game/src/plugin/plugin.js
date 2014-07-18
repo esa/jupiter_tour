@@ -694,7 +694,7 @@ var plugin = {};
             feVInfinity: 'relative velocity at infinity',
             feMappedArea: 'last mapped area',
             feDeltaV: 'last leg deltaV',
-            fePerformance: 'last leg performance',
+            feGravityLoss: 'last leg gravity loss',
             feTimeOfFlight: 'last leg time of flight',
             feChromosome: 'last leg chromosome',
         }
@@ -725,10 +725,10 @@ var plugin = {};
             if (this._isInitialized) {
                 var gameState = eventData.gameState;
                 $('#feEpoch').text(utility.round(gameState.getEpoch()) + ' MJD');
-                $('#fePassedDays').text(utility.round(gameState.getPassedDays()));
-                $('#feVInfinity').text(gameState.getVehicle().getVelocityInf().toString(2));
+                $('#fePassedDays').text(utility.round(gameState.getPassedDays()) + ' days');
+                $('#feVInfinity').text(gameState.getVehicle().getVelocityInf().toString(2) + ' m/s');
                 $('#feTotalDeltaV').text(utility.round(gameState.getTotalDeltaV()) + ' m/s');
-                $('#feScore').text(gameState.getScore());
+                $('#feScore').text(gameState.getScore() + ' points');
                 $('#feSOI').text(gameState.getOrbitingBody().getName());
                 var transferLeg = gameState.getTransferLeg();
                 if (!transferLeg.chromosome.length) {
@@ -751,8 +751,8 @@ var plugin = {};
                 }
                 $('#feMappedArea').text(feMappedFace);
                 $('#feDeltaV').text(utility.round(transferLeg.deltaV) + ' m/s');
-                $('#fePerformance').text(utility.round(transferLeg.dsmRating) * 100 + ' %');
-                $('#feTimeOfFlight').text(utility.round(transferLeg.timeOfFlight));
+                $('#feGravityLoss').text((utility.round(transferLeg.gravityLoss) * 100) + ' %');
+                $('#feTimeOfFlight').text(utility.round(transferLeg.timeOfFlight) + ' days');
             }
             break;
         }

@@ -282,7 +282,7 @@ gui.GameHistoryHUD.prototype = {
     },
 
     _getNodeColor: function (node) {
-        var rating = node.properties.dsmRating;
+        var rating = node.properties.gravityLoss;
         var green = Math.round(255 * rating);
         var red = Math.round(255 - rating * 255);
         var textRed = red.toString(16);
@@ -539,7 +539,7 @@ gui.GameHistoryHUD.prototype = {
             node.hasHiddenSiblings = false;
             node.properties = {};
             node.properties.name = data.name;
-            node.properties.dsmRating = data.dsmRating;
+            node.properties.gravityLoss = data.gravityLoss;
             node.properties.passedDays = data.passedDays;
             node.properties.totalDeltaV = data.totalDeltaV;
             node.properties.score = data.score;

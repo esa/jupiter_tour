@@ -1,18 +1,21 @@
-/* Class LaunchSelector 
+/* Class SimpleSelector 
     Provides the time of flight selection graphical user interface. 
     Inherits OrbitingBodySelector
 */
-gui.LaunchSelector = function (orbitingBody) {
+gui.SimpleSelector = function (orbitingBody) {
     gui.OrbitingBodySelector.call(this, orbitingBody);
     var self = this;
-    this._epoch = 0;
 
     this._configuration = {
-        problemType: astrodynamics.ProblemTypes.MGA1DSM,
-        launchEpochBounds: [],
-        velocityBounds: [],
-        timeOfFlightBounds: []
+        problemType: null
     };
+
+    this._numOrbits = 5;
+
+    this._maxTimeOfFlight = this._orbitingBody.getMaxTimeOfFlight() * utility.SEC_TO_DAY;
+    this._maxLaunchDelay = this._orbitingBody.getMaxLaunchDelay() * utility.SEC_TO_DAY;
+    this._epoch = 0;
+    this._vehicle = null;
 
     this._backgroundName = 'simpleselector';
     this._backgroundHeightFactorLR = 0.1;
@@ -25,12 +28,6 @@ gui.LaunchSelector = function (orbitingBody) {
     this._containerMarginFactorT = 0.24;
     this._marginLR = 0.3e11;
     this._marginUD = 0.5e11;
-
-    this._numOrbits = 5;
-    this._maxTimeOfFlight = this._orbitingBody.getMaxTimeOfFlight() * utility.SEC_TO_DAY;
-    this._maxLaunchDelay = this._orbitingBody.getMaxLaunchDelay() * utility.SEC_TO_DAY;
-
-    this._epoch = 0;
 
     var backgroundHeight = Math.round(window.innerHeight * this._backgroundHeightFactorUD);
     var backgroundWidth = Math.round(backgroundHeight * this._backgroundWidthFactorUD);
@@ -69,8 +66,8 @@ gui.LaunchSelector = function (orbitingBody) {
     var toolBoxCol = document.createElement('div');
     toolBoxCol.className = 'col1';
 
-    var row = document.createElement('div');
-    row.className = 'row1';
+    this._launchEpochRow = document.createElement('div');
+    this._launchEpochRow.className = 'row1';
 
     var col = document.createElement('div');
     col.className = 'col1';
@@ -78,7 +75,7 @@ gui.LaunchSelector = function (orbitingBody) {
     img.src = 'res/svg/calendar.svg';
     img.className = 'icon center-horizontally center-vertically';
     col.appendChild(img);
-    row.appendChild(col);
+    this._launchEpochRow.appendChild(col);
 
     col = document.createElement('div');
     col.className = 'col2';
@@ -89,10 +86,33 @@ gui.LaunchSelector = function (orbitingBody) {
 
     this._launchEpochRangeSlider = new gui.RangeSlider(wrapper);
     col.appendChild(wrapper);
-    row.appendChild(col);
-    toolBoxCol.appendChild(row);
+    this._launchEpochRow.appendChild(col);
+    toolBoxCol.appendChild(this._launchEpochRow);
 
-    row = document.createElement('div');
+    this._radiusRow = document.createElement('div');
+    this._radiusRow.className = 'row1';
+
+    col = document.createElement('div');
+    col.className = 'col1';
+    img = document.createElement('img');
+    img.src = 'res/svg/radiusicon.svg';
+    img.className = 'icon center-horizontally center-vertically';
+    col.appendChild(img);
+    this._radiusRow.appendChild(col);
+
+    col = document.createElement('div');
+    col.className = 'col2';
+    var wrapper = document.createElement('div');
+    wrapper.className = 'rangeslider-wrapper center-vertically center-horizontally';
+    wrapper.style.height = '60%';
+    wrapper.style.width = '90%';
+
+    this._radiusRangeSlider = new gui.RangeSlider(wrapper);
+    col.appendChild(wrapper);
+    this._radiusRow.appendChild(col);
+    toolBoxCol.appendChild(this._radiusRow);
+
+    var row = document.createElement('div');
     row.className = 'row2';
 
     col = document.createElement('div');
@@ -159,65 +179,99 @@ gui.LaunchSelector = function (orbitingBody) {
     this._backgroundElement.appendChild(this._containerElement);
     document.body.appendChild(this._backgroundElement);
 };
-gui.LaunchSelector.prototype = Object.create(gui.OrbitingBodySelector.prototype);
-gui.LaunchSelector.prototype.constructor = gui.LaunchSelector;
+gui.SimpleSelector.prototype = Object.create(gui.OrbitingBodySelector.prototype);
+gui.SimpleSelector.prototype.constructor = gui.SimpleSelector;
 
-gui.LaunchSelector.prototype._updateSliders = function () {
+gui.SimpleSelector.prototype._updateSliders = function () {
+    if (this._vehicle.isLanded()) {
+        this._launchEpochRangeSlider.range(this._configuration.launchEpochBounds);
+    } else {
+        this._radiusRangeSlider.range(this._configuration.radiusBounds);
+    }
     this._timeOfFlightRangeSlider.range(this._configuration.timeOfFlightBounds);
-    this._launchEpochRangeSlider.range(this._configuration.launchEpochBounds);
 };
 
-gui.LaunchSelector.prototype._resetSelection = function () {
+gui.SimpleSelector.prototype._resetSelection = function () {
+    if (this._vehicle.isLanded()) {
+        delete this._configuration.radiusBounds;
+        delete this._configuration.betaBounds;
+        this._configuration.problemType = astrodynamics.ProblemTypes.MGA1DSM;
+        this._configuration.launchEpochBounds = [this._epoch, this._epoch + this._maxLaunchDelay];
+        this._configuration.velocityBounds = [0, this._vehicle.getDeltaV()];
+    } else {
+        delete this._configuration.launchEpochBounds;
+        delete this._configuration.velocityBounds;
+        this._configuration.problemType = astrodynamics.ProblemTypes.MGAPART;
+        this._configuration.radiusBounds = [this._orbitingBody.getMinRadius() / this._orbitingBody.getRadius(), this._orbitingBody.getMaxRadius() / this._orbitingBody.getRadius()];
+        this._configuration.betaBounds = [-2 * Math.PI, 2 * Math.PI];
+    }
     this._configuration.timeOfFlightBounds = [1, this._maxTimeOfFlight];
-    this._configuration.launchEpochBounds = [this._epoch, this._epoch + this._maxLaunchDelay];
     this._updateSliders();
 };
 
-gui.LaunchSelector.prototype._onMove = function () {
+gui.SimpleSelector.prototype._onMove = function () {
     this._timeOfFlightRangeSlider.onMove();
     this._launchEpochRangeSlider.onMove();
+    this._radiusRangeSlider.onMove();
 };
 
-gui.LaunchSelector.prototype._onResize = function () {
+gui.SimpleSelector.prototype._onResize = function () {
     this._timeOfFlightRangeSlider.onResize();
     this._launchEpochRangeSlider.onResize();
+    this._radiusRangeSlider.onResize();
 };
 
-gui.LaunchSelector.prototype._confirmAndClose = function () {
+gui.SimpleSelector.prototype._confirmAndClose = function () {
+    if (this._vehicle.isLanded()) {
+        this._configuration.launchEpochBounds = [this._launchEpochRangeSlider.min(), this._launchEpochRangeSlider.max()];
+    } else {
+        this._configuration.radiusBounds = [this._radiusRangeSlider.min(), this._radiusRangeSlider.max()];
+    }
     this._configuration.timeOfFlightBounds = [this._timeOfFlightRangeSlider.min(), this._timeOfFlightRangeSlider.max()];
-    this._configuration.launchEpochBounds = [this._launchEpochRangeSlider.min(), this._launchEpochRangeSlider.max()];
     this.hide();
     this._orbitingBody.onConfigurationDone(true, this._configuration);
 };
 
-gui.LaunchSelector.prototype.onActivated = function (epoch) {
+gui.SimpleSelector.prototype.onActivated = function (epoch, vehicle) {
     this._epoch = epoch;
+    this._vehicle = vehicle.clone();
 };
 
-gui.LaunchSelector.prototype.show = function (editable, epoch) {
+gui.SimpleSelector.prototype.onDeactivated = function () {
+    this._epoch = 0;
+    this._vehicle =  null;
+};
+
+gui.SimpleSelector.prototype.show = function (editable) {
     this._editable = editable;
-    this._epoch = epoch != null ? epoch : 0;
 
     this._backgroundElement.style.display = 'block';
     if (this._editable) {
         this._titleWrapper.style.display = 'none';
         this._toolBoxWrapper.style.display = 'block';
-        this._configuration.velocityBounds = [0, this._orbitingBody.getVehicle().getDeltaV()];
+        if (this._vehicle.isLanded()) {
+            this._launchEpochRow.style.display =  'block';
+            this._launchEpochRangeSlider.show();
+        } else {
+            this._radiusRow.style.display = 'block';
+            this._radiusRangeSlider.show();
+        }
         this._timeOfFlightRangeSlider.show();
-        this._launchEpochRangeSlider.show();
         this._resetSelection();
     } else {
         this._titleWrapper.style.display = 'flex';
-        this._toolBoxWrapper.style.display = 'none';
-        this._configuration.velocityBounds = [];
-        this._timeOfFlightRangeSlider.hide();
         this._launchEpochRangeSlider.hide();
+        this._radiusRangeSlider.hide();
+        this._timeOfFlightRangeSlider.hide();
+        this._toolBoxWrapper.style.display = 'none';
+        this._launchEpochRow.style.display = 'none';
+        this._radiusRow.style.display = 'none';
     }
     this._isVisible = true;
     utility.fitText();
 };
 
-gui.LaunchSelector.prototype.hide = function () {
+gui.SimpleSelector.prototype.hide = function () {
     this._backgroundElement.style.display = 'none';
     this._isVisible = false;
     this._orbitingBody.onConfigurationWindowOut();

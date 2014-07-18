@@ -24,7 +24,7 @@ model.Vehicle.prototype = {
 
     performManeuver: function (deltaV, timeOfFlight) {
         var dsmResult = {
-            performance: 0,
+            gravityLoss: 0,
             isOutOfFuel: false,
             hasDeltaVLimitation: false
         };
@@ -33,15 +33,13 @@ model.Vehicle.prototype = {
         var mass = stage.getMass() * Math.exp(-(deltaV / (stage.getSpecificImpulse() * constants.STANDARD_ACCELERATION)));
         stage.setMass(mass);
 
-        dsmResult.performance = 1 - deltaV / maxDeltaV;
+        dsmResult.gravityLoss = 1 - deltaV / maxDeltaV;
 
         if (stage.getMass() < stage.getEmptyMass()) {
             dsmResult.isOutOfFuel = true;
-            dsmResult.performance = 0;
+            dsmResult.gravityLoss = 0;
         }
-        dsmResult.hasDeltaVLimitation = dsmResult.performance < 0;
-        dsmResult.performance = Math.min(1, dsmResult.performance);
-
+        dsmResult.hasDeltaVLimitation = dsmResult.gravityLoss < 0;
         return dsmResult;
     },
 

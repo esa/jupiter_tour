@@ -12,6 +12,7 @@ gui.OrbitingBodySelector = function (orbitingBody) {
     this._viewDirection = gui.ScreenDirections.UP;
     this._isVisible = false;
     this._isEditable = false;
+    this._isActivated = false;
 
     this._configuration = {};
 
@@ -154,7 +155,13 @@ gui.OrbitingBodySelector.prototype = {
         return this._isVisible;
     },
 
-    onActivated: function () {},
+    onActivated: function () {
+        this._isActivated = true;
+    },
+
+    onDeactivated: function () {
+        this._isActivated = false;
+    },
 
     show: function () {},
 

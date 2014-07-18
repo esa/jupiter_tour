@@ -56,5 +56,5 @@ astrodynamics.MGA1DSM.prototype.objectiveFunction = function (individual) {
     var velocityEndLeg = lambertProb.velocity2;
     var velocityBeginLeg = lambertProb.velocity1;
 
-    return velocityBeginLeg.sub(propLagr.velocity).normEuclid();
+    return velocityBeginLeg.sub(propLagr.velocity).normEuclid() + chromosome[3];
 };

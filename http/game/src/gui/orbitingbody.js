@@ -24,17 +24,16 @@ gui.OrbitingBody = function (id, name, centralBody, orbitalElements, orbitalElem
     this._surfaceType = surface.type;
     this._vehicle = null;
 
-    this._launchSelector = new gui.LaunchSelector(this);
-    this._flybySelector = null;
+    this._selector = null;
 
     switch (this._surfaceType) {
     case model.SurfaceTypes.TRUNCATED_ICOSAHEDRON:
         this._surface = new model.TruncatedIcosahedronSurface(this, surface.values);
-        this._flybySelector = new gui.FaceSelector(this);
+        this._selector = new gui.FaceSelector(this);
         break;
     case model.SurfaceTypes.SPHERE:
         this._surface = new model.SphericalSurface(this, surface.values);
-        this._flybySelector = new gui.TimeOfFlightSelector(this);
+        this._selector = new gui.SimpleSelector(this);
         break;
     }
 
@@ -94,8 +93,7 @@ gui.OrbitingBody.prototype._unhighlight = function () {
 };
 
 gui.OrbitingBody.prototype.onViewChange = function (viewDistance) {
-    this._flybySelector.onViewChange(viewDistance);
-    this._launchSelector.onViewChange(viewDistance);
+    this._selector.onViewChange(viewDistance);
 };
 
 gui.OrbitingBody.prototype.onMouseOver = function () {
@@ -121,11 +119,7 @@ gui.OrbitingBody.prototype.onConfigurationWindowOut = function () {
 };
 
 gui.OrbitingBody.prototype.onConfigurationDone = function (isConfirmed, configuration) {
-    if (this._vehicle.isLanded()) {
-        this._launchSelector.hide();
-    } else {
-        this._flybySelector.hide();
-    }
+    this._selector.hide();
     this._bodyMesh.scale.set(1, 1, 1);
     if (isConfirmed) {
         this._configuration = utility.clone(configuration);
@@ -141,46 +135,40 @@ gui.OrbitingBody.prototype.isInConfigurationMode = function () {
 
 gui.OrbitingBody.prototype.onActivated = function (epoch, vehicle) {
     this._surface.updateFaces(epoch, vehicle.getVelocityInf());
-    this._flybySelector.onActivated(epoch);
-    this._launchSelector.onActivated(epoch);
+    this._selector.onActivated(epoch, vehicle);
     this._highlight();
     this._vehicle = vehicle.clone();
     this._isActivated = true;
 };
 
 gui.OrbitingBody.prototype.onDeactivated = function () {
+    this._selector.onDeactivated();
     this._unhighlight();
     this._vehicle = null;
     this._isActivated = false;
 };
 
-gui.OrbitingBody.prototype.openConfigurationWindow = function (epoch) {
+gui.OrbitingBody.prototype.openConfigurationWindow = function () {
     this._bodyMesh.scale.set(4, 4, 4);
-    if (this._vehicle.isLanded()) {
-        this._launchSelector.show(true);
-    } else {
-        this._flybySelector.show(true);
-    }
+    this._selector.show(true);
     this._configurationMode = true;
 };
 
 gui.OrbitingBody.prototype.update = function (screenPosition) {
     this._bodyMesh.rotation.y += this._rotationY % (2 * Math.PI);
     var size = this._bodyMesh.scale.lengthManhattan();
-    var selector = this._vehicle != null ? this._vehicle.isLanded() ? this._launchSelector : this._flybySelector : this._flybySelector;
-
     if (this._isMouseOver) {
         if (size < this._maxSize) {
             this._bodyMesh.scale.multiplyScalar(1 + this._scaleSpeed);
         } else {
-            if (!selector.isVisible()) {
-                selector.show(false);
+            if (!this._selector.isVisible()) {
+                this._selector.show(false);
             }
         }
     } else {
         if (!this._configurationMode && !this._configurationWindowHover) {
-            if (selector.isVisible()) {
-                selector.hide();
+            if (this._selector.isVisible()) {
+                this._selector.hide();
             }
             if (size > 3) {
                 this._bodyMesh.scale.multiplyScalar(1 - this._scaleSpeed);
@@ -189,8 +177,7 @@ gui.OrbitingBody.prototype.update = function (screenPosition) {
             }
         }
     }
-    this._flybySelector.update(screenPosition);
-    this._launchSelector.update(screenPosition);
+    this._selector.update(screenPosition);
 };
 
 gui.OrbitingBody.prototype._displayOrbitAtEpoch = function (epoch) {
@@ -286,20 +273,8 @@ gui.OrbitingBody.prototype.getConfiguration = function () {
 };
 
 gui.OrbitingBody.prototype.getDefaultConfiguration = function () {
-    if (this._vehicle.isLanded()) {
-        this._configuration = this._launchSelector.getDefaultConfiguration();
-    } else {
-        this._configuration = this._flybySelector.getDefaultConfiguration();
-    }
+    this._configuration = this._selector.getDefaultConfiguration();
     return utility.clone(this._configuration);
-};
-
-gui.OrbitingBody.prototype.getVehicle = function () {
-    return this._vehicle;
-};
-
-gui.OrbitingBody.prototype.getVehicle = function () {
-    return this._vehicle;
 };
 
 gui.OrbitingBody.prototype.computeFlybyFaceAndCoords = function (epoch, velocityInf, beta, radius) {
