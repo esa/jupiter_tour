@@ -61,7 +61,35 @@ gui.SimpleSelector = function (orbitingBody) {
     contextWrapper.appendChild(this._titleWrapper);
 
     this._toolBoxWrapper = document.createElement('div');
-    this._toolBoxWrapper.className = 'toolbox-wrapper';
+    this._toolBoxWrapper.className = 'content-wrapper';
+
+    this._questionBoxWrapper = document.createElement('div');
+    this._questionBoxWrapper.className = 'content-wrapper';
+
+    var flybyButtonCol = document.createElement('div');
+    flybyButtonCol.className = 'button-col';
+    var flybyButton = document.createElement('img');
+    flybyButton.onclick = function () {
+        self._questionBoxWrapper.style.display = 'none';
+        self._showFlybyConfiguration();
+    };
+    flybyButton.className = 'button center-vertically center-horizontally';
+    flybyButton.src = 'res/svg/flybyicon.svg';
+    flybyButtonCol.appendChild(flybyButton);
+
+    var landingButtonCol = document.createElement('div');
+    landingButtonCol.className = 'button-col';
+    var landingButton = document.createElement('img');
+    landingButton.onclick = function () {
+        self._questionBoxWrapper.style.display =  'none';
+        self._confirmLandingAndClose();
+    };
+    landingButton.className = 'button center-vertically center-horizontally';
+    landingButton.src = 'res/svg/landingicon.svg';
+    landingButtonCol.appendChild(landingButton);
+
+    this._questionBoxWrapper.appendChild(flybyButtonCol);
+    this._questionBoxWrapper.appendChild(landingButtonCol);
 
     var toolBoxCol = document.createElement('div');
     toolBoxCol.className = 'col1';
@@ -72,7 +100,7 @@ gui.SimpleSelector = function (orbitingBody) {
     var col = document.createElement('div');
     col.className = 'col1';
     var img = document.createElement('img');
-    img.src = 'res/svg/calendar.svg';
+    img.src = 'res/svg/calendaricon.svg';
     img.className = 'icon center-horizontally center-vertically';
     col.appendChild(img);
     this._launchEpochRow.appendChild(col);
@@ -118,7 +146,7 @@ gui.SimpleSelector = function (orbitingBody) {
     col = document.createElement('div');
     col.className = 'col1';
     img = document.createElement('img');
-    img.src = 'res/svg/clock.svg';
+    img.src = 'res/svg/clockicon.svg';
     img.className = 'icon center-horizontally center-vertically';
     col.appendChild(img);
     row.appendChild(col);
@@ -175,12 +203,40 @@ gui.SimpleSelector = function (orbitingBody) {
     this._toolBoxWrapper.appendChild(toolBoxCol);
     this._toolBoxWrapper.appendChild(buttonContainer);
     contextWrapper.appendChild(this._toolBoxWrapper);
+    contextWrapper.appendChild(this._questionBoxWrapper);
     this._containerElement.appendChild(contextWrapper);
     this._backgroundElement.appendChild(this._containerElement);
     document.body.appendChild(this._backgroundElement);
+
+    this._hideConfiguration();
 };
 gui.SimpleSelector.prototype = Object.create(gui.OrbitingBodySelector.prototype);
 gui.SimpleSelector.prototype.constructor = gui.SimpleSelector;
+
+gui.SimpleSelector.prototype._showFlybyConfiguration = function () {
+    this._toolBoxWrapper.style.display = 'block';
+    this._radiusRow.style.display = 'block';
+    this._radiusRangeSlider.show();
+    this._timeOfFlightRangeSlider.show();
+    this._resetSelection();
+};
+
+gui.SimpleSelector.prototype._showLaunchConfiguration = function () {
+    this._toolBoxWrapper.style.display = 'block';
+    this._launchEpochRow.style.display =  'block';
+    this._launchEpochRangeSlider.show();
+    this._timeOfFlightRangeSlider.show();
+    this._resetSelection();
+};
+
+gui.SimpleSelector.prototype._hideConfiguration = function () {
+    this._launchEpochRangeSlider.hide();
+    this._radiusRangeSlider.hide();
+    this._timeOfFlightRangeSlider.hide();
+    this._toolBoxWrapper.style.display = 'none';
+    this._launchEpochRow.style.display = 'none';
+    this._radiusRow.style.display = 'none';
+};
 
 gui.SimpleSelector.prototype._updateSliders = function () {
     if (this._vehicle.isLanded()) {
@@ -232,40 +288,36 @@ gui.SimpleSelector.prototype._confirmAndClose = function () {
     this._orbitingBody.onConfigurationDone(true, this._configuration);
 };
 
+gui.SimpleSelector.prototype._confirmLandingAndClose = function () {
+    this._configuration.problemType = astrodynamics.ProblemTypes.MGA1DSM_LANDING;
+};
+
 gui.SimpleSelector.prototype.onActivated = function (epoch, vehicle) {
     this._epoch = epoch;
     this._vehicle = vehicle.clone();
+    this._isActivated = true;
 };
 
 gui.SimpleSelector.prototype.onDeactivated = function () {
     this._epoch = 0;
-    this._vehicle =  null;
+    this._vehicle = null;
+    this._isActivated = false;
 };
 
 gui.SimpleSelector.prototype.show = function (editable) {
     this._editable = editable;
-
     this._backgroundElement.style.display = 'block';
+    this._toolBoxWrapper.style.display = 'none';
     if (this._editable) {
         this._titleWrapper.style.display = 'none';
-        this._toolBoxWrapper.style.display = 'block';
         if (this._vehicle.isLanded()) {
-            this._launchEpochRow.style.display =  'block';
-            this._launchEpochRangeSlider.show();
+            this._showLaunchConfiguration();
         } else {
-            this._radiusRow.style.display = 'block';
-            this._radiusRangeSlider.show();
+            this._questionBoxWrapper.style.display = 'block';
         }
-        this._timeOfFlightRangeSlider.show();
-        this._resetSelection();
     } else {
         this._titleWrapper.style.display = 'flex';
-        this._launchEpochRangeSlider.hide();
-        this._radiusRangeSlider.hide();
-        this._timeOfFlightRangeSlider.hide();
-        this._toolBoxWrapper.style.display = 'none';
-        this._launchEpochRow.style.display = 'none';
-        this._radiusRow.style.display = 'none';
+        this._questionBoxWrapper.style.display = 'none';
     }
     this._isVisible = true;
     utility.fitText();
@@ -273,6 +325,16 @@ gui.SimpleSelector.prototype.show = function (editable) {
 
 gui.SimpleSelector.prototype.hide = function () {
     this._backgroundElement.style.display = 'none';
+    this._hideConfiguration();
     this._isVisible = false;
     this._orbitingBody.onConfigurationWindowOut();
 };
+
+//Preload Background images
+(function () {
+    var images = ['res/svg/simpleselectorviewup.svg', 'res/svg/simpleselectorviewright.svg', 'res/svg/simpleselectorviewleft.svg', 'res/svg/simpleselectorviewdown.svg'];
+    images.forEach(function (imgUrl) {
+        var img = new Image();
+        img.src = imgUrl;
+    });
+})();

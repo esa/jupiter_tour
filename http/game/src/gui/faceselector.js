@@ -69,7 +69,7 @@ gui.FaceSelector = function (orbitingBody) {
     var col = document.createElement('div');
     col.className = 'col2';
     var img = document.createElement('img');
-    img.src = 'res/svg/clock.svg';
+    img.src = 'res/svg/clockicon.svg';
     img.className = 'icon center-horizontally center-vertically';
     col.appendChild(img);
     rowElement1.appendChild(col);

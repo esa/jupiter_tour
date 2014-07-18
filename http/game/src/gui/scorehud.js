@@ -80,7 +80,7 @@ gui.ScoreHUD = function (gameHistoryManager, params) {
     iconDiv.className = 'icon-container';
     img = document.createElement('img');
     img.className = 'icon center-vertically';
-    img.src = 'res/svg/clock.svg';
+    img.src = 'res/svg/clockicon.svg';
     iconDiv.appendChild(img);
     headerContainer.appendChild(iconDiv);
 
@@ -101,7 +101,7 @@ gui.ScoreHUD = function (gameHistoryManager, params) {
     iconDiv.className = 'icon-container';
     img = document.createElement('img');
     img.className = 'icon center-vertically';
-    img.src = 'res/svg/deltav.svg';
+    img.src = 'res/svg/deltavicon.svg';
     iconDiv.appendChild(img);
     headerContainer.appendChild(iconDiv);
 
