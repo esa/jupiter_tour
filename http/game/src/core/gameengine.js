@@ -327,7 +327,7 @@ core.GameEngine.prototype = {
         var dsmResult = null;
 
         switch (this._userAction.configuration.problemType) {
-        case astrodynamics.ProblemTypes.MGA1DSM:
+        case astrodynamics.ProblemTypes.MGA1DSM_LAUNCH:
             timeOfFlight = chromosome[5];
             epoch = chromosome[0];
             passedDays = currentGameState.getPassedDays() + epoch - currentGameState.getEpoch();
@@ -362,7 +362,7 @@ core.GameEngine.prototype = {
             vehicle.setVelocityInf(nextVelocityInf);
 
             transferLeg = {
-                problemType: astrodynamics.ProblemTypes.MGA1DSM,
+                problemType: astrodynamics.ProblemTypes.MGA1DSM_LAUNCH,
                 chromosome: chromosome,
                 deltaV: deltaV,
                 timeOfFlight: timeOfFlight,
@@ -382,7 +382,7 @@ core.GameEngine.prototype = {
 
             break;
 
-        case astrodynamics.ProblemTypes.MGAPART:
+        case astrodynamics.ProblemTypes.MGA1DSM_FLYBY:
             timeOfFlight = chromosome[3];
             epoch = currentGameState.getEpoch();
             passedDays = currentGameState.getPassedDays();
@@ -403,7 +403,7 @@ core.GameEngine.prototype = {
             vehicle.setVelocityInf(nextVelocityInf);
 
             var transferLeg = {
-                problemType: astrodynamics.ProblemTypes.MGAPART,
+                problemType: astrodynamics.ProblemTypes.MGA1DSM_FLYBY,
                 chromosome: chromosome,
                 deltaV: deltaV,
                 timeOfFlight: timeOfFlight,
@@ -478,12 +478,12 @@ core.GameEngine.prototype = {
                 var configuration = this._userAction.configuration;
 
                 switch (configuration.problemType) {
-                case astrodynamics.ProblemTypes.MGAPART:
-                    problem = new astrodynamics.MGAPart(orbBody, nextBody, this._gameState.getEpoch(), this._gameState.getVehicle().getVelocityInf(), configuration.timeOfFlightBounds, configuration.radiusBounds, configuration.betaBounds);
+                case astrodynamics.ProblemTypes.MGA1DSM_FLYBY:
+                    problem = new astrodynamics.MGA1DSMFlyby(orbBody, nextBody, this._gameState.getEpoch(), this._gameState.getVehicle().getVelocityInf(), configuration.timeOfFlightBounds, configuration.radiusBounds, configuration.betaBounds);
                     break;
 
-                case astrodynamics.ProblemTypes.MGA1DSM:
-                    problem = new astrodynamics.MGA1DSM(orbBody, nextBody, configuration.launchEpochBounds, configuration.velocityBounds, configuration.timeOfFlightBounds);
+                case astrodynamics.ProblemTypes.MGA1DSM_LAUNCH:
+                    problem = new astrodynamics.MGA1DSMLaunch(orbBody, nextBody, configuration.launchEpochBounds, configuration.velocityBounds, configuration.timeOfFlightBounds);
                     break;
                 }
 
@@ -517,12 +517,12 @@ core.GameEngine.prototype = {
                 this._userAction.configuration = configuration;
 
                 switch (configuration.problemType) {
-                case astrodynamics.ProblemTypes.MGA1DSM:
-                    problem = new astrodynamics.MGA1DSM(orbBody, nextBody, configuration.launchEpochBounds, configuration.velocityBounds, configuration.timeOfFlightBounds);
+                case astrodynamics.ProblemTypes.MGA1DSM_LAUNCH:
+                    problem = new astrodynamics.MGA1DSMLaunch(orbBody, nextBody, configuration.launchEpochBounds, configuration.velocityBounds, configuration.timeOfFlightBounds);
                     break;
 
-                case astrodynamics.ProblemTypes.MGAPART:
-                    problem = new astrodynamics.MGAPart(orbBody, nextBody, this._gameState.getEpoch(), this._gameState.getVehicle().getVelocityInf(), configuration.timeOfFlightBounds, configuration.radiusBounds, configuration.betaBounds);
+                case astrodynamics.ProblemTypes.MGA1DSM_FLYBY:
+                    problem = new astrodynamics.MGA1DSMFlyby(orbBody, nextBody, this._gameState.getEpoch(), this._gameState.getVehicle().getVelocityInf(), configuration.timeOfFlightBounds, configuration.radiusBounds, configuration.betaBounds);
                     break;
                 }
 
@@ -545,12 +545,12 @@ core.GameEngine.prototype = {
                 var configuration = this._userAction.configuration;
 
                 switch (configuration.problemType) {
-                case astrodynamics.ProblemTypes.MGAPART:
-                    problem = new astrodynamics.MGAPart(orbBody, nextBody, this._gameState.getEpoch(), this._gameState.getVehicle().getVelocityInf(), configuration.timeOfFlightBounds, configuration.radiusBounds, configuration.betaBounds);
+                case astrodynamics.ProblemTypes.MGA1DSM_FLYBY:
+                    problem = new astrodynamics.MGA1DSMFlyby(orbBody, nextBody, this._gameState.getEpoch(), this._gameState.getVehicle().getVelocityInf(), configuration.timeOfFlightBounds, configuration.radiusBounds, configuration.betaBounds);
                     break;
 
-                case astrodynamics.ProblemTypes.MGA1DSM:
-                    problem = new astrodynamics.MGA1DSM(orbBody, nextBody, configuration.launchEpochBounds, configuration.velocityBounds, configuration.timeOfFlightBounds);
+                case astrodynamics.ProblemTypes.MGA1DSM_LAUNCH:
+                    problem = new astrodynamics.MGA1DSMLaunch(orbBody, nextBody, configuration.launchEpochBounds, configuration.velocityBounds, configuration.timeOfFlightBounds);
                     break;
                 }
 
@@ -674,11 +674,11 @@ core.GameEngine.prototype = {
             var leg = null;
             if (node.parentID != null) {
                 switch (problemType) {
-                case astrodynamics.ProblemTypes.MGA1DSM:
+                case astrodynamics.ProblemTypes.MGA1DSM_LAUNCH:
                     leg = new gui.FirstLeg(chromosome, previousOBody, currentBody);
                     leg.setGradient(dsmResult.gravityLoss);
                     break;
-                case astrodynamics.ProblemTypes.MGAPART:
+                case astrodynamics.ProblemTypes.MGA1DSM_FLYBY:
                     leg = new gui.Leg(chromosome, previousOBody, currentBody, new geometry.Vector3().fromArray(previousNode.gameState.vehicle.velocityInf), previousNode.gameState.epoch);
                     leg.setGradient(dsmResult.gravityLoss);
                 }

@@ -4,7 +4,8 @@
 */
 var astrodynamics = {
     ProblemTypes: {
-        MGA1DSM: 0,
-        MGAPART: 1
+        MGA1DSM_LAUNCH: 0,
+        MGA1DSM_FLYBY: 1,
+        MGA1DSM_LANDING: 2
     }
 };

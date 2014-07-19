@@ -251,13 +251,13 @@ gui.SimpleSelector.prototype._resetSelection = function () {
     if (this._vehicle.isLanded()) {
         delete this._configuration.radiusBounds;
         delete this._configuration.betaBounds;
-        this._configuration.problemType = astrodynamics.ProblemTypes.MGA1DSM;
+        this._configuration.problemType = astrodynamics.ProblemTypes.MGA1DSM_LAUNCH;
         this._configuration.launchEpochBounds = [this._epoch, this._epoch + this._maxLaunchDelay];
         this._configuration.velocityBounds = [0, this._vehicle.getDeltaV()];
     } else {
         delete this._configuration.launchEpochBounds;
         delete this._configuration.velocityBounds;
-        this._configuration.problemType = astrodynamics.ProblemTypes.MGAPART;
+        this._configuration.problemType = astrodynamics.ProblemTypes.MGA1DSM_FLYBY;
         this._configuration.radiusBounds = [this._orbitingBody.getMinRadius() / this._orbitingBody.getRadius(), this._orbitingBody.getMaxRadius() / this._orbitingBody.getRadius()];
         this._configuration.betaBounds = [-2 * Math.PI, 2 * Math.PI];
     }

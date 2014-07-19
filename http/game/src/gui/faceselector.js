@@ -7,7 +7,7 @@ gui.FaceSelector = function (orbitingBody) {
     var self = this;
 
     this._configuration = {
-        problemType: astrodynamics.ProblemTypes.MGAPART,
+        problemType: astrodynamics.ProblemTypes.MGA1DSM_FLYBY,
         faceID: gui.NULL_ID,
         betaBounds: [],
         radiusBounds: [],
