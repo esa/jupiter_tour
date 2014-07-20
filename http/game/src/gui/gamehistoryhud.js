@@ -472,7 +472,7 @@ gui.GameHistoryHUD.prototype = {
 
         link.enter().insert('path', 'g')
             .attr('class', 'link')
-            .attr('d', function () {
+            .attr('d', function (dLink) {
                 var point = {
                     x: sourceNode.x0,
                     y: sourceNode.y0
@@ -481,6 +481,9 @@ gui.GameHistoryHUD.prototype = {
                     source: point,
                     target: point
                 });
+            })
+            .attr('opacity', function (dLink) {
+                return (dLink.source.properties.isVehicleLanded && dLink.target.properties.isVehicleLanded) ? 0.2 : 1;
             });
 
         link.transition()
@@ -490,7 +493,7 @@ gui.GameHistoryHUD.prototype = {
 
         link.exit().transition()
             .duration(this._transitionTime)
-            .attr('d', function () {
+            .attr('d', function (dLink) {
                 var point = {
                     x: sourceNode.x,
                     y: sourceNode.y
@@ -543,6 +546,7 @@ gui.GameHistoryHUD.prototype = {
             node.properties.passedDays = data.passedDays;
             node.properties.totalDeltaV = data.totalDeltaV;
             node.properties.score = data.score;
+            node.properties.isVehicleLanded = data.isVehicleLanded;
             node.properties.isCurrentState = true;
             var parentNode = this._nodeTable[parentID];
             parentNode.properties.isCurrentState = false;

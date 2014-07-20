@@ -33,6 +33,7 @@ core.GameHistoryManager.prototype = {
         var passedDays = gameState.getPassedDays();
         var totalDeltaV = gameState.getTotalDeltaV();
         var score = gameState.getScore();
+        var isVehicleLanded = gameState.getVehicle().isLanded();
         var isCurrentState = (node.getKey() == this._currentNode.getKey());
 
         var result = {};
@@ -46,6 +47,7 @@ core.GameHistoryManager.prototype = {
         result.properties.totalDeltaV = totalDeltaV;
         result.properties.score = score;
         result.properties.isCurrentState = isCurrentState;
+        result.properties.isVehicleLanded = isVehicleLanded;
         result.children = [];
         for (var key in childs) {
             var child = childs[key];

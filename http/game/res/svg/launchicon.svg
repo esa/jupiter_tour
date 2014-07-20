@@ -14,7 +14,7 @@
    id="svg2"
    version="1.1"
    inkscape:version="0.48.5 r10040"
-   sodipodi:docname="landingicon.svg">
+   sodipodi:docname="launchingicon.svg">
   <defs
      id="defs4" />
   <sodipodi:namedview
@@ -25,7 +25,7 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="1.979899"
-     inkscape:cx="-64.89315"
+     inkscape:cx="-0.74846398"
      inkscape:cy="116.97411"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
@@ -61,7 +61,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -71,7 +71,7 @@
      id="layer1"
      transform="translate(-273.29199,-427.42584)">
     <g
-       id="g3970">
+       id="g3835">
       <rect
          ry="35"
          y="437.42584"
@@ -139,7 +139,8 @@
          d="m 297.23257,594.1267 149.62936,0"
          style="fill:none;stroke:#19a3ff;stroke-width:16.58255577;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" />
       <g
-         id="g3966">
+         transform="matrix(-1,0,0,-1,744.0945,1091.2139)"
+         id="g3831">
         <rect
            style="fill:#19a3ff;fill-opacity:1;stroke:#19a3ff;stroke-width:1.78729141;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
            id="rect3771"

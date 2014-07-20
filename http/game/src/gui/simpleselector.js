@@ -74,7 +74,7 @@ gui.SimpleSelector = function (orbitingBody) {
         self._showFlybyConfiguration();
     };
     flybyButton.className = 'button center-vertically center-horizontally';
-    flybyButton.src = 'res/svg/flybyicon.svg';
+    flybyButton.src = 'res/svg/flyby.svg';
     flybyButtonCol.appendChild(flybyButton);
 
     var landingButtonCol = document.createElement('div');
@@ -85,7 +85,7 @@ gui.SimpleSelector = function (orbitingBody) {
         self._confirmLandingAndClose();
     };
     landingButton.className = 'button center-vertically center-horizontally';
-    landingButton.src = 'res/svg/landingicon.svg';
+    landingButton.src = 'res/svg/landing.svg';
     landingButtonCol.appendChild(landingButton);
 
     this._questionBoxWrapper.appendChild(flybyButtonCol);
@@ -290,6 +290,11 @@ gui.SimpleSelector.prototype._confirmAndClose = function () {
 
 gui.SimpleSelector.prototype._confirmLandingAndClose = function () {
     this._configuration.problemType = astrodynamics.ProblemTypes.MGA1DSM_LANDING;
+    this._configuration.betaBounds = [-2 * Math.PI, 2 * Math.PI];
+    this._configuration.radiusBounds = [this._orbitingBody.getMinRadius() / this._orbitingBody.getRadius(), this._orbitingBody.getMaxRadius() / this._orbitingBody.getRadius()];
+    this._configuration.timeOfFlightBounds = [1, this._maxTimeOfFlight];
+    this.hide();
+    this._orbitingBody.onConfigurationDone(true, this._configuration);
 };
 
 gui.SimpleSelector.prototype.onActivated = function (epoch, vehicle) {

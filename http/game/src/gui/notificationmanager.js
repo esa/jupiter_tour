@@ -86,7 +86,30 @@ gui.NotificationManager = function () {
             }
         }
     });
-
+    $.notify.addStyle('landingmsg', {
+        html: '<div style="display:table;border-spacing:1vmin;padding:0;box-sizing:border-box;"><div style="display:table-row;"><div style="display:table-cell;"><img src="res/svg/landingicon.svg" style="height:3.5vmin;width:auto;display:block;"></img></div><div style="display:table-cell;vertical-align:middle;"><span data-notify-text/></div></div></div>',
+        classes: {
+            base: {
+                'white-space': 'nowrap',
+                'color': '#cccccc',
+                'font-size': '1.5vmin',
+                'background-color': 'none',
+                'padding': '1vmin',
+            }
+        }
+    });
+    $.notify.addStyle('launchmsg', {
+        html: '<div style="display:table;border-spacing:1vmin;padding:0;box-sizing:border-box;"><div style="display:table-row;"><div style="display:table-cell;"><img src="res/svg/launchicon.svg" style="height:3.5vmin;width:auto;display:block;"></img></div><div style="display:table-cell;vertical-align:middle;"><span data-notify-text/></div></div></div>',
+        classes: {
+            base: {
+                'white-space': 'nowrap',
+                'color': '#cccccc',
+                'font-size': '1.5vmin',
+                'background-color': 'none',
+                'padding': '1vmin',
+            }
+        }
+    });
 
     this._configuration = {
         // whether to hide the notification on click
@@ -130,6 +153,18 @@ gui.NotificationManager.prototype = {
             $(this).finish();
             $(this).hide();
         });
+    },
+
+    dispatchLandingMsg: function (text) {
+        var config = utility.clone(this._configuration);
+        config.style = 'landingmsg';
+        $.notify(text, config);
+    },
+
+    dispatchLaunchMsg: function (text) {
+        var config = utility.clone(this._configuration);
+        config.style = 'launchmsg';
+        $.notify(text, config);
     },
 
     dispatchErrorMsg: function (text) {
@@ -195,7 +230,7 @@ gui.NotificationManager.prototype = {
 
 //Preload Icon images
 (function () {
-    var preloadImages = ['res/svg/erroricon.svg', 'res/svg/spacecrafticon.svg', 'res/svg/moonicon.svg', 'res/svg/infoicon.svg', 'res/svg/finishicon.svg', 'res/svg/invalidicon.svg', 'res/svg/planeticon.svg'];
+    var preloadImages = ['res/svg/erroricon.svg', 'res/svg/spacecrafticon.svg', 'res/svg/moonicon.svg', 'res/svg/infoicon.svg', 'res/svg/finishicon.svg', 'res/svg/invalidicon.svg', 'res/svg/planeticon.svg', 'res/svg/landingicon.svg', 'res/svg/launchicon.svg'];
     preloadImages.forEach(function (imgURL) {
         var img = new Image();
         img.src = imgURL;

@@ -679,33 +679,69 @@ var plugin = {};
         this._container = document.createElement('div');
         this._container.className = 'flightengineer-container';
 
+        var height = '10%';
+
         var content = document.createElement('div');
         content.className = 'content-container';
 
+        var title = document.createElement('div');
+        title.className = 'title text-fit';
+        title.textContent = 'flight engineer';
+        var container = document.createElement('div');
+        container.className = 'values-container';
+
+        content.appendChild(title);
+        content.appendChild(container);
+
         function createEntry(id, name, value, height) {
-            return '<div style="width:100%;height:' + height + ';display:inline-block;white-space:nowrap;"><div style="width:50%;height:100%;display:inline-block;vertical-align:top;" class="text-fit">' + name + '</div><div style="width:50%;height:100%;display:inline-block;vertical-align:top;" class="text-fit" id="' + id + '"></div>' + value + '</div>';
-        }
-        var entries = {
-            feEpoch: 'mission epoch',
-            fePassedDays: 'passed days',
-            feTotalDeltaV: 'total deltaV',
-            feScore: 'score',
-            feSOI: 'current sphere of influence',
-            feVInfinity: 'relative velocity at infinity',
-            feMappedArea: 'last mapped area',
-            feDeltaV: 'last leg deltaV',
-            feGravityLoss: 'last leg gravity loss',
-            feTimeOfFlight: 'last leg time of flight',
-            feChromosome: 'last leg chromosome',
+            var div1 = document.createElement('div');
+            div1.style.width = '100%';
+            div1.style.height = height;
+            div1.style.display = 'inline-block';
+            div1.style.whiteSpace = 'nowrap';
+            var div2 = document.createElement('div');
+            div2.style.width = '50%';
+            div2.style.height = '100%';
+            div2.style.display = 'inline-block';
+            div2.style.verticalAlign = 'top';
+            div2.className = 'text-fit';
+            div2.textContent = name;
+            var div3 = document.createElement('div');
+            div3.style.width = '50%';
+            div3.style.height = '100%';
+            div3.style.display = 'inline-block';
+            div3.style.verticalAlign = 'top';
+            div3.className = 'text-fit';
+            div3.textContent = value;
+
+            div1.appendChild(div2);
+            div1.appendChild(div3);
+            container.appendChild(div1);
+
+            return div3;
         }
 
-        var innerHTML = '<div class="title text-fit">flight engineer</div><div class="values-container">';
-        var height = '10%';
+        var entries = {
+            epoch: 'mission epoch',
+            passedDays: 'passed days',
+            totalDeltaV: 'total deltaV',
+            score: 'score',
+            vehicleState: 'vehicle state',
+            sphereOfInfluence: 'current sphere of influence',
+            velocityInf: 'relative velocity at infinity',
+            mappedArea: 'last mapped area',
+            deltaV: 'last leg deltaV',
+            gravityLoss: 'last leg gravity loss',
+            timeOfFlight: 'last leg time of flight',
+            chromosome: 'last leg chromosome'
+        };
+
+        this._entries = {};
+
         for (var key in entries) {
-            innerHTML += createEntry(key, entries[key], '', height);
+            this._entries[key] = createEntry(key, entries[key], '', height);
         }
-        innerHTML += '</div>';
-        content.innerHTML = innerHTML;
+
         this._container.appendChild(content);
     };
     plugin.FlightEngineer.prototype = Object.create(Plugin.prototype);
@@ -724,35 +760,37 @@ var plugin = {};
         case core.GameEvents.GAME_STATE_CHANGE:
             if (this._isInitialized) {
                 var gameState = eventData.gameState;
-                $('#feEpoch').text(utility.round(gameState.getEpoch()) + ' MJD');
-                $('#fePassedDays').text(utility.round(gameState.getPassedDays()) + ' days');
-                $('#feVInfinity').text(gameState.getVehicle().getVelocityInf().toString(2) + ' m/s');
-                $('#feTotalDeltaV').text(utility.round(gameState.getTotalDeltaV()) + ' m/s');
-                $('#feScore').text(gameState.getScore() + ' points');
-                $('#feSOI').text(gameState.getOrbitingBody().getName());
+                var vehicle = gameState.getVehicle();
+                this._entries.epoch.textContent = utility.round(gameState.getEpoch()) + ' MJD';
+                this._entries.passedDays.textContent = utility.round(gameState.getPassedDays()) + ' days';
+                this._entries.velocityInf.textContent = vehicle.getVelocityInf().toString(2) + ' m/s';
+                this._entries.totalDeltaV.textContent = utility.round(gameState.getTotalDeltaV()) + ' m/s';
+                this._entries.score.textContent = gameState.getScore() + ' points';
+                this._entries.sphereOfInfluence.textContent = gameState.getOrbitingBody().getName();
                 var transferLeg = gameState.getTransferLeg();
                 if (!transferLeg.chromosome.length) {
                     transferLeg.chromosome = [];
                 }
-                $('#feChromosome').text(transferLeg.chromosome.map(function (value) {
+                this._entries.chromosome.textContent = transferLeg.chromosome.map(function (value) {
                     return Math.round(value * 100) / 100;
-                }).prettyPrint());
-                var feMappedFace = '';
+                }).prettyPrint();
+                this._entries.vehicleState.textContent = vehicle.isLanded() ? 'parked on surface' : 'orbiting sphere of influence';
+                var mappedFace = '';
                 if (transferLeg.mappedFaceID != '') {
                     var faceInfos = transferLeg.mappedFaceID.split('_');
                     switch (this._orbitingBodies[faceInfos[0]].getSurfaceType()) {
                     case model.SurfaceTypes.SPHERE:
-                        feMappedFace = 'part of the surface on ' + this._orbitingBodies[faceInfos[0]].getName();
+                        mappedFace = 'part of the surface on ' + this._orbitingBodies[faceInfos[0]].getName();
                         break;
                     case model.SurfaceTypes.TRUNCATED_ICOSAHEDRON:
-                        feMappedFace = 'Face ' + faceInfos[1] + ' on ' + this._orbitingBodies[faceInfos[0]].getName();
+                        mappedFace = 'Face ' + faceInfos[1] + ' on ' + this._orbitingBodies[faceInfos[0]].getName();
                         break;
                     }
                 }
-                $('#feMappedArea').text(feMappedFace);
-                $('#feDeltaV').text(utility.round(transferLeg.deltaV) + ' m/s');
-                $('#feGravityLoss').text((utility.round(transferLeg.gravityLoss) * 100) + ' %');
-                $('#feTimeOfFlight').text(utility.round(transferLeg.timeOfFlight) + ' days');
+                this._entries.mappedArea.textContent = mappedFace;
+                this._entries.deltaV.textContent = utility.round(transferLeg.deltaV) + ' m/s';
+                this._entries.gravityLoss.textContent = (utility.round(transferLeg.gravityLoss) * 100) + ' %';
+                this._entries.timeOfFlight.textContent = utility.round(transferLeg.timeOfFlight) + ' days';
             }
             break;
         }

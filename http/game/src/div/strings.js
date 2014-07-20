@@ -24,7 +24,9 @@ var strings = {};
         WELCOME: 9,
         FIND_ANOTHER_WAY: 10,
         FLY_BY_RESULT: 11,
-        SAME_BODY_FORBIDDEN: 12
+        SAME_BODY_FORBIDDEN: 12,
+        SPACECRAFT_LANDING: 13,
+        SPACECRAFT_LAUNCH: 14
     };
 
     var texts = {
@@ -40,7 +42,9 @@ var strings = {};
         9: 'Welcome to space hopper!',
         10: 'Click here to get back and try another way.',
         11: 'Your last Flyby was at %s.',
-        12: 'You can not select the same body at this point.'
+        12: 'You can not select the same body at this point.',
+        13: 'Your spacecraft landed on %s.',
+        14: 'Your spacecraft launched from %s.'
     };
 
     function toText(textID, fillIns) {
