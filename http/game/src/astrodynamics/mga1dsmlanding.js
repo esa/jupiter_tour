@@ -43,11 +43,7 @@ astrodynamics.MGA1DSMLanding.prototype.setTimeOfFlightBounds = function (timeOfF
 };
 
 astrodynamics.MGA1DSMLanding.prototype.objectiveFunction = function (individual) {
-
-    //TODO
-    return 0;
-
-    /*var chromosome = individual.getChromosome();
+    var chromosome = individual.getChromosome();
 
     var ephCBody = this._orbitingBodies[0].orbitalStateVectorsAtEpoch(this._epoch);
     var ephNBody = this._orbitingBodies[1].orbitalStateVectorsAtEpoch(this._epoch + chromosome[3]);
@@ -62,7 +58,7 @@ astrodynamics.MGA1DSMLanding.prototype.objectiveFunction = function (individual)
     var dt = (1 - chromosome[2]) * chromosome[3] * utility.DAY_TO_SEC;
     var lambertProb = astrodynamics.lambertProblem(currentBody.getCentralBody().getStandardGravitationalParameter(), propLagr.position, ephNBody.position, dt, false);
     var velocityBeginLeg = lambertProb.velocity1;
+    var velocityEndLeg = lambertProb.velocity2;
 
-    return velocityBeginLeg.sub(propLagr.velocity).normEuclid();
-    */
+    return velocityBeginLeg.sub(propLagr.velocity).normEuclid() + velocityEndLeg.sub(ephNBody.velocity).normEuclid();
 };
