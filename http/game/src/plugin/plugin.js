@@ -344,7 +344,7 @@ var plugin = {};
         this._content.className = 'content-container text-fit';
         this._content.style.textAlign = 'center';
 
-        this._content.innerHTML = '<h3 class="unselectable">jupiter tour</h3> \
+        this._content.innerHTML = '<h3 class="unselectable">space hopper</h3> \
                         <div id="dashboardbutton" class="button unselectable">dashboard</div> \
                         <div id="savebutton" class="button unselectable">save</div>';
 
