@@ -174,21 +174,46 @@ core.GameEngine.prototype = {
     },
 
     _checkForGameStateChange: function () {
-        if (this._gameState != this._gameHistoryManager.getCurrentGameState()) {
+        var gameState = this._gameHistoryManager.getCurrentGameState();
+        if (this._gameState != gameState) {
             this._notificationManager.clearScreen();
-            this._setGameState(this._gameHistoryManager.getCurrentGameState());
+            this._setGameState(gameState);
             var transferLeg = this._gameState.getTransferLeg();
-            if (transferLeg.mappedFaceID != '') {
+            switch (transferLeg.problemType) {
+            case astrodynamics.ProblemTypes.MGA1DSM_LAUNCH:
+                var infos = transferLeg.mappedFaceID.split('_');
+                var orbBody = this._orbitingBodies[infos[0]];
+                this._notificationManager.dispatchLaunchMsg(strings.toText(strings.GameInfos.SPACECRAFT_LAUNCH, [orbBody.getName()]), true);
+                break;
+
+            case astrodynamics.ProblemTypes.MGA1DSM_FLYBY:
                 var infos = transferLeg.mappedFaceID.split('_');
                 var orbBody = this._orbitingBodies[infos[0]];
                 var surfaceType = orbBody.getSurfaceType();
                 switch (surfaceType) {
                 case model.SurfaceTypes.SPHERE:
-                    this._notificationManager.dispatchPlanetMsg(strings.toText(strings.GameInfos.FLY_BY_RESULT, [orbBody.getName()]));
+                    this._notificationManager.dispatchPlanetMsg(strings.toText(strings.GameInfos.FLYBY_RESULT, [orbBody.getName()]));
                     break;
                 case model.SurfaceTypes.TRUNCATED_ICOSAHEDRON:
                     this._notificationManager.dispatchMoonMsg(strings.toText(strings.GameInfos.FACE_MAP_RESULT, [infos[1], orbBody.getName()]));
                     break;
+                }
+                break;
+
+            case astrodynamics.ProblemTypes.MGA1DSM_LANDING:
+                this._notificationManager.dispatchLandingMsg(strings.toText(strings.GameInfos.SPACECRAFT_LANDING, [gameState.getOrbitingBody().getName()]), true);
+                break;
+
+            default:
+                this._notificationManager.dispatchSpacecraftMsg(strings.toText(strings.GameInfos.SPACECRAFT_PARKED, [gameState.getOrbitingBody().getName()]), true);
+                break;
+
+            }
+            if (gameState.getVehicle().isLanded()) {
+
+            } else {
+                if (transferLeg.mappedFaceID != '') {
+
                 }
             }
         }
@@ -426,7 +451,7 @@ core.GameEngine.prototype = {
             var surfaceType = currentBody.getSurfaceType();
             switch (surfaceType) {
             case model.SurfaceTypes.SPHERE:
-                this._notificationManager.dispatchPlanetMsg(strings.toText(strings.GameInfos.FLY_BY_RESULT, [currentBody.getName()]));
+                this._notificationManager.dispatchPlanetMsg(strings.toText(strings.GameInfos.FLYBY_RESULT, [currentBody.getName()]));
                 break;
 
             case model.SurfaceTypes.TRUNCATED_ICOSAHEDRON:
@@ -736,6 +761,11 @@ core.GameEngine.prototype = {
                 case astrodynamics.ProblemTypes.MGA1DSM_FLYBY:
                     leg = new gui.Leg(chromosome, previousOBody, currentBody, new geometry.Vector3().fromArray(previousNode.gameState.vehicle.velocityInf), previousNode.gameState.epoch);
                     leg.setGradient(dsmResult.gravityLoss);
+                    break;
+                case astrodynamics.ProblemTypes.MGA1DSM_LANDING:
+                    leg = new gui.Leg(chromosome, previousOBody, currentBody, new geometry.Vector3().fromArray(previousNode.gameState.vehicle.velocityInf), previousNode.gameState.epoch);
+                    leg.setGradient(dsmResult.gravityLoss);
+                    break;
                 }
             }
             var mappedFaceID = gameState.transferLeg.mappedFaceID;

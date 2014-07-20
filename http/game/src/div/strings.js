@@ -23,10 +23,11 @@ var strings = {};
         FACE_MAP_RESULT: 8,
         WELCOME: 9,
         FIND_ANOTHER_WAY: 10,
-        FLY_BY_RESULT: 11,
+        FLYBY_RESULT: 11,
         SAME_BODY_FORBIDDEN: 12,
         SPACECRAFT_LANDING: 13,
-        SPACECRAFT_LAUNCH: 14
+        SPACECRAFT_LAUNCH: 14,
+        SPACECRAFT_PARKED: 15
     };
 
     var texts = {
@@ -44,7 +45,8 @@ var strings = {};
         11: 'Your last Flyby was at %s.',
         12: 'You can not select the same body at this point.',
         13: 'Your spacecraft landed on %s.',
-        14: 'Your spacecraft launched from %s.'
+        14: 'Your spacecraft launched from %s.',
+        15: 'Your spacecraft is parked on %s.'
     };
 
     function toText(textID, fillIns) {
