@@ -381,8 +381,10 @@ core.GameEngine.prototype = {
             faceValue = currentBody.getFaceValue(flybyResult.faceID);
 
             dsmResult = vehicle.performManeuver(deltaV, timeOfFlight * utility.DAY_TO_SEC);
-            if (vehicle.getStages().length > 1) {
+            var numStages = vehicle.getStages().length;
+            if (numStages > 1) {
                 vehicle.jettisonStage();
+                this._notificationManager.dispatchJettisonMsg(strings.toText(strings.GameInfos.SPACECRAFT_JETTISON_STAGE, [numStages]));
             }
 
             leg = new gui.FirstLeg(chromosome, currentBody, nextBody);
@@ -426,8 +428,10 @@ core.GameEngine.prototype = {
             faceValue = currentBody.getFaceValue(flybyResult.faceID);
 
             dsmResult = vehicle.performManeuver(deltaV, timeOfFlight * utility.DAY_TO_SEC);
-            if (vehicle.getStages().length > 1) {
+            var numStages = vehicle.getStages().length;
+            if (numStages > 1) {
                 vehicle.jettisonStage();
+                this._notificationManager.dispatchJettisonMsg(strings.toText(strings.GameInfos.SPACECRAFT_JETTISON_STAGE, [numStages]));
             }
 
             leg = new gui.Leg(chromosome, currentBody, nextBody, velocityInf, epoch);
@@ -487,8 +491,10 @@ core.GameEngine.prototype = {
             faceValue = currentBody.getFaceValue(flybyResult.faceID);
 
             dsmResult = vehicle.performManeuver(deltaV, timeOfFlight * utility.DAY_TO_SEC);
-            if (vehicle.getStages().length > 1) {
+            var numStages = vehicle.getStages().length;
+            if (numStages > 1) {
                 vehicle.jettisonStage();
+                this._notificationManager.dispatchJettisonMsg(strings.toText(strings.GameInfos.SPACECRAFT_JETTISON_STAGE, [numStages]));
             }
 
             leg = new gui.Leg(chromosome, currentBody, nextBody, velocityInf, epoch);
