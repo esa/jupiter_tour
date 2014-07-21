@@ -400,7 +400,7 @@ core.GameEngine.prototype = {
             };
 
             var newGameState2 = new core.GameState(nextBody, epoch, passedDays, totalDeltaV, score, vehicle, currentGameState.getMappedFaces(), transferLeg);
-            this._markIfInvalidGameState(newGameState2);
+            this._markIfInvalidGameState(newGameState2, dsmResult);
             this._markIfWinningGameState(newGameState2);
 
             this._gameHistoryManager.unlock();
@@ -714,14 +714,27 @@ core.GameEngine.prototype = {
             maxNodeID = Math.max(maxNodeID, node.id);
             if (node.parentID == null) {
                 parents[node.id] = node.id;
+                rootID = node.id;
             } else {
                 parents[node.id] = node.parentID;
             }
         }
 
+        var node = nodes[rootID];
+        var gameState = node.gameState;
+
+        var stages = [];
+        var vehicleData = gameState.vehicle;
+        for (var i = 0; i < vehicleData.stages.length; i++) {
+            var stage = vehicleData.stages[i];
+            stages.push(new model.Stage(stage.propulsionType, stage.mass, stage.emptyMass, stage.thrust, stage.specificImpulse));
+        }
+        var vehicle = new model.Vehicle(new geometry.Vector3().fromArray(gameState.vehicle.velocityInf), stages, gameState.vehicle.isLanded);
+        var vehicleTotalDeltaV = vehicle.getTotalDeltaV();
+
         for (var id in nodes) {
-            var node = nodes[id];
-            var gameState = node.gameState;
+            node = nodes[id];
+            gameState = node.gameState;
             var currentBody = this._orbitingBodies[gameState.orbitingBodyID];
             var previousNode = null;
             var previousOBody = null;
@@ -738,13 +751,14 @@ core.GameEngine.prototype = {
             var totalDeltaV = gameState.totalDeltaV;
             var score = gameState.score;
 
-            var stages = [];
-            var vehicleData = gameState.vehicle;
+            stages = [];
+            vehicleData = gameState.vehicle;
             for (var i = 0; i < vehicleData.stages.length; i++) {
                 var stage = vehicleData.stages[i];
                 stages.push(new model.Stage(stage.propulsionType, stage.mass, stage.emptyMass, stage.thrust, stage.specificImpulse));
             }
-            var vehicle = new model.Vehicle(new geometry.Vector3().fromArray(gameState.vehicle.velocityInf), stages, gameState.vehicle.isLanded);
+
+            vehicle = new model.Vehicle(new geometry.Vector3().fromArray(gameState.vehicle.velocityInf), stages, gameState.vehicle.isLanded, vehicleTotalDeltaV);
 
             var dsmResult = null;
             if (node.parentID != null) {
@@ -796,10 +810,6 @@ core.GameEngine.prototype = {
             this._markIfWinningGameState(gameState);
 
             gameStates[node.id] = gameState;
-
-            if (node.parentID == null) {
-                rootID = node.id;
-            }
         }
 
         var rootNode = new core.HistoryNode(gameStates[rootID], rootID);

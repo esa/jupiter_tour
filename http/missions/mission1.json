@@ -5,7 +5,7 @@
         "maximumMissionDuration": 5478.75,
 
         "funIsInvalidState": "return [];",
-        "funIsWinningState": "var orbBodyID = gameState.getOrbitingBody().getID(); if(orbBodyID == 7) {gameState.setScore(Math.floor((1 - gameEngine._funGetTimeUsage(gameState)) * 10000 + (1 - gameState.getTotalDeltaV() / gameState.getSpacecraft().getTotalDeltaV()) * 10000)); return true;} else {return false;};",
+        "funIsWinningState": "var orbBodyID = gameState.getOrbitingBody().getID(); if(orbBodyID == 7) {gameState.setScore(Math.floor((1 - gameEngine._funGetTimeUsage(gameState)) * 10000 + (1 - gameState.getTotalDeltaV() / gameState.getVehicle().getTotalDeltaV()) * 10000)); return true;} else {return false;};",
         "funGetWinningProgress": "var score = gameState.getScore(); return score/20000;",
 
         "centralBody": {
