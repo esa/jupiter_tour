@@ -348,7 +348,7 @@ core.GameEngine.prototype = {
         var timeOfFlight = 0;
         var nextVelocityInf = null;
         var passedDays = 0;
-        var totalDeltaV = 0;
+        var totalDeltaV = currentGameState.getTotalDeltaV();
         var velocityInf = currentGameState.getVehicle().getVelocityInf();
         var transferLeg =  null;
         var flybyResult = null;
@@ -360,7 +360,6 @@ core.GameEngine.prototype = {
             timeOfFlight = chromosome[5];
             epoch = chromosome[0];
             passedDays = currentGameState.getPassedDays() + epoch - currentGameState.getEpoch();
-            totalDeltaV = currentGameState.getTotalDeltaV();
 
             transferLeg = {
                 problemType: null,
