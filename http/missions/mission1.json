@@ -320,13 +320,13 @@
                         "velocityInf": [0, 0, 0],
                         "stages": [
                             {
-                                "propulsionType": 1,
+                                "propulsionType": 0,
                                 "mass": 2200,
                                 "emptyMass": 1500,
                                 "thrust": 1.0,
                                 "specificImpulse": 311
                         }, {
-                                "propulsionType": 0,
+                                "propulsionType": 1,
                                 "mass": 777000,
                                 "emptyMass": 180000,
                                 "thrust": 12940000,

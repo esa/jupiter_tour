@@ -92,8 +92,8 @@ gui.OrbitingBody.prototype._unhighlight = function () {
     this._orbitMesh.material = material;
 };
 
-gui.OrbitingBody.prototype.onViewChange = function (viewDistance) {
-    this._selector.onViewChange(viewDistance);
+gui.OrbitingBody.prototype.onViewChange = function (cameraPosition) {
+    this._selector.onViewChange(cameraPosition);
 };
 
 gui.OrbitingBody.prototype.onMouseOver = function () {
@@ -313,6 +313,11 @@ gui.OrbitingBody.prototype.getD3Visits = function () {
 
 gui.OrbitingBody.prototype.getBodyMesh = function () {
     return this._bodyMesh;
+};
+
+gui.OrbitingBody.prototype.getBodyMeshSize = function () {
+    this._bodyMesh.geometry.computeBoundingSphere();
+    return this._bodyMesh.geometry.boundingSphere;
 };
 
 gui.OrbitingBody.prototype.getOrbitMesh = function () {

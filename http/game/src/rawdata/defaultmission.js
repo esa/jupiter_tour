@@ -4,9 +4,8 @@ rawdata.defaultMission = {
     mission: {
         id: 2,
 
-
         maximumMissionDuration: 1461,
-        launchConstraints: null,
+
         funIsInvalidState: 'return [];',
         funIsWinningState: 'var score = gameState.getScore(); return (score >= 324);',
         funGetWinningProgress: 'var score = gameState.getScore(); return score/324;',
@@ -38,7 +37,8 @@ rawdata.defaultMission = {
                 radius: 1826.5e3,
                 minRadiusFactor: 1.02737476047,
                 maxRadiusFactor: 2.09499041883,
-                maxTimeOfFlyby: 30,
+                maxTimeOfFlight: 30,
+                maxLaunchDelay: 0,
                 scale: 0.000005,
                 meshMaterialURL: 'res/img/iosurface.jpg',
                 surface: {
@@ -94,7 +94,8 @@ rawdata.defaultMission = {
                 radius: 1561.0e3,
                 minRadiusFactor: 1.03203074952,
                 maxRadiusFactor: 2.28122998078,
-                maxTimeOfFlyby: 30,
+                maxTimeOfFlight: 30,
+                maxLaunchDelay: 0,
                 scale: 0.000005,
                 meshMaterialURL: 'res/img/europasurface.jpg',
                 surface: {
@@ -150,7 +151,8 @@ rawdata.defaultMission = {
                 radius: 2634.0e3,
                 minRadiusFactor: 1.01898253607,
                 maxRadiusFactor: 1.759301442678,
-                maxTimeOfFlyby: 30,
+                maxTimeOfFlight: 30,
+                maxLaunchDelay: 0,
                 scale: 0.000005,
                 meshMaterialURL: 'res/img/ganymedesurface.jpg',
                 surface: {
@@ -206,7 +208,8 @@ rawdata.defaultMission = {
                 radius: 2408.0e3,
                 minRadiusFactor: 1.0207641196,
                 maxRadiusFactor: 1.83056478405,
-                maxTimeOfFlyby: 30,
+                maxTimeOfFlight: 30,
+                maxLaunchDelay: 0,
                 scale: 0.000005,
                 meshMaterialURL: 'res/img/callistosurface.jpg',
                 surface: {
@@ -266,21 +269,22 @@ rawdata.defaultMission = {
                         chromosome: [],
                         deltaV: 0,
                         timeOfFlight: 0,
-                        mappedFaceID: '',
-                        dsmRating: 1
+                        mappedFaceID: ''
                     },
                     score: 0,
                     totalDeltaV: 0,
-                    velocityInf: [1000, -400, 1000],
                     mappedFaces: {},
-                    isRoot: true,
-                    invalidReasonIDs: [],
-                    spacecraft: {
-                        mass: 2000,
-                        emptyMass: 1000,
-                        maxThrust: 0.105,
-                        specificImpulse: 3500,
-                        isLanded: false
+                    vehicle: {
+                        isLanded: false,
+                        velocityInf: [1000, -400, 1000],
+                        stages: [
+                            {
+                                propulsionType: 0,
+                                mass: 2000,
+                                emptyMass: 1000,
+                                thrust: 0.105,
+                                specificImpulse: 3500,
+                        }]
                     }
                 }
             }

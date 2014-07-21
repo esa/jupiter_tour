@@ -25,7 +25,7 @@ core.GameEngine = function () {
         configuration: {}
     };
     this._scene = new THREE.Scene();
-    this._camera = new THREE.PerspectiveCamera(15, window.innerWidth / window.innerHeight, 1, gui.UNIVERSUM_SIZE * 2);
+    this._camera = new THREE.PerspectiveCamera(gui.FIELD_OF_VIEW * utility.RAD_TO_DEG, window.innerWidth / window.innerHeight, 1, gui.UNIVERSUM_SIZE * 2);
     // We need to have physics and gui to have the same up axis. It saves us some transformations.
     this._camera.up.set(0, 0, 1);
     if (Detector.webgl) {
@@ -205,7 +205,11 @@ core.GameEngine.prototype = {
                 break;
 
             default:
-                this._notificationManager.dispatchSpacecraftMsg(strings.toText(strings.GameInfos.SPACECRAFT_PARKED, [gameState.getOrbitingBody().getName()]), true);
+                if (this._gameState.getVehicle().isLanded()) {
+                    this._notificationManager.dispatchSpacecraftMsg(strings.toText(strings.GameInfos.SPACECRAFT_PARKED, [gameState.getOrbitingBody().getName()]), true);
+                } else {
+                    this._notificationManager.dispatchSpacecraftMsg(strings.toText(strings.GameInfos.SPACECRAFT_ORBITING, [gameState.getOrbitingBody().getName()]), true);
+                }
                 break;
 
             }
@@ -377,6 +381,9 @@ core.GameEngine.prototype = {
             faceValue = currentBody.getFaceValue(flybyResult.faceID);
 
             dsmResult = vehicle.performManeuver(deltaV, timeOfFlight * utility.DAY_TO_SEC);
+            if (vehicle.getStages().length > 1) {
+                vehicle.jettisonStage();
+            }
 
             leg = new gui.FirstLeg(chromosome, currentBody, nextBody);
             leg.setGradient(dsmResult.gravityLoss);
@@ -419,6 +426,9 @@ core.GameEngine.prototype = {
             faceValue = currentBody.getFaceValue(flybyResult.faceID);
 
             dsmResult = vehicle.performManeuver(deltaV, timeOfFlight * utility.DAY_TO_SEC);
+            if (vehicle.getStages().length > 1) {
+                vehicle.jettisonStage();
+            }
 
             leg = new gui.Leg(chromosome, currentBody, nextBody, velocityInf, epoch);
             leg.setGradient(dsmResult.gravityLoss);
@@ -477,6 +487,9 @@ core.GameEngine.prototype = {
             faceValue = currentBody.getFaceValue(flybyResult.faceID);
 
             dsmResult = vehicle.performManeuver(deltaV, timeOfFlight * utility.DAY_TO_SEC);
+            if (vehicle.getStages().length > 1) {
+                vehicle.jettisonStage();
+            }
 
             leg = new gui.Leg(chromosome, currentBody, nextBody, velocityInf, epoch);
             leg.setGradient(dsmResult.gravityLoss);
@@ -915,9 +928,9 @@ core.GameEngine.prototype = {
         return this._renderer.domElement;
     },
 
-    onViewChange: function (viewDistance) {
+    onViewChange: function (cameraPosition) {
         for (var id in this._orbitingBodies) {
-            this._orbitingBodies[id].onViewChange(viewDistance);
+            this._orbitingBodies[id].onViewChange(cameraPosition.clone());
         }
     }
 };

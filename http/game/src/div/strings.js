@@ -27,7 +27,8 @@ var strings = {};
         SAME_BODY_FORBIDDEN: 12,
         SPACECRAFT_LANDING: 13,
         SPACECRAFT_LAUNCH: 14,
-        SPACECRAFT_PARKED: 15
+        SPACECRAFT_PARKED: 15,
+        SPACECRAFT_ORBITING: 16
     };
 
     var texts = {
@@ -46,7 +47,8 @@ var strings = {};
         12: 'You can not select the same body at this point.',
         13: 'Your spacecraft landed on %s.',
         14: 'Your spacecraft launched from %s.',
-        15: 'Your spacecraft is parked on %s.'
+        15: 'Your spacecraft is parked on %s.',
+        16: 'Your spacecraft is on a flyby trajectory of %s.'
     };
 
     function toText(textID, fillIns) {

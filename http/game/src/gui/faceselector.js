@@ -22,8 +22,6 @@ gui.FaceSelector = function (orbitingBody) {
     this._containerMarginFactorL = 0.15;
     this._containerMarginFactorT = 0.23;
     this._containerWidthFactor = 0.85;
-    this._marginLR = 1.1e7;
-    this._marginUD = 0.2e8;
 
     this._numOrbits = 5;
     this._maxTimeOfFlight = this._orbitingBody.getMaxTimeOfFlight() * utility.SEC_TO_DAY;

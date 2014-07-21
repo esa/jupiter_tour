@@ -7,7 +7,7 @@ var model = {
         TRUNCATED_ICOSAHEDRON: 1
     },
 
-    PropulsionType: {
+    PropulsionTypes: {
         ELECTRIC: 0,
         CHEMICAL: 1
     }

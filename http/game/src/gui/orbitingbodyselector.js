@@ -8,7 +8,7 @@ gui.OrbitingBodySelector = function (orbitingBody) {
     this._orbitingBody = orbitingBody;
     this._bodyScale = orbitingBody.getScale();
     this._screenPosition = new geometry.Vector2();
-    this._viewDistance = 0;
+    this._cameraPosition = new geometry.Vector3();
     this._viewDirection = gui.ScreenDirections.UP;
     this._isVisible = false;
     this._isEditable = false;
@@ -25,8 +25,6 @@ gui.OrbitingBodySelector = function (orbitingBody) {
     this._containerMarginFactorL = 1;
     this._containerMarginFactorT = 1;
     this._containerWidthFactor = 1;
-    this._marginUD = 0;
-    this._marginLR = 0;
 
     this._boundingBox = {
         left: 0,
@@ -71,6 +69,13 @@ gui.OrbitingBodySelector.prototype = {
         }
     },
 
+    _computeBodyRadius: function () {
+        var bodySize = this._orbitingBody.getBodyMeshSize();
+        var bodyDistance = this._cameraPosition.clone().sub(this._orbitingBody.getPosition().multiplyScalar(gui.POSITION_SCALE).asTHREE()).length();
+        var bodyRadius = window.innerHeight / (bodyDistance * Math.sin(gui.FIELD_OF_VIEW / 2)) * bodySize.radius;
+        return bodyRadius;
+    },
+
     _updateCSS: function () {
         this._containerElement.style.marginTop = '0px';
         this._containerElement.style.marginLeft = '0px';
@@ -81,6 +86,8 @@ gui.OrbitingBodySelector.prototype = {
         var backgroundWidth;
         var left;
         var top;
+        var bodyRadius = this._computeBodyRadius();
+
         switch (this._viewDirection) {
         case gui.ScreenDirections.UP:
             backgroundHeight = Math.round(window.innerHeight * this._backgroundHeightFactorUD);
@@ -88,7 +95,7 @@ gui.OrbitingBodySelector.prototype = {
             this._backgroundElement.style.width = utility.toPixelString(backgroundWidth);
             this._backgroundElement.style.height = utility.toPixelString(backgroundHeight);
             left = this._screenPosition.getX() - $(this._backgroundElement).outerWidth() / 2;
-            top = this._screenPosition.getY() - $(this._backgroundElement).outerHeight() - this._orbitingBody.getRadius() * window.innerHeight * this._marginUD * this._bodyScale / this._viewDistance * gui.POSITION_SCALE;
+            top = this._screenPosition.getY() - $(this._backgroundElement).outerHeight() - bodyRadius;
             this._backgroundElement.style.left = utility.toPixelString(left, true);
             this._backgroundElement.style.top = utility.toPixelString(top, true);
             if (this._backgroundElement.style.backgroundImage.indexOf('res/svg/' + this._backgroundName + 'viewup.svg)') == -1) {
@@ -102,7 +109,7 @@ gui.OrbitingBodySelector.prototype = {
             this._backgroundElement.style.width = utility.toPixelString(backgroundWidth);
             this._backgroundElement.style.height = utility.toPixelString(backgroundHeight);
             left = this._screenPosition.getX() - $(this._backgroundElement).outerWidth() / 2;
-            top = this._screenPosition.getY() + this._orbitingBody.getRadius() * window.innerHeight * this._marginUD * this._bodyScale / this._viewDistance * gui.POSITION_SCALE;
+            top = this._screenPosition.getY() + bodyRadius;
             this._backgroundElement.style.left = utility.toPixelString(left, true);
             this._backgroundElement.style.top = utility.toPixelString(top, true);
             if (this._backgroundElement.style.backgroundImage.indexOf('res/svg/' + this._backgroundName + 'viewdown.svg)') == -1) {
@@ -116,7 +123,7 @@ gui.OrbitingBodySelector.prototype = {
             backgroundWidth = Math.round(backgroundHeight * this._backgroundWidthFactorLR);
             this._backgroundElement.style.width = utility.toPixelString(backgroundWidth);
             this._backgroundElement.style.height = utility.toPixelString(backgroundHeight);
-            left = this._screenPosition.getX() - $(this._backgroundElement).outerWidth() - this._orbitingBody.getRadius() * window.innerWidth * this._marginLR * this._bodyScale / this._viewDistance * gui.POSITION_SCALE;
+            left = this._screenPosition.getX() - $(this._backgroundElement).outerWidth() - bodyRadius;
             top = this._screenPosition.getY() - $(this._backgroundElement).outerHeight() / 2;
             this._backgroundElement.style.left = utility.toPixelString(left, true);
             this._backgroundElement.style.top = utility.toPixelString(top, true);
@@ -130,7 +137,7 @@ gui.OrbitingBodySelector.prototype = {
             backgroundWidth = Math.round(backgroundHeight * this._backgroundWidthFactorLR);
             this._backgroundElement.style.width = utility.toPixelString(backgroundWidth);
             this._backgroundElement.style.height = utility.toPixelString(backgroundHeight);
-            left = this._screenPosition.getX() + this._orbitingBody.getRadius() * window.innerWidth * this._marginLR * this._bodyScale / this._viewDistance * gui.POSITION_SCALE;
+            left = this._screenPosition.getX() + bodyRadius;
             top = this._screenPosition.getY() - $(this._backgroundElement).outerHeight() / 2;
             this._backgroundElement.style.left = utility.toPixelString(left, true);
             this._backgroundElement.style.top = utility.toPixelString(top, true);
@@ -174,12 +181,13 @@ gui.OrbitingBodySelector.prototype = {
                 var valX = this._screenPosition.getX();
                 var valY = this._screenPosition.getY();
                 var bBox = this._boundingBox;
-                if (valX + (bBox.right - bBox.left) /
-                    2 > window.innerWidth) {
+                var bodyRadius = this._computeBodyRadius();
+
+                if (valX + (bBox.right - bBox.left) / 2 > window.innerWidth) {
                     this._viewDirection = gui.ScreenDirections.LEFT;
                 } else if (valX - (bBox.right - bBox.left) / 2 < 0) {
                     this._viewDirection = gui.ScreenDirections.RIGHT;
-                } else if (valY - (bBox.bottom - bBox.top) - this._orbitingBody.getRadius() * window.innerHeight * this._marginUD * this._bodyScale / this._viewDistance * gui.POSITION_SCALE < 0) {
+                } else if (valY - (bBox.bottom - bBox.top) - bodyRadius < 0) {
                     this._viewDirection = gui.ScreenDirections.DOWN;
                 } else {
                     this._viewDirection = gui.ScreenDirections.UP;
@@ -191,8 +199,8 @@ gui.OrbitingBodySelector.prototype = {
         }
     },
 
-    onViewChange: function (viewDistance) {
-        this._viewDistance = viewDistance;
+    onViewChange: function (cameraPosition) {
+        this._cameraPosition = cameraPosition.clone();
     },
 
     getDefaultConfiguration: function () {

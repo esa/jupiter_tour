@@ -26,8 +26,6 @@ gui.SimpleSelector = function (orbitingBody) {
     this._containerWidthFactor = 0.88;
     this._containerMarginFactorL = 0.12;
     this._containerMarginFactorT = 0.24;
-    this._marginLR = 0.3e11;
-    this._marginUD = 0.5e11;
 
     var backgroundHeight = Math.round(window.innerHeight * this._backgroundHeightFactorUD);
     var backgroundWidth = Math.round(backgroundHeight * this._backgroundWidthFactorUD);
