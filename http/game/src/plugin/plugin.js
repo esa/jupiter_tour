@@ -791,7 +791,7 @@ var plugin = {};
                 }
                 this._entries.mappedArea.textContent = mappedFace;
                 this._entries.deltaV.textContent = utility.round(transferLeg.deltaV) + ' m/s';
-                this._entries.gravityLoss.textContent = (utility.round(transferLeg.gravityLoss * 10000) / 100) + ' %';
+                this._entries.gravityLoss.textContent = utility.round(transferLeg.gravityLoss * 100) + ' %';
                 this._entries.timeOfFlight.textContent = utility.round(transferLeg.timeOfFlight) + ' days';
             }
             break;
