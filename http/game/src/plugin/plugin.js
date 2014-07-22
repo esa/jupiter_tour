@@ -724,11 +724,12 @@ var plugin = {};
         var entries = {
             epoch: 'mission epoch',
             passedDays: 'passed days',
-            totalDeltaV: 'total deltaV',
             score: 'score',
             vehicleState: 'vehicle state',
             sphereOfInfluence: 'current sphere of influence',
+            vehicleRemainingDeltaV: 'vehicle remaining deltaV',
             velocityInf: 'relative velocity at infinity',
+            spacecraftTotalDeltaV: 'spacecraft total used deltaV',
             mappedArea: 'last mapped area',
             deltaV: 'last leg deltaV',
             gravityLoss: 'last leg gravity loss',
@@ -764,7 +765,8 @@ var plugin = {};
                 this._entries.epoch.textContent = utility.round(gameState.getEpoch()) + ' MJD';
                 this._entries.passedDays.textContent = utility.round(gameState.getPassedDays()) + ' days';
                 this._entries.velocityInf.textContent = vehicle.getVelocityInf().toString(2) + ' m/s';
-                this._entries.totalDeltaV.textContent = utility.round(gameState.getTotalDeltaV()) + ' m/s';
+                this._entries.spacecraftTotalDeltaV.textContent = utility.round(gameState.getTotalDeltaV()) + ' m/s';
+                this._entries.vehicleRemainingDeltaV.textContent = utility.round(Math.max(0, gameState.getVehicle().getRemainingDeltaV())) + ' m/s';
                 this._entries.score.textContent = gameState.getScore() + ' points';
                 this._entries.sphereOfInfluence.textContent = gameState.getOrbitingBody().getName();
                 var transferLeg = gameState.getTransferLeg();
@@ -789,7 +791,7 @@ var plugin = {};
                 }
                 this._entries.mappedArea.textContent = mappedFace;
                 this._entries.deltaV.textContent = utility.round(transferLeg.deltaV) + ' m/s';
-                this._entries.gravityLoss.textContent = (utility.round(transferLeg.gravityLoss) * 100) + ' %';
+                this._entries.gravityLoss.textContent = (utility.round(transferLeg.gravityLoss * 10000) / 100) + ' %';
                 this._entries.timeOfFlight.textContent = utility.round(transferLeg.timeOfFlight) + ' days';
             }
             break;

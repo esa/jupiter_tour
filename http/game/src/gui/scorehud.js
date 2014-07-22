@@ -143,10 +143,9 @@ gui.ScoreHUD.prototype = {
         } else {
             $(this._epochText).text((Math.round(gameState.getPassedDays() * 100) / 100) + ' days');
         }
-        var totalDeltaV = gameState.getTotalDeltaV();
-        var vehicleTotalDV = gameState.getVehicle().getTotalDeltaV();
-        var remainingDV = vehicleTotalDV - totalDeltaV;
-        var deltaVPercentage = Math.max(0, (vehicleTotalDV - totalDeltaV) / vehicleTotalDV) * 100;
+        var totalDeltaV = gameState.getVehicle().getTotalDeltaV(1);
+        var remainingDV = Math.max(0, gameState.getVehicle().getRemainingDeltaV(1));
+        var deltaVPercentage = remainingDV / totalDeltaV * 100;
         deltaVPercentage = Math.round(deltaVPercentage * 100) / 100;
         remainingDV = Math.round(remainingDV * 100) / 100;
         $(this._deltaVText).html(remainingDV + ' m/s<br>(' + deltaVPercentage + '%)');

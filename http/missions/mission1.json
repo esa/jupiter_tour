@@ -43,7 +43,6 @@
                 "minRadiusFactor": 1.1,
                 "maxRadiusFactor": 50,
                 "maxTimeOfFlight": 1000,
-                "maxLaunchDelay": 2000,
                 "scale": 0.0000002,
                 "meshMaterialURL": "res/img/mercurysurface.jpg",
                 "surface": {
@@ -77,7 +76,7 @@
                 "minRadiusFactor": 1.1,
                 "maxRadiusFactor": 50,
                 "maxTimeOfFlight": 1000,
-                "maxLaunchDelay": 2000,
+                "maxLaunchDelay": 200,
                 "scale": 0.0000001,
                 "meshMaterialURL": "res/img/venussurface.jpg",
                 "surface": {
@@ -145,7 +144,6 @@
                 "minRadiusFactor": 1.1,
                 "maxRadiusFactor": 50,
                 "maxTimeOfFlight": 3650,
-                "maxLaunchDelay": 2000,
                 "scale": 0.0000002,
                 "meshMaterialURL": "res/img/marssurface.jpg",
                 "surface": {
@@ -179,7 +177,6 @@
                 "minRadiusFactor": 1.1,
                 "maxRadiusFactor": 50,
                 "maxTimeOfFlight": 3650,
-                "maxLaunchDelay": 2000,
                 "scale": 0.00000005,
                 "meshMaterialURL": "res/img/jupitersurface.jpg",
                 "surface": {
@@ -213,7 +210,6 @@
                 "minRadiusFactor": 1.1,
                 "maxRadiusFactor": 50,
                 "maxTimeOfFlight": 3650,
-                "maxLaunchDelay": 2000,
                 "scale": 0.00000005,
                 "meshMaterialURL": "res/img/saturnsurface.jpg",
                 "surface": {
@@ -247,7 +243,6 @@
                 "minRadiusFactor": 1.1,
                 "maxRadiusFactor": 50,
                 "maxTimeOfFlight": 3650,
-                "maxLaunchDelay": 2000,
                 "scale": 0.0000002,
                 "meshMaterialURL": "res/img/uranussurface.jpg",
                 "surface": {
@@ -281,7 +276,6 @@
                 "minRadiusFactor": 1.1,
                 "maxRadiusFactor": 50,
                 "maxTimeOfFlight": 3650,
-                "maxLaunchDelay": 2000,
                 "scale": 0.0000002,
                 "meshMaterialURL": "res/img/neptunesurface.jpg",
                 "surface": {
@@ -322,15 +316,19 @@
                             {
                                 "propulsionType": 0,
                                 "mass": 2200,
+                                "remainingMass": 2200,
                                 "emptyMass": 1500,
                                 "thrust": 1.0,
-                                "specificImpulse": 311
+                                "specificImpulse": 311,
+                                "imageURL": "res/img/spacecraft.jpg"
                         }, {
                                 "propulsionType": 1,
                                 "mass": 777000,
+                                "remainingMass": 777000,
                                 "emptyMass": 180000,
                                 "thrust": 12940000,
-                                "specificImpulse": 430
+                                "specificImpulse": 430,
+                                "imageURL": "res/img/ariane5.jpg"
                         }]
                     }
                 }

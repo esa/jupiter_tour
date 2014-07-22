@@ -9,7 +9,7 @@ gui.OrbitingBody = function (id, name, centralBody, orbitalElements, orbitalElem
     this._minRadius = radius * minRadiusFactor;
     this._maxRadius = radius * maxRadiusFactor;
     this._maxTimeOfFlight = maxTimeOfFlight * utility.DAY_TO_SEC;
-    this._maxLaunchDelay = maxLaunchDelay * utility.DAY_TO_SEC;
+    this._maxLaunchDelay = maxLaunchDelay != null ? maxLaunchDelay * utility.DAY_TO_SEC : 0;
     this._isMouseOver = false;
     this._isActivated = false;
     this._isFaceViewOpened = false;
@@ -33,7 +33,11 @@ gui.OrbitingBody = function (id, name, centralBody, orbitalElements, orbitalElem
         break;
     case model.SurfaceTypes.SPHERE:
         this._surface = new model.SphericalSurface(this, surface.values);
-        this._selector = new gui.SimpleSelector(this);
+        if (this._maxLaunchDelay) {
+            this._selector = new gui.RendezVousSelector(this);
+        } else {
+            this._selector = new gui.FlybySelector(this);
+        }
         break;
     }
 

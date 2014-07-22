@@ -384,13 +384,14 @@ core.GameEngine.prototype = {
             if (numStages > 1) {
                 vehicle.jettisonStage();
                 this._notificationManager.dispatchJettisonMsg(strings.toText(strings.GameInfos.SPACECRAFT_JETTISON_STAGE, [numStages]));
+            } else if (numStages == 1) {
+                totalDeltaV += deltaV;
             }
 
             leg = new gui.FirstLeg(chromosome, currentBody, nextBody);
             leg.setGradient(dsmResult.gravityLoss);
 
             score += faceValue;
-            totalDeltaV += deltaV;
             epoch += timeOfFlight;
             passedDays += timeOfFlight;
             nextVelocityInf = leg.getArrivingVelocityInf();
@@ -431,13 +432,14 @@ core.GameEngine.prototype = {
             if (numStages > 1) {
                 vehicle.jettisonStage();
                 this._notificationManager.dispatchJettisonMsg(strings.toText(strings.GameInfos.SPACECRAFT_JETTISON_STAGE, [numStages]));
+            } else if (numStages == 1) {
+                totalDeltaV += deltaV;
             }
 
             leg = new gui.Leg(chromosome, currentBody, nextBody, velocityInf, epoch);
             leg.setGradient(dsmResult.gravityLoss);
 
             score += faceValue;
-            totalDeltaV += deltaV;
             epoch += timeOfFlight;
             passedDays += timeOfFlight;
             nextVelocityInf = leg.getArrivingVelocityInf();
@@ -494,13 +496,14 @@ core.GameEngine.prototype = {
             if (numStages > 1) {
                 vehicle.jettisonStage();
                 this._notificationManager.dispatchJettisonMsg(strings.toText(strings.GameInfos.SPACECRAFT_JETTISON_STAGE, [numStages]));
+            } else if (numStages == 1) {
+                totalDeltaV += deltaV;
             }
 
             leg = new gui.Leg(chromosome, currentBody, nextBody, velocityInf, epoch);
             leg.setGradient(dsmResult.gravityLoss);
 
             score += faceValue;
-            totalDeltaV += deltaV;
             epoch += timeOfFlight;
             passedDays += timeOfFlight;
             nextVelocityInf = leg.getArrivingVelocityInf();
@@ -738,18 +741,6 @@ core.GameEngine.prototype = {
             }
         }
 
-        var node = nodes[rootID];
-        var gameState = node.gameState;
-
-        var stages = [];
-        var vehicleData = gameState.vehicle;
-        for (var i = 0; i < vehicleData.stages.length; i++) {
-            var stage = vehicleData.stages[i];
-            stages.push(new model.Stage(stage.propulsionType, stage.mass, stage.emptyMass, stage.thrust, stage.specificImpulse));
-        }
-        var vehicle = new model.Vehicle(new geometry.Vector3().fromArray(gameState.vehicle.velocityInf), stages, gameState.vehicle.isLanded);
-        var vehicleTotalDeltaV = vehicle.getTotalDeltaV();
-
         for (var id in nodes) {
             node = nodes[id];
             gameState = node.gameState;
@@ -769,14 +760,14 @@ core.GameEngine.prototype = {
             var totalDeltaV = gameState.totalDeltaV;
             var score = gameState.score;
 
-            stages = [];
-            vehicleData = gameState.vehicle;
+            var stages = [];
+            var vehicleData = gameState.vehicle;
             for (var i = 0; i < vehicleData.stages.length; i++) {
                 var stage = vehicleData.stages[i];
-                stages.push(new model.Stage(stage.propulsionType, stage.mass, stage.emptyMass, stage.thrust, stage.specificImpulse));
+                stages.push(new gui.Stage(stage.propulsionType, stage.mass, stage.emptyMass, stage.remainingMass, stage.thrust, stage.specificImpulse, stage.imageURL));
             }
 
-            vehicle = new model.Vehicle(new geometry.Vector3().fromArray(gameState.vehicle.velocityInf), stages, gameState.vehicle.isLanded, vehicleTotalDeltaV);
+            vehicle = new gui.Vehicle(new geometry.Vector3().fromArray(gameState.vehicle.velocityInf), stages, gameState.vehicle.isLanded);
 
             var dsmResult = null;
             if (node.parentID != null) {

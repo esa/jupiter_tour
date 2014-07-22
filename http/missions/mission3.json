@@ -284,15 +284,19 @@
                             {
                                 "propulsionType": 1,
                                 "mass": 2000,
+                                "remainingMass": 2000,
                                 "emptyMass": 1000,
                                 "thrust": 1500,
-                                "specificImpulse": 250
+                                "specificImpulse": 250,
+                                "imageURL": "res/img/spacecraft.jpg"
                         }, {
                                 "propulsionType": 1,
                                 "mass": 777000,
+                                "remainingMass": 777000,
                                 "emptyMass": 180000,
                                 "thrust": 12940000,
-                                "specificImpulse": 430
+                                "specificImpulse": 430,
+                                "imageURL": "res/img/isslaunch.jpg"
                         }]
                     }
                 }

@@ -209,10 +209,12 @@ core.GameHistoryManager.prototype = {
                         var stage = stages[i];
                         nodeResult.gameState.vehicle.stages.push({
                             propulsionType: stage.getPropulsionType(),
-                            mass: stage.getMass(),
+                            mass: stage.getTotalMass(),
+                            remainingMass: stage.getRemainingMass(),
                             emptyMass: stage.getEmptyMass(),
                             thrust: stage.getThrust(),
-                            specificImpulse: stage.getSpecificImpulse()
+                            specificImpulse: stage.getSpecificImpulse(),
+                            imageURL: stage.getImageURL()
                         });
                     }
                     nodeResult.gameState.mappedFaces = {};

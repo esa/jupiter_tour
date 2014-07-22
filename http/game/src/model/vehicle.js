@@ -1,21 +1,12 @@
 /* Class Vehicle
     Represents a stageable spacecraft. 
 */
-model.Vehicle = function (velocityInf, stages, isLanded, totalDeltaV) {
+model.Vehicle = function (velocityInf, stages, isLanded) {
     this._velocityInf = velocityInf.clone();
     this._stages = [];
     this._isLanded = (isLanded != null ? isLanded : false);
-    this._totalDeltaV = 0;
-    var mass = 0;
     for (var i = 0; i < stages.length; i++) {
-        this._stages.push(stages[i].clone())
-        var fullMass = stages[i].getMass() + mass;
-        var emptyMass = stages[i].getEmptyMass() + mass;
-        this._totalDeltaV += Math.log(fullMass / emptyMass) * stages[i].getSpecificImpulse() * constants.STANDARD_ACCELERATION;
-        mass += stages[i].getMass();
-    }
-    if (totalDeltaV != null) {
-        this._totalDeltaV = totalDeltaV;
+        this._stages.push(stages[i].clone());
     }
 };
 
@@ -29,13 +20,13 @@ model.Vehicle.prototype = {
             hasDeltaVLimitation: false
         };
         var stage = this._stages[this._stages.length - 1];
-        var maxDeltaV = stage.getThrust() / this.getMass() * timeOfFlight;
-        var mass = stage.getMass() * Math.exp(-(deltaV / (stage.getSpecificImpulse() * constants.STANDARD_ACCELERATION)));
-        stage.setMass(mass);
+        var maxDeltaV = stage.getThrust() / this.getRemainingMass() * timeOfFlight;
+        var mass = stage.getRemainingMass() * Math.exp(-(deltaV / (stage.getSpecificImpulse() * constants.STANDARD_ACCELERATION)));
+        stage.setRemainingMass(mass);
 
         dsmResult.gravityLoss = 1 - deltaV / maxDeltaV;
 
-        if (stage.getMass() < stage.getEmptyMass()) {
+        if (stage.getRemainingMass() < stage.getEmptyMass()) {
             dsmResult.isOutOfFuel = true;
             dsmResult.gravityLoss = 0;
         }
@@ -47,10 +38,20 @@ model.Vehicle.prototype = {
         this._stages.pop();
     },
 
-    getMass: function () {
+    getRemainingMass: function (numStages) {
         var mass = 0;
-        for (var i = 0; i < this._stages.length; i++) {
-            mass += this._stages[i].getMass();
+        var length = numStages != null ? Math.min(numStages, this._stages.length) : this._stages.length;
+        for (var i = 0; i < length; i++) {
+            mass += this._stages[i].getRemainingMass();
+        }
+        return mass;
+    },
+
+    getTotalMass: function (numStages) {
+        var mass = 0;
+        var length = numStages != null ? Math.min(numStages, this._stages.length) : this._stages.length;
+        for (var i = 0; i < length; i++) {
+            mass += this._stages[i].getTotalMass();
         }
         return mass;
     },
@@ -63,14 +64,30 @@ model.Vehicle.prototype = {
         this._isLanded = landed;
     },
 
-    getDeltaV: function () {
+    getRemainingDeltaV: function (numStages) {
         var mass = 0;
-        var length = this._stages.length;
-        for (var i = 0; i < length - 1; i++) {
-            mass += this._stages[i].getMass();
+        var remainingDeltaV = 0;
+        var length = numStages != null ? Math.min(numStages, this._stages.length) : this._stages.length;
+        for (var i = 0; i < length; i++) {
+            var remainingMass = this._stages[i].getRemainingMass() + mass;
+            var emptyMass = this._stages[i].getEmptyMass() + mass;
+            remainingDeltaV += Math.log(remainingMass / emptyMass) * this._stages[i].getSpecificImpulse() * constants.STANDARD_ACCELERATION;
+            mass += this._stages[i].getRemainingMass();
         }
-        var stage = this._stages[length - 1];
-        return Math.log((stage.getMass() + mass) / (stage.getEmptyMass() + mass)) * stage.getSpecificImpulse() * constants.STANDARD_ACCELERATION;
+        return remainingDeltaV;
+    },
+
+    getTotalDeltaV: function (numStages) {
+        var mass = 0;
+        var totalDeltaV = 0;
+        var length = numStages != null ? Math.min(numStages, this._stages.length) : this._stages.length;
+        for (var i = 0; i < length; i++) {
+            var fullMass = this._stages[i].getTotalMass() + mass;
+            var emptyMass = this._stages[i].getEmptyMass() + mass;
+            totalDeltaV += Math.log(fullMass / emptyMass) * this._stages[i].getSpecificImpulse() * constants.STANDARD_ACCELERATION;
+            mass += this._stages[i].getTotalMass();
+        }
+        return totalDeltaV;
     },
 
     getStages: function () {
@@ -79,10 +96,6 @@ model.Vehicle.prototype = {
             stages.push(this._stages[i].clone());
         }
         return stages;
-    },
-
-    getTotalDeltaV: function () {
-        return this._totalDeltaV;
     },
 
     getVelocityInf: function () {
@@ -94,6 +107,6 @@ model.Vehicle.prototype = {
     },
 
     clone: function () {
-        return new model.Vehicle(this._velocityInf, this._stages, this._isLanded, this._totalDeltaV);
+        return new model.Vehicle(this._velocityInf, this._stages, this._isLanded);
     }
 };
