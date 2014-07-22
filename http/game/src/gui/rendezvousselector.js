@@ -282,7 +282,7 @@ gui.RendezVousSelector.prototype._showLandingConfiguration = function () {
     this._betaRangeSlider.show();
     this._timeOfFlightRangeSlider.show();
     this._resetSelection();
-    this._configuration.problemType = astrodynamics.ProblemTypes.MGA1DSM_LANDING;
+    this._configuration.performLanding = true;
 };
 
 gui.RendezVousSelector.prototype._showLaunchConfiguration = function () {
@@ -334,6 +334,7 @@ gui.RendezVousSelector.prototype._resetSelection = function () {
         this._configuration.betaBounds = [-2 * Math.PI, 2 * Math.PI];
     }
     this._configuration.timeOfFlightBounds = [1e-2, this._maxTimeOfFlight];
+    this._configuration.performLanding = false;
     this._updateSliders();
 };
 

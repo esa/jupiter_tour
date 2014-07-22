@@ -2,7 +2,7 @@
     MGA-1DSM for solving for flyby.
     Inherits JDEProblem
 */
-astrodynamics.MGA1DSMFlyby = function (currentBody, nextBody, epoch, velocityInf, timeOfFlightBounds, radiusBounds, betaBounds, populationSize) {
+astrodynamics.MGA1DSMFlyby = function (currentBody, nextBody, epoch, velocityInf, timeOfFlightBounds, radiusBounds, betaBounds, addArrivingVelocity, populationSize) {
     this._orbitingBodies = [currentBody, nextBody];
     this._epoch = epoch;
     this._velocityInf = velocityInf.clone();
@@ -10,6 +10,7 @@ astrodynamics.MGA1DSMFlyby = function (currentBody, nextBody, epoch, velocityInf
     this._bounds = [];
     this._population = [];
     this._populationSize = populationSize || 30;
+    this._addArrivingVelocity = addArrivingVelocity;
 
     this._bounds[0] = betaBounds.clone();
     this._bounds[1] = radiusBounds.clone();
@@ -58,6 +59,11 @@ astrodynamics.MGA1DSMFlyby.prototype.objectiveFunction = function (individual) {
     var dt = (1 - chromosome[2]) * chromosome[3] * utility.DAY_TO_SEC;
     var lambertProb = astrodynamics.lambertProblem(currentBody.getCentralBody().getStandardGravitationalParameter(), propLagr.position, ephNBody.position, dt, false);
     var velocityBeginLeg = lambertProb.velocity1;
+    var velocityEndLeg = lambertProb.velocity2;
 
-    return velocityBeginLeg.sub(propLagr.velocity).normEuclid();
+    var result = velocityBeginLeg.sub(propLagr.velocity).normEuclid();
+    if (this._addArrivingVelocity) {
+        result += velocityEndLeg.sub(ephNBody.velocity).normEuclid();
+    }
+    return result;
 };

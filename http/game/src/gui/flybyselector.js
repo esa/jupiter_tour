@@ -7,7 +7,8 @@ gui.FlybySelector = function (orbitingBody) {
     var self = this;
 
     this._configuration = {
-        problemType: astrodynamics.ProblemTypes.MGA1DSM_FLYBY
+        problemType: astrodynamics.ProblemTypes.MGA1DSM_FLYBY,
+        performLanding: false
     };
 
     this._numOrbits = 5;
