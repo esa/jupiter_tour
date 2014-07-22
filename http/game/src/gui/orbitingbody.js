@@ -1,14 +1,15 @@
 /* Class OrbitingBody: Model & View 
     Inherits Satellite
 */
-gui.OrbitingBody = function (id, name, centralBody, orbitalElements, orbitalElementDerivatives, refEpoch, sgp, radius, minRadiusFactor, maxRadiusFactor, maxTimeOfFlyby, scale, meshMaterialURL, surface) {
+gui.OrbitingBody = function (id, name, centralBody, orbitalElements, orbitalElementDerivatives, refEpoch, sgp, radius, minRadiusFactor, maxRadiusFactor, maxTimeOfFlight, maxLaunchDelay, scale, meshMaterialURL, surface) {
     astrodynamics.Satellite.call(this, centralBody, orbitalElements, orbitalElementDerivatives, refEpoch, sgp);
     this._id = id;
     this._name = name;
     this._radius = radius;
     this._minRadius = radius * minRadiusFactor;
     this._maxRadius = radius * maxRadiusFactor;
-    this._maxTimeOfFlyby = maxTimeOfFlyby * utility.DAY_TO_SEC;
+    this._maxTimeOfFlight = maxTimeOfFlight * utility.DAY_TO_SEC;
+    this._maxLaunchDelay = maxLaunchDelay != null ? maxLaunchDelay * utility.DAY_TO_SEC : 0;
     this._isMouseOver = false;
     this._isActivated = false;
     this._isFaceViewOpened = false;
@@ -21,15 +22,22 @@ gui.OrbitingBody = function (id, name, centralBody, orbitalElements, orbitalElem
     this._orbitPositions = 400;
     this._configuration = null;
     this._surfaceType = surface.type;
+    this._vehicle = null;
+
+    this._selector = null;
 
     switch (this._surfaceType) {
     case model.SurfaceTypes.TRUNCATED_ICOSAHEDRON:
         this._surface = new model.TruncatedIcosahedronSurface(this, surface.values);
-        this._hud = new gui.FaceSelector(this);
+        this._selector = new gui.FaceSelector(this);
         break;
     case model.SurfaceTypes.SPHERE:
         this._surface = new model.SphericalSurface(this, surface.values);
-        this._hud = new gui.TimeOfFlightSelector(this);
+        if (this._maxLaunchDelay) {
+            this._selector = new gui.RendezVousSelector(this);
+        } else {
+            this._selector = new gui.FlybySelector(this);
+        }
         break;
     }
 
@@ -88,8 +96,8 @@ gui.OrbitingBody.prototype._unhighlight = function () {
     this._orbitMesh.material = material;
 };
 
-gui.OrbitingBody.prototype.onViewChange = function (viewDistance) {
-    this._hud.onViewChange(viewDistance);
+gui.OrbitingBody.prototype.onViewChange = function (cameraPosition) {
+    this._selector.onViewChange(cameraPosition);
 };
 
 gui.OrbitingBody.prototype.onMouseOver = function () {
@@ -115,7 +123,7 @@ gui.OrbitingBody.prototype.onConfigurationWindowOut = function () {
 };
 
 gui.OrbitingBody.prototype.onConfigurationDone = function (isConfirmed, configuration) {
-    this._hud.hide();
+    this._selector.hide();
     this._bodyMesh.scale.set(1, 1, 1);
     if (isConfirmed) {
         this._configuration = utility.clone(configuration);
@@ -129,20 +137,24 @@ gui.OrbitingBody.prototype.isInConfigurationMode = function () {
     return this._configurationMode;
 };
 
-gui.OrbitingBody.prototype.onActivated = function (epoch, velocityInf) {
-    this._surface.updateFaces(epoch, velocityInf);
+gui.OrbitingBody.prototype.onActivated = function (epoch, vehicle) {
+    this._surface.updateFaces(epoch, vehicle.getVelocityInf());
+    this._selector.onActivated(epoch, vehicle);
     this._highlight();
+    this._vehicle = vehicle.clone();
     this._isActivated = true;
 };
 
 gui.OrbitingBody.prototype.onDeactivated = function () {
+    this._selector.onDeactivated();
     this._unhighlight();
+    this._vehicle = null;
     this._isActivated = false;
 };
 
 gui.OrbitingBody.prototype.openConfigurationWindow = function () {
     this._bodyMesh.scale.set(4, 4, 4);
-    this._hud.show(true);
+    this._selector.show(true);
     this._configurationMode = true;
 };
 
@@ -153,14 +165,14 @@ gui.OrbitingBody.prototype.update = function (screenPosition) {
         if (size < this._maxSize) {
             this._bodyMesh.scale.multiplyScalar(1 + this._scaleSpeed);
         } else {
-            if (!this._hud.isVisible()) {
-                this._hud.show(false);
+            if (!this._selector.isVisible()) {
+                this._selector.show(false);
             }
         }
     } else {
         if (!this._configurationMode && !this._configurationWindowHover) {
-            if (this._hud.isVisible()) {
-                this._hud.hide();
+            if (this._selector.isVisible()) {
+                this._selector.hide();
             }
             if (size > 3) {
                 this._bodyMesh.scale.multiplyScalar(1 - this._scaleSpeed);
@@ -169,7 +181,7 @@ gui.OrbitingBody.prototype.update = function (screenPosition) {
             }
         }
     }
-    this._hud.update(screenPosition);
+    this._selector.update(screenPosition);
 };
 
 gui.OrbitingBody.prototype._displayOrbitAtEpoch = function (epoch) {
@@ -216,8 +228,12 @@ gui.OrbitingBody.prototype.getMaxRadius = function () {
     return this._maxRadius;
 };
 
-gui.OrbitingBody.prototype.getMaxTimeOfFlyby = function () {
-    return this._maxTimeOfFlyby;
+gui.OrbitingBody.prototype.getMaxTimeOfFlight = function () {
+    return this._maxTimeOfFlight;
+};
+
+gui.OrbitingBody.prototype.getMaxLaunchDelay = function () {
+    return this._maxLaunchDelay;
 };
 
 gui.OrbitingBody.prototype.isFaceVisited = function (faceID) {
@@ -257,7 +273,12 @@ gui.OrbitingBody.prototype.getFaceRadiusBounds = function (faceID) {
 };
 
 gui.OrbitingBody.prototype.getConfiguration = function () {
-    return this._configuration;
+    return this._configuration != null ? utility.clone(this._configuration) : null;
+};
+
+gui.OrbitingBody.prototype.getDefaultConfiguration = function () {
+    this._configuration = this._selector.getDefaultConfiguration();
+    return utility.clone(this._configuration);
 };
 
 gui.OrbitingBody.prototype.computeFlybyFaceAndCoords = function (epoch, velocityInf, beta, radius) {
@@ -273,7 +294,8 @@ gui.OrbitingBody.prototype.getTotalFlybyScore = function () {
     return this._surface.getTotalFlybyScore();
 };
 
-gui.OrbitingBody.prototype.resetSurface = function () {
+gui.OrbitingBody.prototype.reset = function () {
+    this._vehicle = null;
     this._surface.reset();
 };
 
@@ -295,6 +317,11 @@ gui.OrbitingBody.prototype.getD3Visits = function () {
 
 gui.OrbitingBody.prototype.getBodyMesh = function () {
     return this._bodyMesh;
+};
+
+gui.OrbitingBody.prototype.getBodyMeshSize = function () {
+    this._bodyMesh.geometry.computeBoundingSphere();
+    return this._bodyMesh.geometry.boundingSphere;
 };
 
 gui.OrbitingBody.prototype.getOrbitMesh = function () {

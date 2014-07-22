@@ -13,8 +13,8 @@
    height="23.576281"
    id="svg4523"
    version="1.1"
-   inkscape:version="0.48.4 r9939"
-   sodipodi:docname="gametreeheader.svg">
+   inkscape:version="0.48.5 r10040"
+   sodipodi:docname="scoreheader.svg">
   <defs
      id="defs4525" />
   <sodipodi:namedview
@@ -24,9 +24,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="3.959798"
-     inkscape:cx="295.55872"
-     inkscape:cy="13.265242"
+     inkscape:zoom="1.979899"
+     inkscape:cx="305.16215"
+     inkscape:cy="64.697305"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -44,10 +44,10 @@
      inkscape:snap-center="true"
      inkscape:snap-page="true"
      inkscape:snap-global="false"
-     inkscape:window-width="1800"
-     inkscape:window-height="990"
-     inkscape:window-x="95"
-     inkscape:window-y="34"
+     inkscape:window-width="1376"
+     inkscape:window-height="833"
+     inkscape:window-x="62"
+     inkscape:window-y="27"
      inkscape:window-maximized="0"
      fit-margin-top="0"
      fit-margin-left="0"
@@ -61,7 +61,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -70,17 +70,20 @@
      inkscape:groupmode="layer"
      id="layer1"
      transform="translate(-76.332945,-514.39295)">
-    <path
-       style="opacity:0.9;fill:#19a3ff;fill-opacity:1;stroke:#333333;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="m 667.76154,514.39295 -591.330325,0"
-       id="path6026"
-       inkscape:connector-curvature="0"
-       sodipodi:nodetypes="cc" />
-    <path
-       style="opacity:0.9;fill:#333333;fill-opacity:1;stroke:#19a3ff;stroke-linecap:round;stroke-opacity:1"
-       d="m 667.76154,514.39295 c 0,0 -30.16982,23.57628 -295.7143,23.57628 -265.54446,0 -295.714295,-23.57628 -295.714295,-23.57628"
-       id="rect4531"
-       inkscape:connector-curvature="0"
-       sodipodi:nodetypes="czc" />
+    <g
+       id="g2984">
+      <path
+         sodipodi:nodetypes="cc"
+         inkscape:connector-curvature="0"
+         id="path6026"
+         d="m 667.76154,514.39295 -591.330325,0"
+         style="opacity:0.9;fill:#19a3ff;fill-opacity:1;stroke:#333333;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+      <path
+         sodipodi:nodetypes="czc"
+         inkscape:connector-curvature="0"
+         id="rect4531"
+         d="m 667.76154,514.39295 c 0,0 -30.16982,23.57628 -295.7143,23.57628 -265.54446,0 -295.714295,-23.57628 -295.714295,-23.57628"
+         style="opacity:0.9;fill:#333333;fill-opacity:1;stroke:#19a3ff;stroke-linecap:round;stroke-opacity:1" />
+    </g>
   </g>
 </svg>

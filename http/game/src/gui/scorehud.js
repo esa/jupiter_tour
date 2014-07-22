@@ -80,7 +80,7 @@ gui.ScoreHUD = function (gameHistoryManager, params) {
     iconDiv.className = 'icon-container';
     img = document.createElement('img');
     img.className = 'icon center-vertically';
-    img.src = 'res/svg/clock.svg';
+    img.src = 'res/svg/clockicon.svg';
     iconDiv.appendChild(img);
     headerContainer.appendChild(iconDiv);
 
@@ -101,7 +101,7 @@ gui.ScoreHUD = function (gameHistoryManager, params) {
     iconDiv.className = 'icon-container';
     img = document.createElement('img');
     img.className = 'icon center-vertically';
-    img.src = 'res/svg/deltav.svg';
+    img.src = 'res/svg/deltavicon.svg';
     iconDiv.appendChild(img);
     headerContainer.appendChild(iconDiv);
 
@@ -143,10 +143,9 @@ gui.ScoreHUD.prototype = {
         } else {
             $(this._epochText).text((Math.round(gameState.getPassedDays() * 100) / 100) + ' days');
         }
-        var totalDeltaV = gameState.getTotalDeltaV();
-        var spacecraftTotalDV = gameState.getSpacecraft().getTotalDeltaV();
-        var remainingDV = spacecraftTotalDV - totalDeltaV;
-        var deltaVPercentage = Math.max(0, (spacecraftTotalDV - totalDeltaV) / spacecraftTotalDV) * 100;
+        var totalDeltaV = gameState.getVehicle().getTotalDeltaV(1);
+        var remainingDV = gameState.getVehicle().getRemainingDeltaV(1);
+        var deltaVPercentage = remainingDV / totalDeltaV * 100;
         deltaVPercentage = Math.round(deltaVPercentage * 100) / 100;
         remainingDV = Math.round(remainingDV * 100) / 100;
         $(this._deltaVText).html(remainingDV + ' m/s<br>(' + deltaVPercentage + '%)');

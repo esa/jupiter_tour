@@ -2,6 +2,8 @@
     Contains all graphical stuff
 */
 var gui = {
+    FIELD_OF_VIEW: 0.261799388,
+
     POSITION_SCALE: 1 / 10000000,
 
     UNIVERSUM_SIZE: 1e5,

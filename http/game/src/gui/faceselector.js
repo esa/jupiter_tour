@@ -1,11 +1,13 @@
 /* Class FaceSelector 
     Provides the face selection graphical user interface. 
-    Inherits OrbitingBodyHUD
+    Inherits OrbitingBodySelector
 */
 gui.FaceSelector = function (orbitingBody) {
-    gui.OrbitingBodyHUD.call(this, orbitingBody);
+    gui.OrbitingBodySelector.call(this, orbitingBody);
     var self = this;
+
     this._configuration = {
+        problemType: astrodynamics.ProblemTypes.MGA1DSM_FLYBY,
         faceID: gui.NULL_ID,
         betaBounds: [],
         radiusBounds: [],
@@ -20,11 +22,9 @@ gui.FaceSelector = function (orbitingBody) {
     this._containerMarginFactorL = 0.15;
     this._containerMarginFactorT = 0.23;
     this._containerWidthFactor = 0.85;
-    this._marginLR = 1.1e7;
-    this._marginUD = 0.2e8;
 
     this._numOrbits = 5;
-    this._maxTimeOfFlight = this._orbitingBody.getMaxTimeOfFlyby() * utility.SEC_TO_DAY;
+    this._maxTimeOfFlight = this._orbitingBody.getMaxTimeOfFlight() * utility.SEC_TO_DAY;
 
     this._betaRadiusBoundsEnabled = false;
 
@@ -37,11 +37,10 @@ gui.FaceSelector = function (orbitingBody) {
     var backgroundWidth = Math.round(backgroundHeight * this._backgroundWidthFactorUD);
 
     this._backgroundElement = document.createElement('div');
-    this._backgroundElement.id = 'background' + this._id;
     this._backgroundElement.className = 'face-selector unselectable';
     this._backgroundElement.style.width = utility.toPixelString(backgroundWidth);
     this._backgroundElement.style.height = utility.toPixelString(backgroundHeight);
-    this._backgroundElement.style.backgroundImage = 'url(res/svg/faceselectorviewup.svg)';
+    this._backgroundElement.style.backgroundImage = 'url(res/svg/' + this._backgroundName + 'viewup.svg)';
     this._backgroundElement.style.display = 'none';
     this._backgroundElement.oncontextmenu = function () {
         return false;
@@ -68,7 +67,7 @@ gui.FaceSelector = function (orbitingBody) {
     var col = document.createElement('div');
     col.className = 'col2';
     var img = document.createElement('img');
-    img.src = 'res/svg/clock.svg';
+    img.src = 'res/svg/clockicon.svg';
     img.className = 'icon center-horizontally center-vertically';
     col.appendChild(img);
     rowElement1.appendChild(col);
@@ -303,7 +302,7 @@ gui.FaceSelector = function (orbitingBody) {
 
     this._setBetaRadiusBoundsEnabled(this._betaRadiusBoundsEnabled);
 };
-gui.FaceSelector.prototype = Object.create(gui.OrbitingBodyHUD.prototype);
+gui.FaceSelector.prototype = Object.create(gui.OrbitingBodySelector.prototype);
 gui.FaceSelector.prototype.constructor = gui.FaceSelector;
 
 gui.FaceSelector.prototype._onClick = function (d3Face) {
@@ -547,7 +546,6 @@ gui.FaceSelector.prototype.hide = function () {
     this._isVisible = false;
     this._orbitingBody.onConfigurationWindowOut();
 };
-
 
 
 //Preload Background images

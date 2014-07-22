@@ -1,16 +1,9 @@
 {
     "mission": {
         "id": 3,
+
         "maximumMissionDuration": 60,
-        "launchConstraints": {
-            "launcher": {
-                "name": "The ISS cannon",
-                "deltaV": 1500,
-                "imageURL": "res/img/iss_launch.jpg"
-            },
-            "launchEpochBounds": [60000, 60001],
-            "timeOfFlightBounds": [1e-3, 1]
-        },
+
         "funIsInvalidState": "return [];",
         "funIsWinningState": "var orbBodyID = gameState.getOrbitingBody().getID(); if(orbBodyID == 11) {gameState.setScore(Math.ceil(100/(1+gameState.getTotalDeltaV()))); return true;} else {return false;};",
         "funGetWinningProgress": "var score = gameState.getScore(); return score/100;",
@@ -41,7 +34,8 @@
                 "radius": 6052000,
                 "minRadiusFactor": 1.1,
                 "maxRadiusFactor": 100,
-                "maxTimeOfFlyby": 1,
+                "maxTimeOfFlight": 1,
+                "maxLaunchDelay": 1,
                 "scale": 0.0000015,
                 "meshMaterialURL": "res/img/isssurface.jpg",
                 "surface": {
@@ -66,7 +60,8 @@
                 "radius": 2,
                 "minRadiusFactor": 1.1,
                 "maxRadiusFactor": 100,
-                "maxTimeOfFlyby": 2,
+                "maxTimeOfFlight": 2,
+                "maxLaunchDelay": 1,
                 "scale": 4,
                 "meshMaterialURL": "res/img/debrissurface.jpg",
                 "surface": {
@@ -91,7 +86,8 @@
                 "radius": 2,
                 "minRadiusFactor": 1.1,
                 "maxRadiusFactor": 100,
-                "maxTimeOfFlyby": 2,
+                "maxTimeOfFlight": 2,
+                "maxLaunchDelay": 1,
                 "scale": 4,
                 "meshMaterialURL": "res/img/debrissurface.jpg",
                 "surface": {
@@ -116,7 +112,8 @@
                 "radius": 2,
                 "minRadiusFactor": 1.1,
                 "maxRadiusFactor": 100,
-                "maxTimeOfFlyby": 2,
+                "maxTimeOfFlight": 2,
+                "maxLaunchDelay": 1,
                 "scale": 4,
                 "meshMaterialURL": "res/img/debrissurface.jpg",
                 "surface": {
@@ -141,7 +138,8 @@
                 "radius": 2,
                 "minRadiusFactor": 1.1,
                 "maxRadiusFactor": 100,
-                "maxTimeOfFlyby": 2,
+                "maxTimeOfFlight": 2,
+                "maxLaunchDelay": 1,
                 "scale": 4,
                 "meshMaterialURL": "res/img/debrissurface.jpg",
                 "surface": {
@@ -166,7 +164,8 @@
                 "radius": 2,
                 "minRadiusFactor": 1.1,
                 "maxRadiusFactor": 100,
-                "maxTimeOfFlyby": 2,
+                "maxTimeOfFlight": 2,
+                "maxLaunchDelay": 1,
                 "scale": 4,
                 "meshMaterialURL": "res/img/debrissurface.jpg",
                 "surface": {
@@ -191,7 +190,8 @@
                 "radius": 2,
                 "minRadiusFactor": 1.1,
                 "maxRadiusFactor": 100,
-                "maxTimeOfFlyby": 2,
+                "maxTimeOfFlight": 2,
+                "maxLaunchDelay": 1,
                 "scale": 4,
                 "meshMaterialURL": "res/img/debrissurface.jpg",
                 "surface": {
@@ -216,7 +216,8 @@
                 "radius": 2,
                 "minRadiusFactor": 1.1,
                 "maxRadiusFactor": 100,
-                "maxTimeOfFlyby": 2,
+                "maxTimeOfFlight": 2,
+                "maxLaunchDelay": 1,
                 "scale": 4,
                 "meshMaterialURL": "res/img/debrissurface.jpg",
                 "surface": {
@@ -241,7 +242,8 @@
                 "radius": 2,
                 "minRadiusFactor": 1.1,
                 "maxRadiusFactor": 100,
-                "maxTimeOfFlyby": 2,
+                "maxTimeOfFlight": 2,
+                "maxLaunchDelay": 1,
                 "scale": 4,
                 "meshMaterialURL": "res/img/debrissurface.jpg",
                 "surface": {
@@ -261,30 +263,42 @@
             "1": {
                 "id": 1,
                 "parentID": null,
+                "isVirtual": false,
                 "gameState": {
                     "orbitingBodyID": 2,
-                    "epoch": 56000,
+                    "epoch": 60000,
                     "passedDays": 0,
                     "transferLeg": {
                         "problemType": null,
                         "chromosome": [],
                         "deltaV": 0,
                         "timeOfFlight": 0,
-                        "mappedFaceID": "",
-                        "dsmRating": 1
+                        "mappedFaceID": ""
                     },
                     "score": 0,
                     "totalDeltaV": 0,
-                    "velocityInf": [0, 0, 0],
                     "mappedFaces": {},
-                    "isRoot": true,
-                    "invalidReasonIDs": [],
-                    "spacecraft": {
-                        "mass": 2000,
-                        "emptyMass": 1000,
-                        "maxThrust": 1500.0,
-                        "specificImpulse": 250,
-                        "isLanded": true
+                    "vehicle": {
+                        "isLanded": true,
+                        "velocityInf": [0, 0, 0],
+                        "stages": [
+                            {
+                                "propulsionType": 1,
+                                "mass": 2000,
+                                "remainingMass": 2000,
+                                "emptyMass": 1000,
+                                "thrust": 1500,
+                                "specificImpulse": 250,
+                                "imageURL": "res/img/spacecraft.jpg"
+                        }, {
+                                "propulsionType": 1,
+                                "mass": 777000,
+                                "remainingMass": 777000,
+                                "emptyMass": 180000,
+                                "thrust": 12940000,
+                                "specificImpulse": 430,
+                                "imageURL": "res/img/isslaunch.jpg"
+                        }]
                     }
                 }
             }
