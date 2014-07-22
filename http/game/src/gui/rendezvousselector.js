@@ -58,8 +58,8 @@ gui.RendezVousSelector = function (orbitingBody) {
     var titleElement = document.createElement('div');
     titleElement.className = 'title';
     titleElement.textContent = this._orbitingBody.getName();
-
     this._infoWrapper.appendChild(titleElement);
+
     contextWrapper.appendChild(this._infoWrapper);
 
     this._toolBoxWrapper = document.createElement('div');
@@ -369,6 +369,7 @@ gui.RendezVousSelector.prototype.onActivated = function (epoch, vehicle) {
 gui.RendezVousSelector.prototype.onDeactivated = function () {
     this._epoch = 0;
     this._vehicle = null;
+    this._imageElement.src = '';
     this._isActivated = false;
 };
 
@@ -376,6 +377,7 @@ gui.RendezVousSelector.prototype.show = function (editable) {
     this._editable = editable;
     this._backgroundElement.style.display = 'block';
     this._toolBoxWrapper.style.display = 'none';
+    this._questionBoxWrapper.style.display = 'none';
     if (this._editable) {
         this._infoWrapper.style.display = 'none';
         if (this._vehicle.isLanded()) {

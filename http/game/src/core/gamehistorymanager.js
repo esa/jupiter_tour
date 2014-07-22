@@ -28,6 +28,7 @@ core.GameHistoryManager.prototype = {
         var childs = node.getChilds();
         var id = node.getKey();
         var parent = node.getParent();
+        var isVirtual = node.isVirtual();
         var name = gameState.getOrbitingBody().getName();
         var gravityLoss = transferLeg.gravityLoss;
         var passedDays = gameState.getPassedDays();
@@ -40,6 +41,7 @@ core.GameHistoryManager.prototype = {
         result.id = id;
         result.parentID = (parent ? parent.getKey() : null);
         result.hasHiddenSiblings = false;
+        result.isVirtual = isVirtual;
         result.properties = {};
         result.properties.name = name;
         result.properties.gravityLoss = gravityLoss;
@@ -57,10 +59,10 @@ core.GameHistoryManager.prototype = {
         return result;
     },
 
-    add: function (gameState) {
+    add: function (gameState, virtual) {
         if (!this._isLocked) {
             var currentNode = this._currentNode;
-            var nextNode = this._currentNode.addChild(gameState);
+            var nextNode = this._currentNode.addChild(gameState, null, virtual);
             this._currentNode = nextNode;
             this._nodeHistory.push(this._currentNode.getKey());
             nextNode.setHistorySequenceNr(this._nodeHistory.length - 1);
@@ -73,7 +75,8 @@ core.GameHistoryManager.prototype = {
                 passedDays: gameState.getPassedDays(),
                 totalDeltaV: gameState.getTotalDeltaV(),
                 score: gameState.getScore(),
-                isVehicleLanded: gameState.getVehicle().isLanded()
+                isVehicleLanded: gameState.getVehicle().isLanded(),
+                isVirtual: virtual
             });
         }
     },
@@ -82,17 +85,29 @@ core.GameHistoryManager.prototype = {
         return this._currentNode.getValue();
     },
 
-    goTo: function (nodeID) {
+    goTo: function (nodeID, skipForward) {
         if (!this._isLocked) {
+            var currentNode = this._jumpTable[nodeID];
+            if (currentNode.isVirtual()) {
+                if (skipForward) {
+                    this.forwardStep();
+                } else {
+                    this.rewindStep();
+                }
+                return;
+            }
             this._currentNode = this._jumpTable[nodeID];
             this._historyPointer = this._currentNode.getHistorySequenceNr();
-            this._historyHUD.onActiveChanged(nodeID);
+            this._historyHUD.onActiveChanged(this._currentNode.getKey());
         }
     },
 
     goToPrevious: function () {
         if (!this._isLocked) {
             var parentNode = this._currentNode.getParent();
+            while ((parentNode != null) && (parentNode.isVirtual())) {
+                parentNode = parentNode.getParent();
+            }
             if (parentNode) {
                 this._currentNode = parentNode;
                 this._historyPointer = this._currentNode.getHistorySequenceNr();
@@ -105,7 +120,7 @@ core.GameHistoryManager.prototype = {
         if (!this._isLocked) {
             if (this._historyPointer > 0) {
                 this._historyPointer--;
-                this.goTo(this._nodeHistory[this._historyPointer]);
+                this.goTo(this._nodeHistory[this._historyPointer], false);
             }
         }
     },
@@ -114,7 +129,7 @@ core.GameHistoryManager.prototype = {
         if (!this._isLocked) {
             if (this._historyPointer + 1 < this._nodeHistory.length) {
                 this._historyPointer++;
-                this.goTo(this._nodeHistory[this._historyPointer]);
+                this.goTo(this._nodeHistory[this._historyPointer], true);
             }
         }
     },
@@ -165,10 +180,12 @@ core.GameHistoryManager.prototype = {
                 var transferLeg = gameState.getTransferLeg();
                 var id = node.getKey();
                 var parent = node.getParent();
+                var isVirtual = node.isVirtual();
 
                 var nodeResult = {};
                 nodeResult.id = id;
                 nodeResult.parentID = (parent ? parent.getKey() : null);
+                nodeResult.isVirtual = isVirtual;
                 nodeResult.gameState = {};
                 nodeResult.gameState.transferLeg = {};
                 nodeResult.gameState.transferLeg.chromosome = transferLeg.chromosome;

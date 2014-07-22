@@ -295,6 +295,7 @@
             "1": {
                 "id": 1,
                 "parentID": null,
+                "isVirtual": false,
                 "gameState": {
                     "orbitingBodyID": 5,
                     "epoch": 56000,

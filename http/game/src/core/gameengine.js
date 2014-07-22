@@ -413,8 +413,8 @@ core.GameEngine.prototype = {
             this._markIfWinningGameState(newGameState2);
 
             this._gameHistoryManager.unlock();
-            this._gameHistoryManager.add(newGameState1);
-            this._gameHistoryManager.add(newGameState2);
+            this._gameHistoryManager.add(newGameState1, true);
+            this._gameHistoryManager.add(newGameState2, false);
 
             this._notificationManager.dispatchLaunchMsg(strings.toText(strings.GameInfos.SPACECRAFT_LAUNCH, [currentBody.getName()]));
             break;
@@ -461,7 +461,7 @@ core.GameEngine.prototype = {
             this._markIfWinningGameState(newGameState);
 
             this._gameHistoryManager.unlock();
-            this._gameHistoryManager.add(newGameState);
+            this._gameHistoryManager.add(newGameState, false);
 
             var surfaceType = currentBody.getSurfaceType();
             switch (surfaceType) {
@@ -526,7 +526,7 @@ core.GameEngine.prototype = {
             this._markIfWinningGameState(newGameState);
 
             this._gameHistoryManager.unlock();
-            this._gameHistoryManager.add(newGameState);
+            this._gameHistoryManager.add(newGameState, false);
 
             this._notificationManager.dispatchLandingMsg(strings.toText(strings.GameInfos.SPACECRAFT_LANDING, [nextBody.getName()]));
 
@@ -830,7 +830,7 @@ core.GameEngine.prototype = {
         for (var i = 1; i < nodeHistory.length; i++) {
             var id = nodeHistory[i];
             var parentNode = jumpTable[parents[id]];
-            var childNode = parentNode.addChild(gameStates[id], id);
+            var childNode = parentNode.addChild(gameStates[id], id, nodes[id].isVirtual);
             childNode.setHistorySequenceNr(i);
             var childKey = childNode.getKey();
             jumpTable[childKey] = childNode;

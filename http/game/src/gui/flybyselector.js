@@ -47,15 +47,19 @@ gui.FlybySelector = function (orbitingBody) {
     var contextWrapper = document.createElement('div');
     contextWrapper.className = 'context-wrapper';
 
-    this._titleWrapper = document.createElement('div');
-    this._titleWrapper.className = 'title-wrapper';
+    this._infoWrapper = document.createElement('div');
+    this._infoWrapper.className = 'info-wrapper';
+
+    this._imageElement = document.createElement('img');
+    this._imageElement.className = 'image';
+    this._infoWrapper.appendChild(this._imageElement);
 
     var titleElement = document.createElement('div');
     titleElement.className = 'title';
     titleElement.textContent = this._orbitingBody.getName();
+    this._infoWrapper.appendChild(titleElement);
 
-    this._titleWrapper.appendChild(titleElement);
-    contextWrapper.appendChild(this._titleWrapper);
+    contextWrapper.appendChild(this._infoWrapper);
 
     this._toolBoxWrapper = document.createElement('div');
     this._toolBoxWrapper.className = 'content-wrapper';
@@ -213,21 +217,24 @@ gui.FlybySelector.prototype._confirmAndClose = function () {
 gui.FlybySelector.prototype.onActivated = function (epoch, vehicle) {
     this._epoch = epoch;
     this._vehicle = vehicle.clone();
+    this._imageElement.src = this._vehicle.getStageImageURL();
     this._isActivated = true;
 };
 
 gui.FlybySelector.prototype.onDeactivated = function () {
     this._epoch = 0;
     this._vehicle = null;
+    this._imageElement.src = '';
     this._isActivated = false;
 };
 
 gui.FlybySelector.prototype.show = function (editable) {
     this._editable = editable;
     this._backgroundElement.style.display = 'block';
+    this._toolBoxWrapper.style.display = 'none';
 
     if (this._editable) {
-        this._titleWrapper.style.display =  'none';
+        this._infoWrapper.style.display =  'none';
         this._toolBoxWrapper.style.display = 'block';
         this._timeOfFlightRangeSlider.show();
         this._radiusRangeSlider.show();
@@ -238,9 +245,8 @@ gui.FlybySelector.prototype.show = function (editable) {
         this._radiusRangeSlider.hide();
         this._betaRangeSlider.hide();
         this._toolBoxWrapper.style.display = 'none';
-        this._titleWrapper.style.display = 'flex';
+        this._infoWrapper.style.display = 'flex';
     }
-
     this._isVisible = true;
     utility.fitText();
 };

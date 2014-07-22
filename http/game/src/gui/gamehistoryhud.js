@@ -266,7 +266,7 @@ gui.GameHistoryHUD.prototype = {
     },
 
     _onLeftClick: function (node) {
-        if (!this._isLocked) {
+        if (!this._isLocked && !node.isVirtual) {
             this._gameHistoryManager.goTo(node.id);
         }
     },
@@ -539,6 +539,7 @@ gui.GameHistoryHUD.prototype = {
             var node = {};
             node.id = nodeID;
             node.parentID = parentID;
+            node.isVirtual = data.isVirtual;
             node.hasHiddenSiblings = false;
             node.properties = {};
             node.properties.name = data.name;
