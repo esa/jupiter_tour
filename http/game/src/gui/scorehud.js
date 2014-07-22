@@ -144,7 +144,7 @@ gui.ScoreHUD.prototype = {
             $(this._epochText).text((Math.round(gameState.getPassedDays() * 100) / 100) + ' days');
         }
         var totalDeltaV = gameState.getVehicle().getTotalDeltaV(1);
-        var remainingDV = Math.max(0, gameState.getVehicle().getRemainingDeltaV(1));
+        var remainingDV = gameState.getVehicle().getRemainingDeltaV(1);
         var deltaVPercentage = remainingDV / totalDeltaV * 100;
         deltaVPercentage = Math.round(deltaVPercentage * 100) / 100;
         remainingDV = Math.round(remainingDV * 100) / 100;
