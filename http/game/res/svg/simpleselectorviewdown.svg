@@ -9,8 +9,8 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="781.25006"
-   height="428.6098"
+   width="1169.478"
+   height="428.76889"
    id="svg3075"
    version="1.1"
    inkscape:version="0.48.5 r10040"
@@ -25,8 +25,8 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="0.35"
-     inkscape:cx="785.49124"
-     inkscape:cy="502.63307"
+     inkscape:cx="478.16689"
+     inkscape:cy="502.85439"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -45,8 +45,8 @@
      inkscape:snap-global="false"
      inkscape:window-width="1329"
      inkscape:window-height="831"
-     inkscape:window-x="97"
-     inkscape:window-y="29"
+     inkscape:window-x="293"
+     inkscape:window-y="79"
      inkscape:window-maximized="0"
      fit-margin-top="0"
      fit-margin-left="0"
@@ -68,9 +68,9 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(532.3125,-375.65625)">
+     transform="translate(726.41672,-375.71849)">
     <g
-       id="g2985">
+       id="g2989">
       <path
          sodipodi:nodetypes="cccc"
          inkscape:connector-curvature="0"
@@ -79,11 +79,11 @@
          style="fill:#333333;fill-opacity:1;stroke:#19a3ff;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" />
       <rect
          y="479.483"
-         x="-529.46252"
+         x="-723.35486"
          height="321.9425"
-         width="775.56946"
+         width="1163.3542"
          id="rect3090"
-         style="fill:#333333;fill-opacity:1;stroke:#19a3ff;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" />
+         style="fill:#333333;fill-opacity:1;stroke:#19a3ff;stroke-width:6.12372446;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" />
       <path
          sodipodi:nodetypes="cccc"
          inkscape:connector-curvature="0"

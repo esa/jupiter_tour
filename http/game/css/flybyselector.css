@@ -48,42 +48,47 @@
 }
 .flyby-selector .content-wrapper .col1 {
     height: 100%;
-    width: 75%;
+    width: 25%;
     display: inline-block;
-}
-.flyby-selector .content-wrapper .col1 {
-    height: 100%;
-    width: 75%;
-    display: inline-block;
+    position: relative;
+    vertical-align: top;
 }
 .flyby-selector .content-wrapper .col2 {
     height: 100%;
+    width: 50%;
+    display: inline-block;
+    position: relative;
+    vertical-align: top;
+}
+.flyby-selector .content-wrapper .col3 {
+    height: 100%;
     width: 25%;
     display: inline-block;
     position: relative;
+    vertical-align: top;
 }
-.flyby-selector .content-wrapper .col1 .row1 {
+.flyby-selector .content-wrapper .col2 .row1 {
     display: block;
     width: 100%;
     height: 33%;
 }
-.flyby-selector .content-wrapper .col1 .row2 {
+.flyby-selector .content-wrapper .col2 .row2 {
     display: block;
     width: 100%;
     height: 33%;
 }
-.flyby-selector .content-wrapper .col1 .row3 {
+.flyby-selector .content-wrapper .col2 .row3 {
     display: block;
     width: 100%;
     height: 33%;
 }
-.flyby-selector .content-wrapper .col1 .col1 {
+.flyby-selector .content-wrapper .col2 .col1 {
     width: 25%;
     height: 100%;
     display: inline-block;
     position: relative;
 }
-.flyby-selector .content-wrapper .col1 .col2 {
+.flyby-selector .content-wrapper .col2 .col2 {
     width: 75%;
     height: 100%;
     display: inline-block;
@@ -103,14 +108,14 @@
 .flyby-selector .image {
     pointer-events: none;
     width: auto;
-    max-width: 50%;
+    max-width: 100%;
     height: 100%;
     display: inline-block;
 }
 .flyby-selector .title {
     pointer-events: none;
     text-align: center;
-    width: 50%;
+    width: 100%;
     color: #19A3FF;
     font-weight: bold;
     display: inline-block;
@@ -121,7 +126,7 @@
     max-height: 100%;
     display: inline-block;
 }
-.flyby-selector .col2 .button {
+.flyby-selector .col3 .button {
     pointer-events: all;
     height: 45%;
     width: 100%;
@@ -132,7 +137,7 @@
     opacity: 0.8;
     filter: alpha(opacity=80);
 }
-.flyby-selector .col2 .button:hover {
+.flyby-selector .col3 .button:hover {
     opacity: 1;
     filter: alpha(opacity=100);
 }

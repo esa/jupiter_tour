@@ -20,8 +20,8 @@ gui.RendezVousSelector = function (orbitingBody) {
     this._backgroundName = 'simpleselector';
     this._backgroundHeightFactorLR = 0.15;
     this._backgroundHeightFactorUD = 0.15;
-    this._backgroundWidthFactorLR = 2.08;
-    this._backgroundWidthFactorUD = 1.83;
+    this._backgroundWidthFactorLR = 3.00;
+    this._backgroundWidthFactorUD = 2.745;
     this._containerHeightFactor = 0.76;
     this._containerWidthFactor = 0.88;
     this._containerMarginFactorL = 0.12;
@@ -50,10 +50,6 @@ gui.RendezVousSelector = function (orbitingBody) {
 
     this._infoWrapper = document.createElement('div');
     this._infoWrapper.className = 'info-wrapper';
-
-    this._imageElement = document.createElement('img');
-    this._imageElement.className = 'image';
-    this._infoWrapper.appendChild(this._imageElement);
 
     var titleElement = document.createElement('div');
     titleElement.className = 'title';
@@ -93,8 +89,14 @@ gui.RendezVousSelector = function (orbitingBody) {
     this._questionBoxWrapper.appendChild(flybyButtonCol);
     this._questionBoxWrapper.appendChild(landingButtonCol);
 
+    var imageCol = document.createElement('div');
+    imageCol.className = 'col1';
+    this._imageElement = document.createElement('img');
+    this._imageElement.className = 'image';
+    imageCol.appendChild(this._imageElement);
+
     var toolBoxCol = document.createElement('div');
-    toolBoxCol.className = 'col1';
+    toolBoxCol.className = 'col2';
 
     this._launchEpochRow = document.createElement('div');
     this._launchEpochRow.className = 'row1';
@@ -220,7 +222,7 @@ gui.RendezVousSelector = function (orbitingBody) {
     toolBoxCol.appendChild(row);
 
     var buttonContainer = document.createElement('div');
-    buttonContainer.className = 'col2';
+    buttonContainer.className = 'col3';
 
     var centerVertically = document.createElement('div');
     centerVertically.className = 'center-vertically center-horizontally';
@@ -248,6 +250,7 @@ gui.RendezVousSelector = function (orbitingBody) {
     centerVertically.appendChild(this._confirmElement);
     buttonContainer.appendChild(centerVertically);
 
+    this._toolBoxWrapper.appendChild(imageCol);
     this._toolBoxWrapper.appendChild(toolBoxCol);
     this._toolBoxWrapper.appendChild(buttonContainer);
     contextWrapper.appendChild(this._toolBoxWrapper);

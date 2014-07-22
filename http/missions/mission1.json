@@ -76,7 +76,6 @@
                 "minRadiusFactor": 1.1,
                 "maxRadiusFactor": 50,
                 "maxTimeOfFlight": 1000,
-                "maxLaunchDelay": 200,
                 "scale": 0.0000001,
                 "meshMaterialURL": "res/img/venussurface.jpg",
                 "surface": {
