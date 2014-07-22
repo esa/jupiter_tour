@@ -22,8 +22,8 @@ gui.FlybySelector = function (orbitingBody) {
     this._backgroundWidthFactorLR = 3.00;
     this._backgroundWidthFactorUD = 2.745;
     this._containerHeightFactor = 0.76;
-    this._containerWidthFactor = 0.88;
-    this._containerMarginFactorL = 0.12;
+    this._containerWidthFactor = 0.92;
+    this._containerMarginFactorL = 0.08;
     this._containerMarginFactorT = 0.24;
 
     var backgroundHeight = Math.round(window.innerHeight * this._backgroundHeightFactorUD);
@@ -63,7 +63,7 @@ gui.FlybySelector = function (orbitingBody) {
     var imageCol = document.createElement('div');
     imageCol.className = 'col1';
     this._imageElement = document.createElement('img');
-    this._imageElement.className = 'image';
+    this._imageElement.className = 'image center-vertically center-horizontally';
     imageCol.appendChild(this._imageElement);
 
     var toolBoxCol = document.createElement('div');
