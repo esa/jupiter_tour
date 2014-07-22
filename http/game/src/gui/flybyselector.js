@@ -195,7 +195,7 @@ gui.FlybySelector.prototype._updateSliders = function () {
 gui.FlybySelector.prototype._resetSelection = function () {
     this._configuration.radiusBounds = [this._orbitingBody.getMinRadius() / this._orbitingBody.getRadius(), this._orbitingBody.getMaxRadius() / this._orbitingBody.getRadius()];
     this._configuration.betaBounds = [-2 * Math.PI, 2 * Math.PI];
-    this._configuration.timeOfFlightBounds = [1, this._maxTimeOfFlight];
+    this._configuration.timeOfFlightBounds = [1e-2, this._maxTimeOfFlight];
     this._updateSliders();
 };
 

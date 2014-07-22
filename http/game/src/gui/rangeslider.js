@@ -33,13 +33,14 @@ gui.RangeSlider = function (wrapper, params) {
     this._val2 = 1;
     this._range = [0, 0];
     this._handlePercentage = 10;
-    this._labelPercentage = 40;
+    this._labelPercentage = 30;
     this._paddingPercentage = 5;
     this._width = $(this._wrapper).width();
     this._left = $(this._wrapper).offset().left;
     this._handleWidth = this._width / 100 * this._handlePercentage;
     this._labelWidth = this._width / 100 * this._labelPercentage;
     this._paddingWidth = this._width / 100 * this._paddingPercentage;
+    this._labelTopOffset = $(this._label1).outerHeight();
 
     this._rangeMarkerStep = 0;
     this._rangeMarkers = [];
@@ -140,6 +141,9 @@ gui.RangeSlider.prototype = {
         $(this._label1).css('width', this._labelWidth);
         $(this._label2).css('width', this._labelWidth);
 
+        $(this._label1).css('top', -this._labelTopOffset);
+        $(this._label2).css('top', -this._labelTopOffset);
+
         var label1Pos = min * (this._width) - this._labelWidth / 2 - this._paddingWidth;
         var label2Pos = max * (this._width) - this._labelWidth / 2 - this._paddingWidth;
         if (Math.abs(label2Pos - label1Pos) < this._labelWidth + 2 * this._paddingWidth) {
@@ -233,6 +237,7 @@ gui.RangeSlider.prototype = {
                 self._labelWidth = self._width / 100 * self._labelPercentage;
                 self._paddingWidth = self._width / 100 * self._paddingPercentage;
                 self._left = $(self._wrapper).offset().left;
+                self._labelTopOffset = $(self._label1).outerHeight();
                 self._update();
             }
         }, 50);
