@@ -544,15 +544,6 @@ gui.FaceSelector.prototype.show = function (editable) {
 gui.FaceSelector.prototype.hide = function () {
     this._backgroundElement.style.display = 'none';
     this._isVisible = false;
+    this._isEditable = false;
     this._orbitingBody.onConfigurationWindowOut();
 };
-
-
-//Preload Background images
-(function () {
-    var images = ['res/svg/faceselectorviewup.svg', 'res/svg/faceselectorviewright.svg', 'res/svg/faceselectorviewleft.svg', 'res/svg/faceselectorviewdown.svg'];
-    images.forEach(function (imgUrl) {
-        var img = new Image();
-        img.src = imgUrl;
-    });
-})();

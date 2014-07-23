@@ -92,3 +92,9 @@ utility.round = function (value, commaDigits) {
 utility.clone = function (object) {
     return jQuery.extend(true, {}, object);
 };
+
+utility.insert = function (obj2, obj1) {
+    for (var key in obj2) {
+        obj1[key] = obj2[key];
+    }
+};

@@ -56,7 +56,7 @@ var plugin = {};
         this._gameExpiringDays = 7;
         this._isInitialized = false;
         this._missionID = null;
-        this._isSaved = true;
+        this._isSaved = false;
         this._gameID = '';
         this._isBusy = false;
 
@@ -128,11 +128,10 @@ var plugin = {};
             this._gameID = eventData.gameID;
             break;
 
-        case core.GameEvents.GAME_PHASE_CHANGE:
-            switch (eventData.phase) {
-            case core.GameStatePhases.ORBITING_BODY_OVERVIEW:
-            case core.GameStatePhases.ORBITING_BODY_OVERVIEW_LOCKED:
-                if (!(this._isSaved || this._isInitialized || this._isBusy)) {
+        case core.GameEvents.GAME_HISTORY_CHANGE:
+            this._isSaved =  false;
+            if (!this._isInitialized) {
+                if (!this._isBusy) {
                     var self = this;
                     this._isBusy = true;
                     if ((this._gameID != '') && (this._missionID != null)) {
@@ -164,6 +163,7 @@ var plugin = {};
                                 });
                                 setTimeout(self._funAutoSave, self._logInterval * 1000);
                                 console.log('Autosave running');
+                                console.log('Autosave success');
                                 self._isInitialized = true;
                                 self._isBusy = false;
                             }, function (error) {
@@ -173,19 +173,14 @@ var plugin = {};
                         } else {
                             setTimeout(self._funAutoSave, self._logInterval * 1000);
                             console.log('Autosave running');
+                            console.log('Autosave success');
                             this._isInitialized = true;
                             this._isBusy = false;
                         }
                     }
                 }
-                break;
-
-            case core.GameStatePhases.SOLVING:
-                this._isSaved = false;
-                break;
             }
             break;
-
 
         case core.GameEvents.MISSION_ID_AVAILABLE:
             this._missionID = eventData.missionID;
@@ -776,7 +771,7 @@ var plugin = {};
                 this._entries.chromosome.textContent = transferLeg.chromosome.map(function (value) {
                     return Math.round(value * 100) / 100;
                 }).prettyPrint();
-                this._entries.vehicleState.textContent = vehicle.isLanded() ? 'parked on surface' : 'orbiting sphere of influence';
+                this._entries.vehicleState.textContent = vehicle.isLanded() ? 'parked on surface' : 'on flyby trajectory';
                 var mappedFace = '';
                 if (transferLeg.mappedFaceID != '') {
                     var faceInfos = transferLeg.mappedFaceID.split('_');

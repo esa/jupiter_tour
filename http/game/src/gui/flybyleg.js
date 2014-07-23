@@ -1,7 +1,7 @@
-/* Leg Model
+/* FlybyLeg Model
     Inherits THREE.Line
 */
-gui.Leg = function (chromosome, currentOBody, nextOBody, velocityInf, epoch) {
+gui.FlybyLeg = function (chromosome, currentOBody, nextOBody, velocityInf, epoch) {
     chromosome = chromosome.clone();
     var velocityInf = velocityInf.clone();
 
@@ -18,12 +18,12 @@ gui.Leg = function (chromosome, currentOBody, nextOBody, velocityInf, epoch) {
 
     var velocityInfOut = astrodynamics.flybyPropagation(velocity, ephCOBody.velocity, chromosome[0], chromosome[1] * currentOBody.getRadius(), currentOBody.getStandardGravitationalParameter());
 
-    this._departingVelocityInf = velocityInfOut.clone().sub(ephCOBody.velocity);
+    this._departureVelocityInf = velocityInfOut.clone().sub(ephCOBody.velocity);
 
     var propLagr = astrodynamics.propagateLagrangian(position, velocityInfOut, chromosome[2] * chromosome[3] * utility.DAY_TO_SEC, sgp);
     var lambertProb = astrodynamics.lambertProblem(sgp, propLagr.position, ephNOBody.position, (1 - chromosome[2]) * chromosome[3] * utility.DAY_TO_SEC, false);
 
-    this._arrivingVelocityInf = lambertProb.velocity2.clone().sub(ephNOBody.velocity);
+    this._arrivalVelocityInf = lambertProb.velocity2.clone().sub(ephNOBody.velocity);
 
     legPoints.push(ephCOBody.position.asTHREE().multiplyScalar(gui.POSITION_SCALE));
 
@@ -71,18 +71,18 @@ gui.Leg = function (chromosome, currentOBody, nextOBody, velocityInf, epoch) {
 
     THREE.Line.call(this, meshGeometry, material);
 };
-gui.Leg.prototype = Object.create(THREE.Line.prototype);
-gui.Leg.prototype.constructor = gui.Leg;
+gui.FlybyLeg.prototype = Object.create(THREE.Line.prototype);
+gui.FlybyLeg.prototype.constructor = gui.FlybyLeg;
 
-gui.Leg.prototype.getArrivingVelocityInf = function () {
-    return this._arrivingVelocityInf.clone();
+gui.FlybyLeg.prototype.getArrivalVelocityInf = function () {
+    return this._arrivalVelocityInf.clone();
 };
 
-gui.Leg.prototype.getDepartingVelocityInf = function () {
-    return this._departingVelocityInf.clone();
+gui.FlybyLeg.prototype.getDepartureVelocityInf = function () {
+    return this._departureVelocityInf.clone();
 };
 
-gui.Leg.prototype.setGradient = function (value) {
+gui.FlybyLeg.prototype.setGradient = function (value) {
     value = Math.max(0, Math.min(1, value));
     this.material.opacity = 1;
     this.material.transparent = true;

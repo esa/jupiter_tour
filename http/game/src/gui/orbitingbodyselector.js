@@ -6,8 +6,8 @@ gui.OrbitingBodySelector = function (orbitingBody) {
     var self = this;
     this._id = gui.createID();
     this._orbitingBody = orbitingBody;
-    this._bodyScale = orbitingBody.getScale();
     this._screenPosition = new geometry.Vector2();
+    this._screenRadius = 0;
     this._cameraPosition = new geometry.Vector3();
     this._viewDirection = gui.ScreenDirections.UP;
     this._isVisible = false;
@@ -69,13 +69,6 @@ gui.OrbitingBodySelector.prototype = {
         }
     },
 
-    _computeBodyRadius: function () {
-        var bodySize = this._orbitingBody.getBodyMeshSize();
-        var bodyDistance = this._cameraPosition.clone().sub(this._orbitingBody.getPosition().multiplyScalar(gui.POSITION_SCALE).asTHREE()).length();
-        var bodyRadius = window.innerHeight / (bodyDistance * Math.sin(gui.FIELD_OF_VIEW / 2)) * bodySize.radius;
-        return bodyRadius;
-    },
-
     _updateCSS: function () {
         this._containerElement.style.marginTop = '0px';
         this._containerElement.style.marginLeft = '0px';
@@ -86,7 +79,7 @@ gui.OrbitingBodySelector.prototype = {
         var backgroundWidth;
         var left;
         var top;
-        var bodyRadius = this._computeBodyRadius();
+        var bodyPixelSize = this._screenRadius;
 
         switch (this._viewDirection) {
         case gui.ScreenDirections.UP:
@@ -95,7 +88,7 @@ gui.OrbitingBodySelector.prototype = {
             this._backgroundElement.style.width = utility.toPixelString(backgroundWidth);
             this._backgroundElement.style.height = utility.toPixelString(backgroundHeight);
             left = this._screenPosition.getX() - $(this._backgroundElement).outerWidth() / 2;
-            top = this._screenPosition.getY() - $(this._backgroundElement).outerHeight() - bodyRadius;
+            top = this._screenPosition.getY() - $(this._backgroundElement).outerHeight() - bodyPixelSize;
             this._backgroundElement.style.left = utility.toPixelString(left, true);
             this._backgroundElement.style.top = utility.toPixelString(top, true);
             if (this._backgroundElement.style.backgroundImage.indexOf('res/svg/' + this._backgroundName + 'viewup.svg)') == -1) {
@@ -109,7 +102,7 @@ gui.OrbitingBodySelector.prototype = {
             this._backgroundElement.style.width = utility.toPixelString(backgroundWidth);
             this._backgroundElement.style.height = utility.toPixelString(backgroundHeight);
             left = this._screenPosition.getX() - $(this._backgroundElement).outerWidth() / 2;
-            top = this._screenPosition.getY() + bodyRadius;
+            top = this._screenPosition.getY() + bodyPixelSize;
             this._backgroundElement.style.left = utility.toPixelString(left, true);
             this._backgroundElement.style.top = utility.toPixelString(top, true);
             if (this._backgroundElement.style.backgroundImage.indexOf('res/svg/' + this._backgroundName + 'viewdown.svg)') == -1) {
@@ -123,7 +116,7 @@ gui.OrbitingBodySelector.prototype = {
             backgroundWidth = Math.round(backgroundHeight * this._backgroundWidthFactorLR);
             this._backgroundElement.style.width = utility.toPixelString(backgroundWidth);
             this._backgroundElement.style.height = utility.toPixelString(backgroundHeight);
-            left = this._screenPosition.getX() - $(this._backgroundElement).outerWidth() - bodyRadius;
+            left = this._screenPosition.getX() - $(this._backgroundElement).outerWidth() - bodyPixelSize;
             top = this._screenPosition.getY() - $(this._backgroundElement).outerHeight() / 2;
             this._backgroundElement.style.left = utility.toPixelString(left, true);
             this._backgroundElement.style.top = utility.toPixelString(top, true);
@@ -137,7 +130,7 @@ gui.OrbitingBodySelector.prototype = {
             backgroundWidth = Math.round(backgroundHeight * this._backgroundWidthFactorLR);
             this._backgroundElement.style.width = utility.toPixelString(backgroundWidth);
             this._backgroundElement.style.height = utility.toPixelString(backgroundHeight);
-            left = this._screenPosition.getX() + bodyRadius;
+            left = this._screenPosition.getX() + bodyPixelSize;
             top = this._screenPosition.getY() - $(this._backgroundElement).outerHeight() / 2;
             this._backgroundElement.style.left = utility.toPixelString(left, true);
             this._backgroundElement.style.top = utility.toPixelString(top, true);
@@ -155,6 +148,8 @@ gui.OrbitingBodySelector.prototype = {
             bottom: top + backgroundHeight
         };
     },
+
+    _update: function () {},
 
     _confirmAndClose: function () {},
 
@@ -174,20 +169,21 @@ gui.OrbitingBodySelector.prototype = {
 
     hide: function () {},
 
-    update: function (screenPosition) {
+    update: function (screenPosition, screenRadius) {
         if (this._isVisible) {
             if (this._screenPosition.clone().sub(screenPosition).dotMe() > 0) {
                 this._screenPosition = screenPosition.clone();
+                this._screenRadius = screenRadius;
                 var valX = this._screenPosition.getX();
                 var valY = this._screenPosition.getY();
                 var bBox = this._boundingBox;
-                var bodyRadius = this._computeBodyRadius();
+                var bodyPixelSize = screenRadius;
 
                 if (valX + (bBox.right - bBox.left) / 2 > window.innerWidth) {
                     this._viewDirection = gui.ScreenDirections.LEFT;
                 } else if (valX - (bBox.right - bBox.left) / 2 < 0) {
                     this._viewDirection = gui.ScreenDirections.RIGHT;
-                } else if (valY - (bBox.bottom - bBox.top) - bodyRadius < 0) {
+                } else if (valY - (bBox.bottom - bBox.top) - bodyPixelSize < 0) {
                     this._viewDirection = gui.ScreenDirections.DOWN;
                 } else {
                     this._viewDirection = gui.ScreenDirections.UP;
@@ -197,10 +193,11 @@ gui.OrbitingBodySelector.prototype = {
                 this._onMove();
             }
         }
+        this._update(screenPosition, screenRadius);
     },
 
     onViewChange: function (cameraPosition) {
-        this._cameraPosition = cameraPosition.clone();
+        this._cameraPosition = new geometry.Vector3(cameraPosition.x, cameraPosition.y, cameraPosition.z);
     },
 
     getDefaultConfiguration: function () {
@@ -208,3 +205,25 @@ gui.OrbitingBodySelector.prototype = {
         return utility.clone(this._configuration);
     }
 };
+
+gui.OrbitingBodySelector.ConfigurationTypes = {
+    ARRIVAL: 0,
+    DEPARTURE: 1
+};
+
+//Preload Background images
+(function () {
+    var images = ['res/svg/simpleselectorviewup.svg', 'res/svg/simpleselectorviewright.svg', 'res/svg/simpleselectorviewleft.svg', 'res/svg/simpleselectorviewdown.svg'];
+    images.forEach(function (imgUrl) {
+        var img = new Image();
+        img.src = imgUrl;
+    });
+})();
+//Preload Background images
+(function () {
+    var images = ['res/svg/faceselectorviewup.svg', 'res/svg/faceselectorviewright.svg', 'res/svg/faceselectorviewleft.svg', 'res/svg/faceselectorviewdown.svg'];
+    images.forEach(function (imgUrl) {
+        var img = new Image();
+        img.src = imgUrl;
+    });
+})();

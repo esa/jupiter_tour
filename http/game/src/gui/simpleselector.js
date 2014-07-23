@@ -1,8 +1,8 @@
-/* Class RendezVousSelector 
+/* Class SimpleSelector 
     Provides the time of flight selection graphical user interface. 
     Inherits OrbitingBodySelector
 */
-gui.RendezVousSelector = function (orbitingBody) {
+gui.SimpleSelector = function (orbitingBody) {
     gui.OrbitingBodySelector.call(this, orbitingBody);
     var self = this;
 
@@ -31,7 +31,7 @@ gui.RendezVousSelector = function (orbitingBody) {
     var backgroundWidth = Math.round(backgroundHeight * this._backgroundWidthFactorUD);
 
     this._backgroundElement = document.createElement('div');
-    this._backgroundElement.className = 'rendezvous-selector unselectable';
+    this._backgroundElement.className = 'simple-selector unselectable';
     this._backgroundElement.style.width = utility.toPixelString(backgroundWidth);
     this._backgroundElement.style.height = utility.toPixelString(backgroundHeight);
     this._backgroundElement.style.backgroundImage = 'url(res/svg/' + this._backgroundName + 'viewup.svg)';
@@ -60,34 +60,6 @@ gui.RendezVousSelector = function (orbitingBody) {
 
     this._toolBoxWrapper = document.createElement('div');
     this._toolBoxWrapper.className = 'content-wrapper';
-
-    this._questionBoxWrapper = document.createElement('div');
-    this._questionBoxWrapper.className = 'content-wrapper';
-
-    var flybyButtonCol = document.createElement('div');
-    flybyButtonCol.className = 'button-col';
-    var flybyButton = document.createElement('img');
-    flybyButton.onclick = function () {
-        self._questionBoxWrapper.style.display = 'none';
-        self._showFlybyConfiguration();
-    };
-    flybyButton.className = 'button center-vertically center-horizontally';
-    flybyButton.src = 'res/svg/flyby.svg';
-    flybyButtonCol.appendChild(flybyButton);
-
-    var landingButtonCol = document.createElement('div');
-    landingButtonCol.className = 'button-col';
-    var landingButton = document.createElement('img');
-    landingButton.onclick = function () {
-        self._questionBoxWrapper.style.display =  'none';
-        self._showLandingConfiguration();
-    };
-    landingButton.className = 'button center-vertically center-horizontally';
-    landingButton.src = 'res/svg/landing.svg';
-    landingButtonCol.appendChild(landingButton);
-
-    this._questionBoxWrapper.appendChild(flybyButtonCol);
-    this._questionBoxWrapper.appendChild(landingButtonCol);
 
     var imageCol = document.createElement('div');
     imageCol.className = 'col1';
@@ -254,17 +226,16 @@ gui.RendezVousSelector = function (orbitingBody) {
     this._toolBoxWrapper.appendChild(toolBoxCol);
     this._toolBoxWrapper.appendChild(buttonContainer);
     contextWrapper.appendChild(this._toolBoxWrapper);
-    contextWrapper.appendChild(this._questionBoxWrapper);
     this._containerElement.appendChild(contextWrapper);
     this._backgroundElement.appendChild(this._containerElement);
     document.body.appendChild(this._backgroundElement);
 
     this._hideConfiguration();
 };
-gui.RendezVousSelector.prototype = Object.create(gui.OrbitingBodySelector.prototype);
-gui.RendezVousSelector.prototype.constructor = gui.RendezVousSelector;
+gui.SimpleSelector.prototype = Object.create(gui.OrbitingBodySelector.prototype);
+gui.SimpleSelector.prototype.constructor = gui.SimpleSelector;
 
-gui.RendezVousSelector.prototype._showFlybyConfiguration = function () {
+gui.SimpleSelector.prototype._showFlybyConfiguration = function () {
     this._toolBoxWrapper.style.display = 'block';
     this._radiusRow.style.display = 'block';
     this._angleRow.style.display = 'block';
@@ -274,18 +245,7 @@ gui.RendezVousSelector.prototype._showFlybyConfiguration = function () {
     this._resetSelection();
 };
 
-gui.RendezVousSelector.prototype._showLandingConfiguration = function () {
-    this._toolBoxWrapper.style.display = 'block';
-    this._radiusRow.style.display = 'block';
-    this._angleRow.style.display = 'block';
-    this._radiusRangeSlider.show();
-    this._betaRangeSlider.show();
-    this._timeOfFlightRangeSlider.show();
-    this._resetSelection();
-    this._configuration.performLanding = true;
-};
-
-gui.RendezVousSelector.prototype._showLaunchConfiguration = function () {
+gui.SimpleSelector.prototype._showLaunchConfiguration = function () {
     this._toolBoxWrapper.style.display = 'block';
     this._launchEpochRow.style.display =  'block';
     this._velocityRow.style.display =  'block';
@@ -295,7 +255,7 @@ gui.RendezVousSelector.prototype._showLaunchConfiguration = function () {
     this._resetSelection();
 };
 
-gui.RendezVousSelector.prototype._hideConfiguration = function () {
+gui.SimpleSelector.prototype._hideConfiguration = function () {
     this._launchEpochRangeSlider.hide();
     this._radiusRangeSlider.hide();
     this._betaRangeSlider.hide();
@@ -308,7 +268,7 @@ gui.RendezVousSelector.prototype._hideConfiguration = function () {
     this._velocityRow.style.display = 'none';
 };
 
-gui.RendezVousSelector.prototype._updateSliders = function () {
+gui.SimpleSelector.prototype._updateSliders = function () {
     if (this._vehicle.isLanded()) {
         this._launchEpochRangeSlider.range(this._configuration.launchEpochBounds);
         this._velocityRangeSlider.range(this._configuration.velocityBounds);
@@ -319,7 +279,7 @@ gui.RendezVousSelector.prototype._updateSliders = function () {
     this._timeOfFlightRangeSlider.range(this._configuration.timeOfFlightBounds);
 };
 
-gui.RendezVousSelector.prototype._resetSelection = function () {
+gui.SimpleSelector.prototype._resetSelection = function () {
     if (this._vehicle.isLanded()) {
         delete this._configuration.radiusBounds;
         delete this._configuration.betaBounds;
@@ -334,23 +294,22 @@ gui.RendezVousSelector.prototype._resetSelection = function () {
         this._configuration.betaBounds = [-2 * Math.PI, 2 * Math.PI];
     }
     this._configuration.timeOfFlightBounds = [1e-2, this._maxTimeOfFlight];
-    this._configuration.performLanding = false;
     this._updateSliders();
 };
 
-gui.RendezVousSelector.prototype._onMove = function () {
+gui.SimpleSelector.prototype._onMove = function () {
     this._timeOfFlightRangeSlider.onMove();
     this._launchEpochRangeSlider.onMove();
     this._radiusRangeSlider.onMove();
 };
 
-gui.RendezVousSelector.prototype._onResize = function () {
+gui.SimpleSelector.prototype._onResize = function () {
     this._timeOfFlightRangeSlider.onResize();
     this._launchEpochRangeSlider.onResize();
     this._radiusRangeSlider.onResize();
 };
 
-gui.RendezVousSelector.prototype._confirmAndClose = function () {
+gui.SimpleSelector.prototype._confirmAndClose = function () {
     if (this._vehicle.isLanded()) {
         this._configuration.launchEpochBounds = [this._launchEpochRangeSlider.min(), this._launchEpochRangeSlider.max()];
         this._configuration.velocityBounds = [this._velocityRangeSlider.min(), this._velocityRangeSlider.max()];
@@ -363,52 +322,42 @@ gui.RendezVousSelector.prototype._confirmAndClose = function () {
     this._orbitingBody.onConfigurationDone(true, this._configuration);
 };
 
-gui.RendezVousSelector.prototype.onActivated = function (epoch, vehicle) {
+gui.SimpleSelector.prototype.onActivated = function (epoch, vehicle) {
     this._epoch = epoch;
     this._vehicle = vehicle.clone();
     this._imageElement.src = this._vehicle.getStageImageURL();
     this._isActivated = true;
 };
 
-gui.RendezVousSelector.prototype.onDeactivated = function () {
+gui.SimpleSelector.prototype.onDeactivated = function () {
     this._epoch = 0;
     this._vehicle = null;
     this._imageElement.src = '';
     this._isActivated = false;
 };
 
-gui.RendezVousSelector.prototype.show = function (editable) {
-    this._editable = editable;
+gui.SimpleSelector.prototype.show = function (editable) {
+    this._isEditable = editable;
     this._backgroundElement.style.display = 'block';
     this._toolBoxWrapper.style.display = 'none';
-    this._questionBoxWrapper.style.display = 'none';
-    if (this._editable) {
+    if (this._isEditable) {
         this._infoWrapper.style.display = 'none';
         if (this._vehicle.isLanded()) {
             this._showLaunchConfiguration();
         } else {
-            this._questionBoxWrapper.style.display = 'block';
+            this._showFlybyConfiguration();
         }
     } else {
         this._infoWrapper.style.display = 'flex';
-        this._questionBoxWrapper.style.display = 'none';
     }
     this._isVisible = true;
     utility.fitText();
 };
 
-gui.RendezVousSelector.prototype.hide = function () {
+gui.SimpleSelector.prototype.hide = function () {
     this._backgroundElement.style.display = 'none';
     this._hideConfiguration();
     this._isVisible = false;
+    this._isEditable = false;
     this._orbitingBody.onConfigurationWindowOut();
 };
-
-//Preload Background images
-(function () {
-    var images = ['res/svg/simpleselectorviewup.svg', 'res/svg/simpleselectorviewright.svg', 'res/svg/simpleselectorviewleft.svg', 'res/svg/simpleselectorviewdown.svg'];
-    images.forEach(function (imgUrl) {
-        var img = new Image();
-        img.src = imgUrl;
-    });
-})();
