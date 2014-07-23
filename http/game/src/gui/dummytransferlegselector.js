@@ -57,8 +57,8 @@ gui.DummyTransferLegSelector.prototype = Object.create(gui.OrbitingBodySelector.
 gui.DummyTransferLegSelector.prototype.constructor = gui.DummyTransferLegSelector;
 
 gui.DummyTransferLegSelector.prototype._confirmAndClose = function () {
-    this.hide();
     this._orbitingBody.onConfigurationDone(true, this._configuration);
+    this.hide();
 };
 
 gui.DummyTransferLegSelector.prototype._update = function () {
@@ -78,8 +78,8 @@ gui.DummyTransferLegSelector.prototype.show = function (editable) {
 };
 
 gui.DummyTransferLegSelector.prototype.hide = function () {
+    this._orbitingBody.onConfigurationWindowOut();
     this._backgroundElement.style.display = 'none';
     this._isVisible = false;
     this._isEditable = false;
-    this._orbitingBody.onConfigurationWindowOut();
 };

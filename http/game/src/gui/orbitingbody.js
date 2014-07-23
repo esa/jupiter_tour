@@ -23,6 +23,9 @@ gui.OrbitingBody = function (id, name, centralBody, orbitalElements, orbitalElem
     this._configuration = null;
     this._surfaceType = surface.type;
     this._vehicle = null;
+    this._isSelected = false;
+    this._pulseValue = 0;
+    this._pulseUp = true;
 
     this._departureSelector = null;
     this._arrivalSelector = null;
@@ -100,6 +103,26 @@ gui.OrbitingBody.prototype._unhighlight = function () {
     this._orbitMesh.material = material;
 };
 
+gui.OrbitingBody.prototype._pulse = function () {
+    if (this._pulseUp) {
+        if (this._pulseValue < 1) {
+            this._bodyMesh.material.emissive.setRGB(this._pulseValue * 0.09803921568, this._pulseValue * 0.63921568627, 1);
+            this._bodyMesh.material.ambient.setRGB(1 - this._pulseValue * 0.90196078431, 1 - this._pulseValue * 0.36078431372, 1);
+            this._pulseValue += 0.01;
+        } else {
+            this._pulseUp =  false;
+        }
+    } else {
+        if (this._pulseValue > 0) {
+            this._bodyMesh.material.emissive.setRGB(this._pulseValue * 0.09803921568, this._pulseValue * 0.63921568627, 1);
+            this._bodyMesh.material.ambient.setRGB(1 - this._pulseValue * 0.90196078431, 1 - this._pulseValue * 0.36078431372, 1);
+            this._pulseValue -= 0.01;
+        } else {
+            this._pulseUp = true;
+        }
+    }
+};
+
 gui.OrbitingBody.prototype._getSelector = function () {
     switch (this._configurationMode) {
     case core.TransferLegConfigurationModes.ARRIVAL:
@@ -109,8 +132,13 @@ gui.OrbitingBody.prototype._getSelector = function () {
     }
 };
 
-gui.OrbitingBody.prototype.onViewChange = function (cameraPosition) {
-    this._departureSelector.onViewChange(cameraPosition);
+gui.OrbitingBody.prototype.onSelected = function () {
+    this._bodyMesh.scale.set(4, 4, 4);
+    this._isSelected = true;
+};
+
+gui.OrbitingBody.prototype.onUnselected = function () {
+    this._isSelected = false;
 };
 
 gui.OrbitingBody.prototype.onMouseOver = function () {
@@ -136,8 +164,7 @@ gui.OrbitingBody.prototype.onConfigurationWindowOut = function () {
 };
 
 gui.OrbitingBody.prototype.onConfigurationDone = function (isConfirmed, configuration) {
-    this._getSelector().hide();
-    this._bodyMesh.scale.set(1, 1, 1);
+    this._configurationWindowHover = false;
     if (isConfirmed) {
         this._configuration = utility.clone(configuration);
     } else {
@@ -154,14 +181,12 @@ gui.OrbitingBody.prototype.onActivated = function (epoch, vehicle) {
     this._surface.updateFaces(epoch, vehicle.getVelocityInf());
     this._departureSelector.onActivated(epoch, vehicle);
     this._arrivalSelector.onActivated(epoch, vehicle);
-    this._highlight();
     this._vehicle = vehicle.clone();
     this._isActivated = true;
 };
 
 gui.OrbitingBody.prototype.onDeactivated = function () {
     this._departureSelector.onDeactivated();
-    this._unhighlight();
     this._vehicle = null;
     this._isActivated = false;
 };
@@ -192,12 +217,21 @@ gui.OrbitingBody.prototype.update = function (screenPosition, screenRadius) {
         if (!this._isInConfigurationMode && !this._configurationWindowHover) {
             this._arrivalSelector.hide();
             this._departureSelector.hide();
-            if (size > 3) {
-                this._bodyMesh.scale.multiplyScalar(1 - this._scaleSpeed);
-            } else {
-                this._bodyMesh.scale.set(1, 1, 1);
+            if (!this._isSelected) {
+                if (size > 3) {
+                    this._bodyMesh.scale.multiplyScalar(1 - this._scaleSpeed);
+                } else {
+                    this._bodyMesh.scale.set(1, 1, 1);
+                }
             }
         }
+    }
+    if (this._isSelected) {
+        this._pulse();
+    } else if (this._isActivated) {
+        this._highlight();
+    } else {
+        this._unhighlight();
     }
     this._departureSelector.update(screenPosition, screenRadius);
     this._arrivalSelector.update(screenPosition, screenRadius);

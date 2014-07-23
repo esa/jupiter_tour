@@ -318,8 +318,8 @@ gui.SimpleSelector.prototype._confirmAndClose = function () {
         this._configuration.betaBounds = [this._betaRangeSlider.min(), this._betaRangeSlider.max()];
     }
     this._configuration.timeOfFlightBounds = [this._timeOfFlightRangeSlider.min(), this._timeOfFlightRangeSlider.max()];
-    this.hide();
     this._orbitingBody.onConfigurationDone(true, this._configuration);
+    this.hide();
 };
 
 gui.SimpleSelector.prototype.onActivated = function (epoch, vehicle) {
@@ -355,9 +355,9 @@ gui.SimpleSelector.prototype.show = function (editable) {
 };
 
 gui.SimpleSelector.prototype.hide = function () {
+    this._orbitingBody.onConfigurationWindowOut();
     this._backgroundElement.style.display = 'none';
     this._hideConfiguration();
     this._isVisible = false;
     this._isEditable = false;
-    this._orbitingBody.onConfigurationWindowOut();
 };

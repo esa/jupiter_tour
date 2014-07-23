@@ -8,7 +8,6 @@ gui.OrbitingBodySelector = function (orbitingBody) {
     this._orbitingBody = orbitingBody;
     this._screenPosition = new geometry.Vector2();
     this._screenRadius = 0;
-    this._cameraPosition = new geometry.Vector3();
     this._viewDirection = gui.ScreenDirections.UP;
     this._isVisible = false;
     this._isEditable = false;
@@ -194,10 +193,6 @@ gui.OrbitingBodySelector.prototype = {
             }
         }
         this._update(screenPosition, screenRadius);
-    },
-
-    onViewChange: function (cameraPosition) {
-        this._cameraPosition = new geometry.Vector3(cameraPosition.x, cameraPosition.y, cameraPosition.z);
     },
 
     getDefaultConfiguration: function () {

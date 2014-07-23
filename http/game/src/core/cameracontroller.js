@@ -45,9 +45,7 @@ core.CameraController.prototype = {
         }
     },
 
-    start: function () {
-        this._gameEngine.onViewChange(this._camera.position);
-    },
+    start: function () {},
 
     update: function () {
         var focusPosition = this._focus.getPosition().multiplyScalar(gui.POSITION_SCALE);
@@ -60,10 +58,6 @@ core.CameraController.prototype = {
         this._camera.position.set(focusPosition.getX() + radius * Math.sin(theta) * Math.cos(phi), focusPosition.getY() + radius * Math.sin(theta) * Math.sin(phi), focusPosition.getZ() + radius * Math.cos(theta));
 
         this._camera.lookAt(focusPosition.asTHREE());
-
-        if (oldPosition.sub(this._camera.position).length()) {
-            this._gameEngine.onViewChange(this._camera.position);
-        }
     },
 
     setFocus: function (focus) {

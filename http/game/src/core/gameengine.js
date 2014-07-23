@@ -107,6 +107,7 @@ core.GameEngine.prototype = {
                     this._gameState.getOrbitingBody().openConfiguration();
                     this._setGameStatePhase(core.GameStatePhases.TRANSFER_CONFIGURATION_CURRENT_BODY);
                 } else {
+                    nextBody.onUnselected();
                     this._gameHistoryManager.unlock();
                     this._setGameStatePhase(core.GameStatePhases.ORBITING_BODY_OVERVIEW);
                 }
@@ -125,6 +126,7 @@ core.GameEngine.prototype = {
                     utility.insert(configuration, this._userAction.configuration);
                     this._setGameStatePhase(core.GameStatePhases.PROBLEM_PREPARATION);
                 } else {
+                    this._userAction.nextOrbitingBody.onUnselected();
                     this._gameHistoryManager.unlock();
                     this._changeConfigurationMode(core.TransferLegConfigurationModes.ARRIVAL);
                     this._setGameStatePhase(core.GameStatePhases.ORBITING_BODY_OVERVIEW);
@@ -153,6 +155,8 @@ core.GameEngine.prototype = {
             }
 
             this._solver = new algorithm.JDE(problem);
+
+            nextBody.onUnselected();
 
             this._setBusy();
             this._setGameStatePhase(core.GameStatePhases.PROBLEM_SOLVING);
@@ -550,6 +554,7 @@ core.GameEngine.prototype = {
             var id = this._checkForOrbitingBodyHover();
             if (id != gui.NULL_ID) {
                 var nextBody = this._orbitingBodies[id];
+                nextBody.onSelected();
                 this._userAction.nextOrbitingBody = nextBody;
                 this._gameHistoryManager.lock();
                 nextBody.openConfiguration();
@@ -568,6 +573,7 @@ core.GameEngine.prototype = {
             var id = this._checkForOrbitingBodyHover();
             if (id != gui.NULL_ID) {
                 var nextBody = this._orbitingBodies[id];
+                nextBody.onSelected();
                 var currentBody = this._gameState.getOrbitingBody();
                 this._gameHistoryManager.lock();
 
@@ -844,11 +850,5 @@ core.GameEngine.prototype = {
 
     getDomElement: function () {
         return this._renderer.domElement;
-    },
-
-    onViewChange: function (cameraPosition) {
-        for (var id in this._orbitingBodies) {
-            this._orbitingBodies[id].onViewChange(cameraPosition.clone());
-        }
     }
 };
