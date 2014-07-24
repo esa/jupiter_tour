@@ -6,13 +6,6 @@ gui.FaceSelector = function (orbitingBody) {
     gui.OrbitingBodySelector.call(this, orbitingBody);
     var self = this;
 
-    this._configuration = {
-        problemType: astrodynamics.ProblemTypes.MGA1DSM_FLYBY,
-        faceID: gui.NULL_ID,
-        betaBounds: [],
-        radiusBounds: [],
-        timeOfFlightBounds: []
-    };
     this._backgroundName = 'faceselector';
     this._backgroundHeightFactorLR = 1 / 3.9;
     this._backgroundHeightFactorUD = 1 / 3;
@@ -27,9 +20,7 @@ gui.FaceSelector = function (orbitingBody) {
     this._maxTimeOfFlight = this._orbitingBody.getMaxTimeOfFlight() * utility.SEC_TO_DAY;
 
     this._betaRadiusBoundsEnabled = false;
-
     this._currentMapViewID = 0;
-
     this._jupiterRadius = 10;
     this._visitRadius = 3;
 
@@ -147,7 +138,7 @@ gui.FaceSelector = function (orbitingBody) {
     img.src = 'res/svg/angleicon.svg';
     img.style.visibility = 'hidden';
     img.onclick = function () {
-        if (self._configuration.faceID == gui.NULL_ID) {
+        if (self._userAction.faceID == gui.NULL_ID) {
             self._setBetaRadiusBoundsEnabled(!self._betaRadiusBoundsEnabled);
         }
     };
@@ -172,7 +163,7 @@ gui.FaceSelector = function (orbitingBody) {
     img.className = 'button-icon center-horizontally center-vertically';
     img.style.visibility = 'hidden';
     img.onclick = function () {
-        if (self._configuration.faceID == gui.NULL_ID) {
+        if (self._userAction.faceID == gui.NULL_ID) {
             self._setBetaRadiusBoundsEnabled(!self._betaRadiusBoundsEnabled);
         }
     };
@@ -309,8 +300,8 @@ gui.FaceSelector.prototype._onClick = function (d3Face) {
     var self = this;
     if (this._isEditable) {
         var faceID = d3Face.id;
-        if (this._configuration.faceID != gui.NULL_ID) {
-            if (this._configuration.faceID == faceID) {
+        if (this._userAction.faceID != gui.NULL_ID) {
+            if (this._userAction.faceID == faceID) {
                 this._resetSelection();
             } else {
                 if (this._orbitingBody.isFaceVisitable(faceID)) {
@@ -360,38 +351,41 @@ gui.FaceSelector.prototype._getFaceColor = function (faceID) {
 
 gui.FaceSelector.prototype._confirmAndClose = function () {
     if (this._betaRadiusBoundsEnabled) {
-        this._configuration.betaBounds = [this._betaRangeSlider.min(), this._betaRangeSlider.max()];
-        this._configuration.radiusBounds = [this._radiusRangeSlider.min(), this._radiusRangeSlider.max()];
+        this._userAction.nextLeg.betaBounds = [this._betaRangeSlider.min(), this._betaRangeSlider.max()];
+        this._userAction.nextLeg.radiusBounds = [this._radiusRangeSlider.min(), this._radiusRangeSlider.max()];
     } else {
-        this._configuration.betaBounds = [-2 * Math.PI, 2 * Math.PI];
-        this._configuration.radiusBounds = [this._orbitingBody.getMinRadius() / this._orbitingBody.getRadius(), this._orbitingBody.getMaxRadius() / this._orbitingBody.getRadius()];
+        this._userAction.nextLeg.betaBounds = [-2 * Math.PI, 2 * Math.PI];
+        this._userAction.nextLeg.radiusBounds = [this._orbitingBody.getMinRadius() / this._orbitingBody.getRadius(), this._orbitingBody.getMaxRadius() / this._orbitingBody.getRadius()];
     }
-    this._configuration.timeOfFlightBounds = [this._timeOfFlightRangeSlider.min(), this._timeOfFlightRangeSlider.max()];
+    this._userAction.nextLeg.timeOfFlightBounds = [this._timeOfFlightRangeSlider.min(), this._timeOfFlightRangeSlider.max()];
     this.hide();
-    this._orbitingBody.onConfigurationDone(true, this._configuration);
+    this._orbitingBody.onConfigurationDone(true);
 };
 
 gui.FaceSelector.prototype._setSelection = function (faceID) {
-    if (this._configuration.faceID != gui.NULL_ID) {
-        this._orbitingBody.setFaceSelected(this._configuration.faceID, false);
+    if (this._userAction.faceID != gui.NULL_ID) {
+        this._orbitingBody.setFaceSelected(this._userAction.faceID, false);
     }
-    this._configuration.faceID = faceID;
-    this._configuration.betaBounds = this._orbitingBody.getFaceBetaBounds(faceID);
-    this._configuration.radiusBounds = this._orbitingBody.getFaceRadiusBounds(faceID);
-    this._configuration.timeOfFlightBounds = [1, this._maxTimeOfFlight];
-    this._orbitingBody.setFaceSelected(this._configuration.faceID, true);
+    this._userAction.faceID = faceID;
+    this._userAction.nextLeg.betaBounds = this._orbitingBody.getFaceBetaBounds(faceID);
+    this._userAction.nextLeg.radiusBounds = this._orbitingBody.getFaceRadiusBounds(faceID);
+    this._userAction.nextLeg.timeOfFlightBounds = [1, this._maxTimeOfFlight];
+    this._orbitingBody.setFaceSelected(this._userAction.faceID, true);
     this._betaRadiusBoundsEnabled = true;
     this._updateSliders();
 };
 
 gui.FaceSelector.prototype._resetSelection = function () {
-    if (this._configuration.faceID != gui.NULL_ID) {
-        this._orbitingBody.setFaceSelected(this._configuration.faceID, false);
+    this._userAction.nextLeg;
+    this._userAction.nextLeg.problemType = astrodynamics.ProblemTypes.MGA1DSM_FLYBY;
+
+    if (this._userAction.faceID != gui.NULL_ID) {
+        this._orbitingBody.setFaceSelected(this._userAction.faceID, false);
     }
-    this._configuration.faceID = gui.NULL_ID;
-    this._configuration.betaBounds = [-2 * Math.PI, 2 * Math.PI];
-    this._configuration.radiusBounds = [this._orbitingBody.getMinRadius() / this._orbitingBody.getRadius(), this._orbitingBody.getMaxRadius() / this._orbitingBody.getRadius()];
-    this._configuration.timeOfFlightBounds = [1e-2, this._maxTimeOfFlight];
+    this._userAction.faceID = gui.NULL_ID;
+    this._userAction.nextLeg.betaBounds = [-2 * Math.PI, 2 * Math.PI];
+    this._userAction.nextLeg.radiusBounds = [this._orbitingBody.getMinRadius() / this._orbitingBody.getRadius(), this._orbitingBody.getMaxRadius() / this._orbitingBody.getRadius()];
+    this._userAction.nextLeg.timeOfFlightBounds = [1e-2, this._maxTimeOfFlight];
     this._updateSliders();
 };
 
@@ -420,16 +414,18 @@ gui.FaceSelector.prototype._onMapDrag = function (event) {
 };
 
 gui.FaceSelector.prototype._updateSliders = function () {
-    this._betaRangeSlider.range(this._configuration.betaBounds);
-    this._radiusRangeSlider.range(this._configuration.radiusBounds);
-    this._timeOfFlightRangeSlider.range(this._configuration.timeOfFlightBounds);
+    if (this._isEditable) {
+        this._betaRangeSlider.range(this._userAction.nextLeg.betaBounds);
+        this._radiusRangeSlider.range(this._userAction.nextLeg.radiusBounds);
+        this._timeOfFlightRangeSlider.range(this._userAction.nextLeg.timeOfFlightBounds);
 
-    if (this._betaRadiusBoundsEnabled) {
-        this._betaRangeSlider.enable();
-        this._radiusRangeSlider.enable();
-    } else {
-        this._betaRangeSlider.disable();
-        this._radiusRangeSlider.disable();
+        if (this._betaRadiusBoundsEnabled) {
+            this._betaRangeSlider.enable();
+            this._radiusRangeSlider.enable();
+        } else {
+            this._betaRangeSlider.disable();
+            this._radiusRangeSlider.disable();
+        }
     }
 };
 
@@ -512,8 +508,9 @@ gui.FaceSelector.prototype._onResize = function (event) {
     this._radiusRangeSlider.onResize();
 };
 
-gui.FaceSelector.prototype.show = function (editable) {
-    this._isEditable = editable;
+gui.FaceSelector.prototype.show = function (userAction) {
+    this._userAction = userAction;
+    this._isEditable = this._userAction != null;
 
     this._updateMap();
     this._confirmElement.style.display = 'none';

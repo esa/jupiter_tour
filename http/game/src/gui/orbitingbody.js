@@ -12,7 +12,7 @@ gui.OrbitingBody = function (id, name, centralBody, orbitalElements, orbitalElem
     this._maxLaunchDelay = maxLaunchDelay != null ? maxLaunchDelay * utility.DAY_TO_SEC : 0;
     this._isMouseOver = false;
     this._isActivated = false;
-    this._isInConfigurationMode = false;
+    this._configurationStatus = core.ConfigurationStatus.DELIVERED;
     this._configurationMode = null;
     this._configurationWindowHover = false;
     this._maxSize = 12;
@@ -20,7 +20,6 @@ gui.OrbitingBody = function (id, name, centralBody, orbitalElements, orbitalElem
     this._scaleSpeed = 0.075;
     this._scale = scale;
     this._orbitPositions = 400;
-    this._configuration = null;
     this._surfaceType = surface.type;
     this._vehicle = null;
     this._isSelected = false;
@@ -163,18 +162,17 @@ gui.OrbitingBody.prototype.onConfigurationWindowOut = function () {
     this._configurationWindowHover = false;
 };
 
-gui.OrbitingBody.prototype.onConfigurationDone = function (isConfirmed, configuration) {
+gui.OrbitingBody.prototype.onConfigurationDone = function (isConfirmed) {
     this._configurationWindowHover = false;
     if (isConfirmed) {
-        this._configuration = utility.clone(configuration);
+        this._configurationStatus = core.ConfigurationStatus.CONFIRMED;
     } else {
-        this._configuration = null;
+        this._configurationStatus = core.ConfigurationStatus.CANCELED;
     }
-    this._isInConfigurationMode = false;
 };
 
-gui.OrbitingBody.prototype.isInConfigurationMode = function () {
-    return this._isInConfigurationMode;
+gui.OrbitingBody.prototype.getConfigurationStatus = function () {
+    return this._configurationStatus;
 };
 
 gui.OrbitingBody.prototype.onActivated = function (epoch, vehicle) {
@@ -195,10 +193,10 @@ gui.OrbitingBody.prototype.onConfigurationModeChange = function (configurationMo
     this._configurationMode = configurationMode;
 };
 
-gui.OrbitingBody.prototype.openConfiguration = function () {
+gui.OrbitingBody.prototype.openConfiguration = function (userAction) {
     this._bodyMesh.scale.set(4, 4, 4);
-    this._getSelector().show(true);
-    this._isInConfigurationMode = true;
+    this._getSelector().show(userAction);
+    this._configurationStatus = core.ConfigurationStatus.PENDING;
 };
 
 gui.OrbitingBody.prototype.update = function (screenPosition, screenRadius) {
@@ -210,11 +208,11 @@ gui.OrbitingBody.prototype.update = function (screenPosition, screenRadius) {
         } else {
             var selector = this._getSelector();
             if (!selector.isVisible()) {
-                selector.show(false);
+                selector.show();
             }
         }
     } else {
-        if (!this._isInConfigurationMode && !this._configurationWindowHover) {
+        if (!(this._configurationStatus == core.ConfigurationStatus.PENDING) && !this._configurationWindowHover) {
             this._arrivalSelector.hide();
             this._departureSelector.hide();
             if (!this._isSelected) {
@@ -325,13 +323,8 @@ gui.OrbitingBody.prototype.getFaceRadiusBounds = function (faceID) {
     return this._surface.getFaceRadiusBounds(faceID);
 };
 
-gui.OrbitingBody.prototype.getConfiguration = function () {
-    return this._configuration != null ? utility.clone(this._configuration) : null;
-};
-
-gui.OrbitingBody.prototype.getDefaultConfiguration = function () {
-    this._configuration = this._getSelector().getDefaultConfiguration();
-    return utility.clone(this._configuration);
+gui.OrbitingBody.prototype.getDefaultConfiguration = function (userAction) {
+    this._getSelector().getDefaultConfiguration(userAction);
 };
 
 gui.OrbitingBody.prototype.computeFlybyFaceAndCoords = function (epoch, velocityInf, beta, radius) {
@@ -349,6 +342,7 @@ gui.OrbitingBody.prototype.getTotalFlybyScore = function () {
 
 gui.OrbitingBody.prototype.reset = function () {
     this._vehicle = null;
+    this._configurationStatus = core.ConfigurationStatus.DELIVERED;
     this._configurationMode = core.TransferLegConfigurationModes.ARRIVAL;
     this._surface.reset();
 };

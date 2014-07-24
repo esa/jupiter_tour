@@ -22,8 +22,9 @@ core.GameEngine = function () {
 
     this._userAction = {
         nextOrbitingBody: null,
-        configuration: {}
+        nextLeg: {}
     };
+
     this._scene = new THREE.Scene();
     this._camera = new THREE.PerspectiveCamera(gui.FIELD_OF_VIEW * utility.RAD_TO_DEG, window.innerWidth / window.innerHeight, 1, gui.UNIVERSUM_SIZE * 2);
     // We need to have physics and gui to have the same up axis. It saves us some transformations.
@@ -99,18 +100,18 @@ core.GameEngine.prototype = {
             this._hoverOrbitingBodies();
 
             var nextBody = this._userAction.nextOrbitingBody;
-            if (!nextBody.isInConfigurationMode()) {
-                var configuration = nextBody.getConfiguration();
-                if (configuration) {
-                    this._userAction.configuration = configuration;
-                    this._changeConfigurationMode(core.TransferLegConfigurationModes.DEPARTURE);
-                    this._gameState.getOrbitingBody().openConfiguration();
-                    this._setGameStatePhase(core.GameStatePhases.TRANSFER_CONFIGURATION_CURRENT_BODY);
-                } else {
-                    nextBody.onUnselected();
-                    this._gameHistoryManager.unlock();
-                    this._setGameStatePhase(core.GameStatePhases.ORBITING_BODY_OVERVIEW);
-                }
+            switch (nextBody.getConfigurationStatus()) {
+            case core.ConfigurationStatus.CONFIRMED:
+                this._changeConfigurationMode(core.TransferLegConfigurationModes.DEPARTURE);
+                this._gameState.getOrbitingBody().openConfiguration(this._userAction);
+                this._setGameStatePhase(core.GameStatePhases.TRANSFER_CONFIGURATION_CURRENT_BODY);
+                break;
+
+            case core.ConfigurationStatus.CANCELED:
+                nextBody.onUnselected();
+                this._gameHistoryManager.unlock();
+                this._setGameStatePhase(core.GameStatePhases.ORBITING_BODY_OVERVIEW);
+                break;
             }
             break;
 
@@ -120,17 +121,17 @@ core.GameEngine.prototype = {
             }
 
             var currentBody = this._gameState.getOrbitingBody();
-            if (!currentBody.isInConfigurationMode()) {
-                var configuration = currentBody.getConfiguration();
-                if (configuration) {
-                    utility.insert(configuration, this._userAction.configuration);
-                    this._setGameStatePhase(core.GameStatePhases.PROBLEM_PREPARATION);
-                } else {
-                    this._userAction.nextOrbitingBody.onUnselected();
-                    this._gameHistoryManager.unlock();
-                    this._changeConfigurationMode(core.TransferLegConfigurationModes.ARRIVAL);
-                    this._setGameStatePhase(core.GameStatePhases.ORBITING_BODY_OVERVIEW);
-                }
+            switch (currentBody.getConfigurationStatus()) {
+            case core.ConfigurationStatus.CONFIRMED:
+                this._setGameStatePhase(core.GameStatePhases.PROBLEM_PREPARATION);
+                break;
+
+            case core.ConfigurationStatus.CANCELED:
+                this._userAction.nextOrbitingBody.onUnselected();
+                this._gameHistoryManager.unlock();
+                this._changeConfigurationMode(core.TransferLegConfigurationModes.ARRIVAL);
+                this._setGameStatePhase(core.GameStatePhases.ORBITING_BODY_OVERVIEW);
+                break;
             }
             break;
 
@@ -140,17 +141,17 @@ core.GameEngine.prototype = {
             }
 
             var problem = null;
-            var configuration = this._userAction.configuration;
+            var nextLeg = this._userAction.nextLeg;
             var currentBody = this._gameState.getOrbitingBody();
             var nextBody = this._userAction.nextOrbitingBody;
 
-            switch (configuration.problemType) {
+            switch (nextLeg.problemType) {
             case astrodynamics.ProblemTypes.MGA1DSM_FLYBY:
-                problem = new astrodynamics.MGA1DSMFlyby(currentBody, nextBody, this._gameState.getEpoch(), this._gameState.getVehicle().getVelocityInf(), configuration.timeOfFlightBounds, configuration.radiusBounds, configuration.betaBounds, configuration.performLanding);
+                problem = new astrodynamics.MGA1DSMFlyby(currentBody, nextBody, this._gameState.getEpoch(), this._gameState.getVehicle().getVelocityInf(), nextLeg.timeOfFlightBounds, nextLeg.radiusBounds, nextLeg.betaBounds, nextLeg.performLanding);
                 break;
 
             case astrodynamics.ProblemTypes.MGA1DSM_LAUNCH:
-                problem = new astrodynamics.MGA1DSMLaunch(currentBody, nextBody, configuration.launchEpochBounds, configuration.velocityBounds, configuration.timeOfFlightBounds, configuration.performLanding);
+                problem = new astrodynamics.MGA1DSMLaunch(currentBody, nextBody, nextLeg.launchEpochBounds, nextLeg.velocityBounds, nextLeg.timeOfFlightBounds, nextLeg.performLanding);
                 break;
             }
 
@@ -325,7 +326,7 @@ core.GameEngine.prototype = {
         this._setBusy();
 
         this._userAction.nextOrbitingBody = null;
-        this._userAction.configuration = {};
+        this._userAction.nextLeg = {};
 
         if (this._gameState) {
             var currentBody = this._gameState.getOrbitingBody();
@@ -401,7 +402,7 @@ core.GameEngine.prototype = {
         var faceValue = null;
         var dsmResult = null;
 
-        switch (userAction.configuration.problemType) {
+        switch (userAction.nextLeg.problemType) {
         case astrodynamics.ProblemTypes.MGA1DSM_LAUNCH:
             timeOfFlight = chromosome[5];
             epoch = chromosome[0];
@@ -429,7 +430,7 @@ core.GameEngine.prototype = {
                 this._notificationManager.dispatchJettisonMsg(strings.toText(strings.GameInfos.SPACECRAFT_JETTISON_STAGE, [numStages]));
             }
             dsmResult = vehicle.performManeuver(deltaV, timeOfFlight * utility.DAY_TO_SEC);
-            vehicle.setLanded(userAction.configuration.performLanding);
+            vehicle.setLanded(userAction.nextLeg.performLanding);
 
             leg = new gui.LaunchLeg(chromosome, currentBody, nextBody);
             leg.setGradient(dsmResult.gravityLoss);
@@ -480,7 +481,7 @@ core.GameEngine.prototype = {
                 this._notificationManager.dispatchJettisonMsg(strings.toText(strings.GameInfos.SPACECRAFT_JETTISON_STAGE, [numStages]));
             }
             dsmResult = vehicle.performManeuver(deltaV, timeOfFlight * utility.DAY_TO_SEC);
-            vehicle.setLanded(userAction.configuration.performLanding);
+            vehicle.setLanded(userAction.nextLeg.performLanding);
 
             leg = new gui.FlybyLeg(chromosome, currentBody, nextBody, velocityInf, epoch);
             leg.setGradient(dsmResult.gravityLoss);
@@ -517,9 +518,9 @@ core.GameEngine.prototype = {
                 break;
 
             case model.SurfaceTypes.TRUNCATED_ICOSAHEDRON:
-                if (userAction.configuration.faceID != gui.NULL_ID) {
-                    if (userAction.configuration.faceID != flybyResult.faceID) {
-                        this._notificationManager.dispatchMoonMsg(strings.toText(strings.GameInfos.FACE_MAP_RESULT_FAIL, [userAction.configuration.faceID, flybyResult.faceID]));
+                if (userAction.faceID != gui.NULL_ID) {
+                    if (userAction.faceID != flybyResult.faceID) {
+                        this._notificationManager.dispatchMoonMsg(strings.toText(strings.GameInfos.FACE_MAP_RESULT_FAIL, [userAction.faceID, flybyResult.faceID]));
                     } else {
                         this._notificationManager.dispatchMoonMsg(strings.toText(strings.GameInfos.FACE_MAP_RESULT_OK, [flybyResult.faceID]));
                     }
@@ -557,7 +558,7 @@ core.GameEngine.prototype = {
                 nextBody.onSelected();
                 this._userAction.nextOrbitingBody = nextBody;
                 this._gameHistoryManager.lock();
-                nextBody.openConfiguration();
+                nextBody.openConfiguration(this._userAction);
                 this._setGameStatePhase(core.GameStatePhases.TRANSFER_CONFIGURATION_NEXT_BODY);
             }
             break;
@@ -577,13 +578,11 @@ core.GameEngine.prototype = {
                 var currentBody = this._gameState.getOrbitingBody();
                 this._gameHistoryManager.lock();
 
-                var configuration = nextBody.getDefaultConfiguration();
-                this._changeConfigurationMode(core.TransferLegConfigurationModes.DEPARTURE);
-                utility.insert(currentBody.getDefaultConfiguration(), configuration);
-
                 this._userAction.nextOrbitingBody = nextBody;
-                this._userAction.configuration = configuration;
+                nextBody.getDefaultConfiguration(this._userAction);
 
+                this._changeConfigurationMode(core.TransferLegConfigurationModes.DEPARTURE);
+                this._gameState.getOrbitingBody().getDefaultConfiguration(this._userAction);
                 this._setGameStatePhase(core.GameStatePhases.PROBLEM_PREPARATION);
             }
             break;

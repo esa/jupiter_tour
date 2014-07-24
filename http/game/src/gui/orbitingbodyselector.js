@@ -13,7 +13,7 @@ gui.OrbitingBodySelector = function (orbitingBody) {
     this._isEditable = false;
     this._isActivated = false;
 
-    this._configuration = {};
+    this._userAction = null;
 
     this._backgroundName = '';
     this._backgroundHeightFactorUD = 1;
@@ -195,9 +195,9 @@ gui.OrbitingBodySelector.prototype = {
         this._update(screenPosition, screenRadius);
     },
 
-    getDefaultConfiguration: function () {
+    getDefaultConfiguration: function (userAction) {
+        this._userAction = userAction;
         this._resetSelection();
-        return utility.clone(this._configuration);
     }
 };
 

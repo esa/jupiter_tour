@@ -6,17 +6,6 @@ gui.SimpleSelector = function (orbitingBody) {
     gui.OrbitingBodySelector.call(this, orbitingBody);
     var self = this;
 
-    this._configuration = {
-        problemType: null
-    };
-
-    this._numOrbits = 5;
-
-    this._maxTimeOfFlight = this._orbitingBody.getMaxTimeOfFlight() * utility.SEC_TO_DAY;
-    this._maxLaunchDelay = this._orbitingBody.getMaxLaunchDelay() * utility.SEC_TO_DAY;
-    this._epoch = 0;
-    this._vehicle = null;
-
     this._backgroundName = 'simpleselector';
     this._backgroundHeightFactorLR = 0.15;
     this._backgroundHeightFactorUD = 0.15;
@@ -26,6 +15,12 @@ gui.SimpleSelector = function (orbitingBody) {
     this._containerWidthFactor = 0.92;
     this._containerMarginFactorL = 0.08;
     this._containerMarginFactorT = 0.24;
+
+    this._numOrbits = 5;
+    this._maxTimeOfFlight = this._orbitingBody.getMaxTimeOfFlight() * utility.SEC_TO_DAY;
+    this._maxLaunchDelay = this._orbitingBody.getMaxLaunchDelay() * utility.SEC_TO_DAY;
+    this._epoch = 0;
+    this._vehicle = null;
 
     var backgroundHeight = Math.round(window.innerHeight * this._backgroundHeightFactorUD);
     var backgroundWidth = Math.round(backgroundHeight * this._backgroundWidthFactorUD);
@@ -270,30 +265,30 @@ gui.SimpleSelector.prototype._hideConfiguration = function () {
 
 gui.SimpleSelector.prototype._updateSliders = function () {
     if (this._vehicle.isLanded()) {
-        this._launchEpochRangeSlider.range(this._configuration.launchEpochBounds);
-        this._velocityRangeSlider.range(this._configuration.velocityBounds);
+        this._launchEpochRangeSlider.range(this._userAction.nextLeg.launchEpochBounds);
+        this._velocityRangeSlider.range(this._userAction.nextLeg.velocityBounds);
     } else {
-        this._radiusRangeSlider.range(this._configuration.radiusBounds);
-        this._betaRangeSlider.range(this._configuration.betaBounds);
+        this._radiusRangeSlider.range(this._userAction.nextLeg.radiusBounds);
+        this._betaRangeSlider.range(this._userAction.nextLeg.betaBounds);
     }
-    this._timeOfFlightRangeSlider.range(this._configuration.timeOfFlightBounds);
+    this._timeOfFlightRangeSlider.range(this._userAction.nextLeg.timeOfFlightBounds);
 };
 
 gui.SimpleSelector.prototype._resetSelection = function () {
     if (this._vehicle.isLanded()) {
-        delete this._configuration.radiusBounds;
-        delete this._configuration.betaBounds;
-        this._configuration.problemType = astrodynamics.ProblemTypes.MGA1DSM_LAUNCH;
-        this._configuration.launchEpochBounds = [this._epoch, this._epoch + this._maxLaunchDelay];
-        this._configuration.velocityBounds = [0, this._vehicle.getRemainingDeltaV()];
+        delete this._userAction.nextLeg.radiusBounds;
+        delete this._userAction.nextLeg.betaBounds;
+        this._userAction.nextLeg.problemType = astrodynamics.ProblemTypes.MGA1DSM_LAUNCH;
+        this._userAction.nextLeg.launchEpochBounds = [this._epoch, this._epoch + this._maxLaunchDelay];
+        this._userAction.nextLeg.velocityBounds = [0, this._vehicle.getRemainingDeltaV()];
     } else {
-        delete this._configuration.launchEpochBounds;
-        delete this._configuration.velocityBounds;
-        this._configuration.problemType = astrodynamics.ProblemTypes.MGA1DSM_FLYBY;
-        this._configuration.radiusBounds = [this._orbitingBody.getMinRadius() / this._orbitingBody.getRadius(), this._orbitingBody.getMaxRadius() / this._orbitingBody.getRadius()];
-        this._configuration.betaBounds = [-2 * Math.PI, 2 * Math.PI];
+        delete this._userAction.nextLeg.launchEpochBounds;
+        delete this._userAction.nextLeg.velocityBounds;
+        this._userAction.nextLeg.problemType = astrodynamics.ProblemTypes.MGA1DSM_FLYBY;
+        this._userAction.nextLeg.radiusBounds = [this._orbitingBody.getMinRadius() / this._orbitingBody.getRadius(), this._orbitingBody.getMaxRadius() / this._orbitingBody.getRadius()];
+        this._userAction.nextLeg.betaBounds = [-2 * Math.PI, 2 * Math.PI];
     }
-    this._configuration.timeOfFlightBounds = [1e-2, this._maxTimeOfFlight];
+    this._userAction.nextLeg.timeOfFlightBounds = [1e-2, this._maxTimeOfFlight];
     this._updateSliders();
 };
 
@@ -311,14 +306,14 @@ gui.SimpleSelector.prototype._onResize = function () {
 
 gui.SimpleSelector.prototype._confirmAndClose = function () {
     if (this._vehicle.isLanded()) {
-        this._configuration.launchEpochBounds = [this._launchEpochRangeSlider.min(), this._launchEpochRangeSlider.max()];
-        this._configuration.velocityBounds = [this._velocityRangeSlider.min(), this._velocityRangeSlider.max()];
+        this._userAction.nextLeg.launchEpochBounds = [this._launchEpochRangeSlider.min(), this._launchEpochRangeSlider.max()];
+        this._userAction.nextLeg.velocityBounds = [this._velocityRangeSlider.min(), this._velocityRangeSlider.max()];
     } else {
-        this._configuration.radiusBounds = [this._radiusRangeSlider.min(), this._radiusRangeSlider.max()];
-        this._configuration.betaBounds = [this._betaRangeSlider.min(), this._betaRangeSlider.max()];
+        this._userAction.nextLeg.radiusBounds = [this._radiusRangeSlider.min(), this._radiusRangeSlider.max()];
+        this._userAction.nextLeg.betaBounds = [this._betaRangeSlider.min(), this._betaRangeSlider.max()];
     }
-    this._configuration.timeOfFlightBounds = [this._timeOfFlightRangeSlider.min(), this._timeOfFlightRangeSlider.max()];
-    this._orbitingBody.onConfigurationDone(true, this._configuration);
+    this._userAction.nextLeg.timeOfFlightBounds = [this._timeOfFlightRangeSlider.min(), this._timeOfFlightRangeSlider.max()];
+    this._orbitingBody.onConfigurationDone(true);
     this.hide();
 };
 
@@ -336,8 +331,10 @@ gui.SimpleSelector.prototype.onDeactivated = function () {
     this._isActivated = false;
 };
 
-gui.SimpleSelector.prototype.show = function (editable) {
-    this._isEditable = editable;
+gui.SimpleSelector.prototype.show = function (userAction) {
+    this._userAction = userAction;
+    this._isEditable = this._userAction != null;
+
     this._backgroundElement.style.display = 'block';
     this._toolBoxWrapper.style.display = 'none';
     if (this._isEditable) {

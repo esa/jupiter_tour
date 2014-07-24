@@ -20,6 +20,13 @@ var core = {};
         ARRIVAL: 1,
     };
 
+    var ConfigurationStatus = {
+        PENDING: 0,
+        CONFIRMED: 1,
+        CANCELED: 2,
+        DELIVERED: 3
+    };
+
     var GameEvents = {
         GAME_STATE_CHANGE: 0,
         GAME_PHASE_CHANGE: 1,
@@ -37,4 +44,5 @@ var core = {};
     core.GameStatePhases = GameStatePhases;
     core.GameEvents = GameEvents;
     core.TransferLegConfigurationModes = TransferLegConfigurationModes;
+    core.ConfigurationStatus = ConfigurationStatus;
 })();

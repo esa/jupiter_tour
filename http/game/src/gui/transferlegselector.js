@@ -5,10 +5,6 @@ gui.TransferLegSelector = function (orbitingBody) {
     gui.OrbitingBodySelector.call(this, orbitingBody);
     var self = this;
 
-    this._configuration = {
-        performLanding: false
-    };
-
     this._backgroundName = 'simpleselector';
     this._backgroundHeightFactorLR = 0.15;
     this._backgroundHeightFactorUD = 0.15;
@@ -56,7 +52,7 @@ gui.TransferLegSelector = function (orbitingBody) {
     flybyButtonCol.className = 'button-col';
     var flybyButton = document.createElement('img');
     flybyButton.onclick = function () {
-        self._configuration.performLanding = false;
+        self._userAction.nextLeg.performLanding = false;
         self._confirmAndClose();
     };
     flybyButton.className = 'button center-vertically center-horizontally';
@@ -67,7 +63,7 @@ gui.TransferLegSelector = function (orbitingBody) {
     landingButtonCol.className = 'button-col';
     var landingButton = document.createElement('img');
     landingButton.onclick = function () {
-        self._configuration.performLanding = true;
+        self._userAction.nextLeg.performLanding = true;
         self._confirmAndClose();
     };
     landingButton.className = 'button center-vertically center-horizontally';
@@ -86,7 +82,7 @@ gui.TransferLegSelector.prototype = Object.create(gui.OrbitingBodySelector.proto
 gui.TransferLegSelector.prototype.constructor = gui.TransferLegSelector;
 
 gui.TransferLegSelector.prototype._resetSelection = function () {
-    this._configuration.performLanding = false;
+    this._userAction.nextLeg.performLanding = false;
 };
 
 gui.TransferLegSelector.prototype._confirmAndClose = function () {
@@ -94,8 +90,10 @@ gui.TransferLegSelector.prototype._confirmAndClose = function () {
     this._orbitingBody.onConfigurationDone(true, this._configuration);
 };
 
-gui.TransferLegSelector.prototype.show = function (editable) {
-    this._editable = editable;
+gui.TransferLegSelector.prototype.show = function (userAction) {
+    this._userAction = userAction;
+    this._editable = this._userAction != null;
+
     this._backgroundElement.style.display = 'block';
     if (this._editable) {
         this._infoWrapper.style.display =  'none';

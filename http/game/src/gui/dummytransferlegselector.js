@@ -4,10 +4,6 @@
 gui.DummyTransferLegSelector = function (orbitingBody, performLanding) {
     gui.OrbitingBodySelector.call(this, orbitingBody);
 
-    this._configuration = {
-        performLanding: performLanding
-    };
-
     this._backgroundName = 'simpleselector';
     this._backgroundHeightFactorLR = 0.15;
     this._backgroundHeightFactorUD = 0.15;
@@ -17,6 +13,8 @@ gui.DummyTransferLegSelector = function (orbitingBody, performLanding) {
     this._containerWidthFactor = 0.92;
     this._containerMarginFactorL = 0.08;
     this._containerMarginFactorT = 0.24;
+
+    this._performLanding = performLanding != null ? performLanding : false;
 
     var backgroundHeight = Math.round(window.innerHeight * this._backgroundHeightFactorUD);
     var backgroundWidth = Math.round(backgroundHeight * this._backgroundWidthFactorUD);
@@ -57,21 +55,30 @@ gui.DummyTransferLegSelector.prototype = Object.create(gui.OrbitingBodySelector.
 gui.DummyTransferLegSelector.prototype.constructor = gui.DummyTransferLegSelector;
 
 gui.DummyTransferLegSelector.prototype._confirmAndClose = function () {
-    this._orbitingBody.onConfigurationDone(true, this._configuration);
+    this._orbitingBody.onConfigurationDone(true);
     this.hide();
+};
+
+gui.DummyTransferLegSelector.prototype._resetSelection = function () {
+    this._userAction.nextLeg.performLanding = this._performLanding;
 };
 
 gui.DummyTransferLegSelector.prototype._update = function () {
     if (this._isEditable) {
+        this._resetSelection();
         this._confirmAndClose();
     }
 };
 
-gui.DummyTransferLegSelector.prototype.show = function (editable) {
-    this._isEditable = editable;
+gui.DummyTransferLegSelector.prototype.show = function (userAction) {
+    this._userAction = userAction;
+    this._isEditable = this._userAction != null;
+
     this._backgroundElement.style.display = 'block';
     this._isVisible = true;
-    if (!this._isEditable) {
+    if (this._isEditable) {
+        this._resetSelection();
+    } else {
         this._infoWrapper.style.display = 'flex';
     }
     utility.fitText();
