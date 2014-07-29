@@ -67,7 +67,7 @@ gui.FaceSelector = function (orbitingBody) {
     col = document.createElement('div');
     col.className = 'col3';
     var wrapper = document.createElement('div');
-    wrapper.title = 'configure time of flight bounds';
+    wrapper.title = 'configure leg time of flight range';
     wrapper.className = 'rangeslider-wrapper center-vertically';
     var markerPositions = [];
     var orbitalPeriod = this._orbitingBody.getOrbitalPeriod() * utility.SEC_TO_DAY;
@@ -89,6 +89,7 @@ gui.FaceSelector = function (orbitingBody) {
     centerVertically.style.height = '80%';
 
     this._cancelElement = document.createElement('img');
+    this._cancelElement.title = 'abort configuration';
     this._cancelElement.className = 'button';
     this._cancelElement.src = 'res/svg/cancel.svg';
     this._cancelElement.onclick = function () {
@@ -98,6 +99,7 @@ gui.FaceSelector = function (orbitingBody) {
     centerVertically.appendChild(this._cancelElement);
 
     this._confirmElement = document.createElement('img');
+    this._confirmElement.title = 'confirm configuration';
     this._confirmElement.className = 'button';
     this._confirmElement.src = 'res/svg/confirm.svg';
     this._confirmElement.style.display = 'none';
@@ -119,6 +121,7 @@ gui.FaceSelector = function (orbitingBody) {
     col.className = 'col1';
 
     this._selector = document.createElement('select');
+    this._selector.title = 'select surface projection';
     this._selector.className = 'center-vertically text-fit';
     this._selector.id = 'select' + this._id;
     this._selector.innerHTML = '<option value="0">mercator</option> \
@@ -133,7 +136,7 @@ gui.FaceSelector = function (orbitingBody) {
     col.className = 'col2';
 
     img = document.createElement('img');
-    img.title = 'toggle beta and radius bounds';
+    img.title = 'toggle beta and radius range';
     img.className = 'button-icon center-horizontally center-vertically';
     img.src = 'res/svg/angleicon.svg';
     img.style.visibility = 'hidden';
@@ -149,7 +152,7 @@ gui.FaceSelector = function (orbitingBody) {
     col = document.createElement('div');
     col.className = 'col3';
     wrapper = document.createElement('div');
-    wrapper.title = 'configure beta bounds';
+    wrapper.title = 'configure flyby angle range';
     wrapper.className = 'rangeslider-wrapper center-vertically';
     this._betaRangeSlider = new gui.RangeSlider(wrapper);
     col.appendChild(wrapper);
@@ -158,7 +161,7 @@ gui.FaceSelector = function (orbitingBody) {
     col = document.createElement('div');
     col.className = 'col4';
     img = document.createElement('img');
-    img.title = 'toggle beta and radius bounds';
+    img.title = 'toggle beta and radius range';
     img.src = 'res/svg/radiusicon.svg';
     img.className = 'button-icon center-horizontally center-vertically';
     img.style.visibility = 'hidden';
@@ -175,7 +178,7 @@ gui.FaceSelector = function (orbitingBody) {
     col = document.createElement('div');
     col.className = 'col5';
     wrapper = document.createElement('div');
-    wrapper.title = 'configure radius bounds';
+    wrapper.title = 'configure relative flyby distance range';
     wrapper.className = 'rangeslider-wrapper center-vertically';
     this._radiusRangeSlider = new gui.RangeSlider(wrapper);
     col.appendChild(wrapper);

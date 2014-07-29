@@ -56,6 +56,7 @@ gui.TransferLegSelector = function (orbitingBody) {
         self._confirmAndClose();
     };
     flybyButton.className = 'button center-vertically center-horizontally';
+    flybyButton.title = 'perform flyby at ' + this._orbitingBody.getName();
     flybyButton.src = 'res/svg/flyby.svg';
     flybyButtonCol.appendChild(flybyButton);
 
@@ -67,6 +68,7 @@ gui.TransferLegSelector = function (orbitingBody) {
         self._confirmAndClose();
     };
     landingButton.className = 'button center-vertically center-horizontally';
+    landingButton.title = 'perform landing at ' + this._orbitingBody.getName();
     landingButton.src = 'res/svg/landing.svg';
     landingButtonCol.appendChild(landingButton);
 

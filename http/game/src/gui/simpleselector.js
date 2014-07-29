@@ -56,6 +56,13 @@ gui.SimpleSelector = function (orbitingBody) {
     this._toolBoxWrapper = document.createElement('div');
     this._toolBoxWrapper.className = 'content-wrapper';
 
+    this._infoBar = document.createElement('div');
+    this._infoBar.className = 'row1 text-fit';
+    this._infoBar.textContent = 'hello world!';
+
+    var toolRow = document.createElement('div');
+    toolRow.className = 'row2';
+
     var imageCol = document.createElement('div');
     imageCol.className = 'col1';
     this._imageElement = document.createElement('img');
@@ -79,6 +86,7 @@ gui.SimpleSelector = function (orbitingBody) {
     col = document.createElement('div');
     col.className = 'col2';
     var wrapper = document.createElement('div');
+    wrapper.title = 'configure launch epoch range';
     wrapper.className = 'rangeslider-wrapper center-vertically center-horizontally';
     wrapper.style.height = '60%';
     wrapper.style.width = '90%';
@@ -101,7 +109,8 @@ gui.SimpleSelector = function (orbitingBody) {
 
     col = document.createElement('div');
     col.className = 'col2';
-    var wrapper = document.createElement('div');
+    wrapper = document.createElement('div');
+    wrapper.title = 'configure velocity range';
     wrapper.className = 'rangeslider-wrapper center-vertically center-horizontally';
     wrapper.style.height = '60%';
     wrapper.style.width = '90%';
@@ -125,6 +134,7 @@ gui.SimpleSelector = function (orbitingBody) {
     col = document.createElement('div');
     col.className = 'col2';
     wrapper = document.createElement('div');
+    wrapper.title = 'configure relative flyby distance range';
     wrapper.className = 'rangeslider-wrapper center-vertically center-horizontally';
     wrapper.style.height = '60%';
     wrapper.style.width = '90%';
@@ -148,6 +158,7 @@ gui.SimpleSelector = function (orbitingBody) {
     col = document.createElement('div');
     col.className = 'col2';
     wrapper = document.createElement('div');
+    wrapper.title = 'configure flyby angle range';
     wrapper.className = 'rangeslider-wrapper center-vertically center-horizontally';
     wrapper.style.height = '60%';
     wrapper.style.width = '90%';
@@ -171,6 +182,7 @@ gui.SimpleSelector = function (orbitingBody) {
     col = document.createElement('div');
     col.className = 'col2';
     wrapper = document.createElement('div');
+    wrapper.title = 'configure leg time of flight range';
     wrapper.className = 'rangeslider-wrapper center-vertically center-horizontally';
     wrapper.style.height = '60%';
     wrapper.style.width = '90%';
@@ -188,8 +200,8 @@ gui.SimpleSelector = function (orbitingBody) {
     row.appendChild(col);
     toolBoxCol.appendChild(row);
 
-    var buttonContainer = document.createElement('div');
-    buttonContainer.className = 'col3';
+    var buttonCol = document.createElement('div');
+    buttonCol.className = 'col3';
 
     var centerVertically = document.createElement('div');
     centerVertically.className = 'center-vertically center-horizontally';
@@ -197,6 +209,7 @@ gui.SimpleSelector = function (orbitingBody) {
     centerVertically.style.height = '70%';
 
     this._cancelElement = document.createElement('img');
+    this._cancelElement.title = 'abort configuration';
     this._cancelElement.className = 'button';
     this._cancelElement.style.bottom = 0;
     this._cancelElement.src = 'res/svg/cancel.svg';
@@ -207,6 +220,7 @@ gui.SimpleSelector = function (orbitingBody) {
     centerVertically.appendChild(this._cancelElement);
 
     this._confirmElement = document.createElement('img');
+    this._confirmElement.title = 'confirm configuration';
     this._confirmElement.className = 'button';
     this._confirmElement.src = 'res/svg/confirm.svg';
     this._confirmElement.style.top = 0;
@@ -215,11 +229,13 @@ gui.SimpleSelector = function (orbitingBody) {
         self._confirmAndClose();
     };
     centerVertically.appendChild(this._confirmElement);
-    buttonContainer.appendChild(centerVertically);
+    buttonCol.appendChild(centerVertically);
 
-    this._toolBoxWrapper.appendChild(imageCol);
-    this._toolBoxWrapper.appendChild(toolBoxCol);
-    this._toolBoxWrapper.appendChild(buttonContainer);
+    toolRow.appendChild(imageCol);
+    toolRow.appendChild(toolBoxCol);
+    toolRow.appendChild(buttonCol);
+    this._toolBoxWrapper.appendChild(this._infoBar);
+    this._toolBoxWrapper.appendChild(toolRow);
     contextWrapper.appendChild(this._toolBoxWrapper);
     this._containerElement.appendChild(contextWrapper);
     this._backgroundElement.appendChild(this._containerElement);
@@ -238,6 +254,7 @@ gui.SimpleSelector.prototype._showFlybyConfiguration = function () {
     this._betaRangeSlider.show();
     this._timeOfFlightRangeSlider.show();
     this._resetSelection();
+    this._infoBar.textContent = 'configure flyby at ' + this._orbitingBody.getName() + ' heading to ' + this._userAction.nextOrbitingBody.getName() + ' for ' + (this._userAction.performLanding ? 'landing' : 'flyby');
 };
 
 gui.SimpleSelector.prototype._showLaunchConfiguration = function () {
@@ -248,6 +265,7 @@ gui.SimpleSelector.prototype._showLaunchConfiguration = function () {
     this._timeOfFlightRangeSlider.show();
     this._velocityRangeSlider.show();
     this._resetSelection();
+    this._infoBar.textContent = 'configure launch from ' + this._orbitingBody.getName() + ' to ' + this._userAction.nextOrbitingBody.getName() + ' for ' + (this._userAction.performLanding ? 'landing' : 'flyby');
 };
 
 gui.SimpleSelector.prototype._hideConfiguration = function () {
@@ -355,6 +373,7 @@ gui.SimpleSelector.prototype.hide = function () {
     this._orbitingBody.onConfigurationWindowOut();
     this._backgroundElement.style.display = 'none';
     this._hideConfiguration();
+    this._infoBar.textContent = '';
     this._isVisible = false;
     this._isEditable = false;
 };
