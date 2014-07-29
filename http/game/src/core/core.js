@@ -37,7 +37,8 @@ var core = {};
         MISSION_ID_AVAILABLE: 6,
         ENGINE_INITIALIZED: 7,
         ORBITING_BODIES_MAPPING_REQUEST: 8,
-        GAME_HISTORY_CHANGE: 9
+        GAME_HISTORY_CHANGE: 9,
+        MISSION_REVISION_AVAILABLE: 10
     };
 
     //Exposed Interface

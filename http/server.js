@@ -42,7 +42,7 @@ var Server = {};
     // Server Configuration
     var SESSION_TIMEOUT = 30 * 60;
     var VERBOSE = true;
-    var PORT = 8080;
+    var PORT = 8081;
     var ENABLE_HTTPS = false;
     var SESSION_ID_LENGTH = 48;
     var SESSION_CLEANING_INTERVAL = 300;
@@ -595,7 +595,7 @@ var Server = {};
                         bestScore = score;
                     }
                 }
-                if (bestScore) {
+                if (bestScore && bestScore.score != 0) {
                     var scores = dbConnection.collection('scores');
                     var query = {
                         userID: user._id,
@@ -897,7 +897,8 @@ var Server = {};
                             if (saveGame) {
                                 response.write(JSON.stringify({
                                     deltaIndex: saveGame.deltaIndex,
-                                    name: saveGame.name
+                                    name: saveGame.name,
+                                    missionRevision: saveGame.missionRevision
                                 }));
                             } else {
                                 response.write(JSON.stringify({

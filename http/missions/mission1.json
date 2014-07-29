@@ -1,11 +1,13 @@
 {
     "mission": {
         "id": 1,
+        "revision": 0,
 
         "maximumMissionDuration": 5478.75,
 
-        "funIsInvalidState": "return [];",
-        "funIsWinningState": "var orbBodyID = gameState.getOrbitingBody().getID(); if(orbBodyID == 7) {gameState.setScore(Math.floor((1 - gameEngine._funGetTimeUsage(gameState)) * 10000 + (1 - gameState.getTotalDeltaV() / gameState.getVehicle().getTotalDeltaV()) * 10000)); return true;} else {return false;};",
+        "funIsInvalidState": null,
+        "funSetScoreForState": "var orbBodyID = gameState.getOrbitingBody().getID(); if(orbBodyID == 7) {gameState.setScore(Math.floor((1 - gameState.getPassedDays()/5478.75) * 10000 + (1 - gameState.getTotalDeltaV() / gameState.getVehicle().getTotalDeltaV()) * 10000));}",
+        "funIsWinningState": "var orbBodyID = gameState.getOrbitingBody().getID(); return orbBodyID == 7;",
         "funGetWinningProgress": "var score = gameState.getScore(); return score/20000;",
 
         "centralBody": {
@@ -306,7 +308,6 @@
                         "timeOfFlight": 0,
                         "mappedFaceID": ""
                     },
-                    "score": 0,
                     "totalDeltaV": 0,
                     "mappedFaces": {},
                     "vehicle": {

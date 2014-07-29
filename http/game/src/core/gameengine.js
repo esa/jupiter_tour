@@ -19,6 +19,7 @@ core.GameEngine = function () {
     this._funIsWinningState = null;
     this._funGetTimeUsage = null;
     this._funGetWinningProgress = null;
+    this._funSetScoreForState = null;
 
     this._userAction = {
         nextOrbitingBody: null,
@@ -44,7 +45,6 @@ core.GameEngine = function () {
     this._centralBody = null;
     this._orbitingBodies = {};
     this._orbitingBodyMeshs = [];
-    this._maximumMissionDuration = 0;
 
     this._busyIndicator = new gui.BusyIndicator();
 
@@ -284,7 +284,7 @@ core.GameEngine.prototype = {
         }
     },
 
-    _markIfInvalidGameState: function (gameState, dsmResult) {
+    _markAndSetScoreForGameState: function (gameState, dsmResult) {
         var reasonIDs = [];
         if (this._funGetTimeUsage(gameState) > 1) {
             reasonIDs.push(strings.FinalStateReasonIDs.MAX_MISSION_EPOCH);
@@ -303,14 +303,18 @@ core.GameEngine.prototype = {
         if (reasonIDs.length) {
             gameState.markInvalid(reasonIDs);
         }
-    },
-
-    _markIfWinningGameState: function (gameState) {
         if (this._funIsWinningState) {
             if (!gameState.isInvalid()) {
                 if (this._funIsWinningState(gameState)) {
                     gameState.markWinning();
                 }
+            }
+        }
+        if (gameState.isInvalid()) {
+            gameState.setScore(0);
+        } else {
+            if (this._funSetScoreForState) {
+                this._funSetScoreForState(gameState);
             }
         }
     },
@@ -418,8 +422,7 @@ core.GameEngine.prototype = {
             };
 
             var newGameState1 = new core.GameState(currentBody, epoch, passedDays, totalDeltaV, score, vehicle, currentGameState.getMappedFaces(), transferLeg);
-            this._markIfInvalidGameState(newGameState1);
-            this._markIfWinningGameState(newGameState1);
+            this._markAndSetScoreForGameState(newGameState1);
 
             flybyResult = currentBody.computeFlybyFaceAndCoords(epoch, velocityInf, chromosome[1], chromosome[2]);
             faceValue = currentBody.getFaceValue(flybyResult.faceID);
@@ -454,8 +457,7 @@ core.GameEngine.prototype = {
             };
 
             var newGameState2 = new core.GameState(nextBody, epoch, passedDays, totalDeltaV, score, vehicle, currentGameState.getMappedFaces(), transferLeg);
-            this._markIfInvalidGameState(newGameState2, dsmResult);
-            this._markIfWinningGameState(newGameState2);
+            this._markAndSetScoreForGameState(newGameState2, dsmResult);
 
             this._gameHistoryManager.unlock();
             this._gameHistoryManager.add(newGameState1, true);
@@ -505,8 +507,7 @@ core.GameEngine.prototype = {
             };
 
             var newGameState = new core.GameState(nextBody, epoch, passedDays, totalDeltaV, score, vehicle, currentGameState.getMappedFaces(), transferLeg);
-            this._markIfInvalidGameState(newGameState, dsmResult);
-            this._markIfWinningGameState(newGameState);
+            this._markAndSetScoreForGameState(newGameState, dsmResult);
 
             this._gameHistoryManager.unlock();
             this._gameHistoryManager.add(newGameState, false);
@@ -598,6 +599,11 @@ core.GameEngine.prototype = {
         var self = this;
         this._setBusy();
 
+        var missionRevision = mission.revision;
+        this._dispatchEvent(core.GameEvents.MISSION_REVISION_AVAILABLE, {
+            missionRevision: missionRevision
+        });
+
         var maxApoapsis = 0;
         var minPeriapsis = Number.POSITIVE_INFINITY;
         for (var currentBodyID in mission.orbitingBodies) {
@@ -639,12 +645,13 @@ core.GameEngine.prototype = {
         this._cameraController.setMaxRadius(maxApoapsis * 8);
         this._cameraController.setMinRadius(minPeriapsis * 5);
 
-        this._funIsInvalidState = Function('gameState', mission.funIsInvalidState);
-        this._funIsWinningState = Function('gameState', mission.funIsWinningState);
+        this._funIsInvalidState = mission.funIsInvalidState != null ? Function('gameState', mission.funIsInvalidState) : null;
+        this._funIsWinningState = mission.funIsWinningState != null ? Function('gameState', mission.funIsWinningState) : null;
+        this._funSetScoreForState = mission.funSetScoreForState != null ? Function('gameState', mission.funSetScoreForState) : null;
 
-        this._maximumMissionDuration = mission.maximumMissionDuration;
+        var maximumMissionDuration = mission.maximumMissionDuration;
         this._funGetTimeUsage = function (gameState) {
-            return gameState.getPassedDays() / self._maximumMissionDuration;
+            return gameState.getPassedDays() / maximumMissionDuration;
         };
         this._funGetWinningProgress = Function('gameState', mission.funGetWinningProgress);
 
@@ -670,12 +677,6 @@ core.GameEngine.prototype = {
             node = nodes[id];
             gameState = node.gameState;
             var currentBody = this._orbitingBodies[gameState.orbitingBodyID];
-            var previousNode = null;
-            var previousOBody = null;
-            if (node.parentID != null) {
-                previousNode = nodes[parents[node.id]];
-                previousOBody = this._orbitingBodies[previousNode.gameState.orbitingBodyID];
-            }
             var chromosome = gameState.transferLeg.chromosome;
             var epoch = gameState.epoch;
             var passedDays = gameState.passedDays;
@@ -683,7 +684,7 @@ core.GameEngine.prototype = {
             var problemType = gameState.transferLeg.problemType;
             var timeOfFlight = gameState.transferLeg.timeOfFlight;
             var totalDeltaV = gameState.totalDeltaV;
-            var score = gameState.score;
+            var velocityInf = new geometry.Vector3().fromArray(gameState.vehicle.velocityInf);
 
             var stages = [];
             var vehicleData = gameState.vehicle;
@@ -692,32 +693,40 @@ core.GameEngine.prototype = {
                 stages.push(new gui.Stage(stage.propulsionType, stage.mass, stage.emptyMass, stage.remainingMass, stage.thrust, stage.specificImpulse, stage.imageURL));
             }
 
-            vehicle = new gui.Vehicle(new geometry.Vector3().fromArray(gameState.vehicle.velocityInf), stages, gameState.vehicle.isLanded);
+            var vehicle = new gui.Vehicle(velocityInf, stages, gameState.vehicle.isLanded);
 
             var dsmResult = null;
+            var score = 0;
+            var previousNode = null;
+            var previousBody = null;
+            var leg = null;
             if (node.parentID != null) {
+                previousNode = nodes[parents[node.id]];
+                previousBody = this._orbitingBodies[previousNode.gameState.orbitingBodyID];
                 var parentGameState = gameStates[node.parentID];
                 var parentVehicle = parentGameState.getVehicle();
+                var parentScore = parentGameState.getScore();
                 var numStages = parentVehicle.getStages().length;
                 if (numStages > 1 && problemType == astrodynamics.ProblemTypes.MGA1DSM_LAUNCH) {
                     parentVehicle.jettisonStage();
                 }
                 dsmResult = parentVehicle.performManeuver(deltaV, timeOfFlight * utility.DAY_TO_SEC);
-            }
+                flybyResult = previousBody.computeFlybyFaceAndCoords(parentGameState.getEpoch(), parentVehicle.getVelocityInf(), chromosome[1], chromosome[2]);
+                faceValue = previousBody.getFaceValue(flybyResult.faceID);
+                score = parentScore += faceValue;
 
-            var leg = null;
-            if (node.parentID != null) {
                 switch (problemType) {
                 case astrodynamics.ProblemTypes.MGA1DSM_LAUNCH:
-                    leg = new gui.LaunchLeg(chromosome, previousOBody, currentBody);
+                    leg = new gui.LaunchLeg(chromosome, previousBody, currentBody);
                     leg.setGradient(dsmResult.gravityLoss);
                     break;
                 case astrodynamics.ProblemTypes.MGA1DSM_FLYBY:
-                    leg = new gui.FlybyLeg(chromosome, previousOBody, currentBody, new geometry.Vector3().fromArray(previousNode.gameState.vehicle.velocityInf), previousNode.gameState.epoch);
+                    leg = new gui.FlybyLeg(chromosome, previousBody, currentBody, new geometry.Vector3().fromArray(previousNode.gameState.vehicle.velocityInf), previousNode.gameState.epoch);
                     leg.setGradient(dsmResult.gravityLoss);
                     break;
                 }
             }
+
             var mappedFaceID = gameState.transferLeg.mappedFaceID;
             var mappedFaces = {};
             for (var faceID in gameState.mappedFaces) {
@@ -741,10 +750,7 @@ core.GameEngine.prototype = {
             };
 
             var gameState = new core.GameState(currentBody, epoch, passedDays, totalDeltaV, score, vehicle, mappedFaces, transferLeg);
-
-            this._markIfInvalidGameState(gameState, dsmResult);
-            this._markIfWinningGameState(gameState);
-
+            this._markAndSetScoreForGameState(gameState, dsmResult);
             gameStates[node.id] = gameState;
         }
 
