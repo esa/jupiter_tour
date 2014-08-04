@@ -42,7 +42,7 @@ var Server = {};
     // Server Configuration
     var SESSION_TIMEOUT = 30 * 60;
     var VERBOSE = true;
-    var PORT = 8080;
+    var PORT = 8081;
     var ENABLE_HTTPS = false;
     var SESSION_ID_LENGTH = 48;
     var SESSION_CLEANING_INTERVAL = 300;
@@ -355,7 +355,7 @@ var Server = {};
         });
     }
 
-    function addSaveGame(user, missionID, name, deltaData, date, callback) {
+    function addSaveGame(user, missionID, missionRevision, name, deltaData, date, callback) {
         if (missionID != null && deltaData.nodes && deltaData.nodeHistory && Object.keys(deltaData.nodes).length && deltaData.nodeHistory.length) {
             var saveGames = dbConnection.collection('savegames');
             if (user && name) {
@@ -378,6 +378,7 @@ var Server = {};
                         name: name,
                         submission: date,
                         missionID: missionID,
+                        missionRevision: missionRevision,
                         deltaIndex: deltaData.nodeHistory.length
                     };
                     saveGames.insert(record, function (error, records) {
@@ -398,6 +399,7 @@ var Server = {};
                     name: name,
                     submission: date,
                     missionID: missionID,
+                    missionRevision: missionRevision,
                     deltaIndex: deltaData.nodeHistory.length
                 };
                 saveGames.insert(record, function (error, records) {
@@ -413,7 +415,7 @@ var Server = {};
         }
     }
 
-    function updateSaveGame(gameID, user, missionID, name, deltaData, deltaIndex, date, callback) {
+    function updateSaveGame(gameID, user, missionID, missionRevision, name, deltaData, deltaIndex, date, callback) {
         if (!gameID) {
             callback(null);
             return;
@@ -440,7 +442,7 @@ var Server = {};
                             callback(null);
                             return;
                         }
-                        if (deltaIndex == record.deltaIndex) {
+                        if (deltaIndex == record.deltaIndex && missionRevision == record.missionRevision) {
                             for (var id in deltaData.nodes) {
                                 record.data.nodes[id] = deltaData.nodes[id];
                             }
@@ -453,6 +455,7 @@ var Server = {};
                             record.name = name;
                             record.submission = date;
                             record.missionID = missionID != null ? missionID : record.missionID;
+                            record.missionRevision = missionRevision;
                             record.deltaIndex = deltaData.nodeHistory.length;
                         }
                         if (record.data.nodeHistory.length) {
@@ -479,7 +482,7 @@ var Server = {};
                         }
                     });
                 } else {
-                    if (deltaIndex == record.deltaIndex) {
+                    if (deltaIndex == record.deltaIndex && missionRevision == record.missionRevision) {
                         for (var id in deltaData.nodes) {
                             record.data.nodes[id] = deltaData.nodes[id];
                         }
@@ -492,6 +495,7 @@ var Server = {};
                         record.name = name;
                         record.submission = date;
                         record.missionID = missionID != null ? missionID : record.missionID;
+                        record.missionRevision = missionRevision;
                         record.deltaIndex = deltaData.nodeHistory.length;
                     }
                     if (record.data.nodeHistory.length) {
@@ -813,16 +817,17 @@ var Server = {};
             getUserForSession(session, function (user) {
                 var gameID = request.body.gameID;
                 var missionID = request.body.missionID;
+                var missionRevision = request.body.missionRevision;
                 var name = request.body.name;
                 var deltaData = request.body.deltaData;
                 var deltaIndex = request.body.deltaIndex;
-                if ((deltaData != null) && (deltaIndex != null) && (gameID != null)) {
+                if ((deltaData != null) && (deltaIndex != null) && (gameID != null) && (missionRevision != null)) {
                     gameID = new mongodb.ObjectID.createFromHexString(gameID);
                     missionID = missionID != null ? parseInt(missionID) : null;
                     name = name != null ? escape(name) : null;
                     deltaData = JSON.parse(deltaData);
                     deltaIndex = parseInt(deltaIndex);
-                    updateSaveGame(gameID, user, missionID, name, deltaData, deltaIndex, now, function (saveGame) {
+                    updateSaveGame(gameID, user, missionID, parseInt(missionRevision), name, deltaData, deltaIndex, now, function (saveGame) {
                         if (!saveGame) {
                             sendErrorResponse(response, 500);
                             return;
@@ -831,6 +836,7 @@ var Server = {};
                             response.setHeader('Content-Type', 'application/json');
                             response.write(JSON.stringify({
                                 gameID: saveGame._id.toHexString(),
+                                missionRevision: saveGame.missionRevision,
                                 deltaIndex: saveGame.deltaIndex
                             }));
                             response.end();
@@ -851,19 +857,21 @@ var Server = {};
         searchSession(request, now, function (session) {
             getUserForSession(session, function (user) {
                 var missionID = request.body.missionID;
+                var missionRevision = request.body.missionRevision;
                 var name = request.body.name;
                 var deltaData = request.body.deltaData;
-                if ((deltaData != null) && (missionID != null)) {
+                if ((deltaData != null) && (missionID != null) && (missionRevision != null)) {
                     deltaData = JSON.parse(deltaData);
                     name = name != null ? escape(name) : null;
-                    addSaveGame(user, parseInt(missionID), name, deltaData, now, function (saveGame) {
+                    addSaveGame(user, parseInt(missionID), parseInt(missionRevision), name, deltaData, now, function (saveGame) {
                         if (!saveGame) {
                             sendErrorResponse(response, 500);
                             return;
                         }
                         response.setHeader('Content-Type', 'application/json');
                         response.write(JSON.stringify({
-                            gameID: saveGame._id.toHexString()
+                            gameID: saveGame._id.toHexString(),
+                            missionRevision: saveGame.missionRevision
                         }));
                         response.end();
                         log('HTTP: Autosave init request completed');
@@ -897,12 +905,13 @@ var Server = {};
                             if (saveGame) {
                                 response.write(JSON.stringify({
                                     deltaIndex: saveGame.deltaIndex,
-                                    name: saveGame.name,
-                                    missionRevision: saveGame.missionRevision
+                                    missionRevision: saveGame.missionRevision,
+                                    name: saveGame.name
                                 }));
                             } else {
                                 response.write(JSON.stringify({
                                     deltaIndex: 0,
+                                    missionRevision: -1,
                                     name: ''
                                 }));
                             }

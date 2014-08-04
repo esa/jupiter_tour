@@ -56,6 +56,7 @@ var plugin = {};
         this._gameExpiringDays = 7;
         this._isInitialized = false;
         this._missionID = null;
+        this._missionRevision = null;
         this._isSaved = false;
         this._gameID = '';
         this._isBusy = false;
@@ -70,6 +71,11 @@ var plugin = {};
                     gameID: self._gameID
                 }, function (saveGameInfos) {
                     var deltaIndex = saveGameInfos.deltaIndex;
+                    var missionRevision = saveGameInfos.missionRevision;
+
+                    if (missionRevision != self._missionRevision) {
+                        deltaIndex = 0;
+                    }
 
                     var gameHistory = self._gameEngine.pluginEvent(core.GameEvents.GAME_HISTORY_REQUEST, {
                         compressed: false
@@ -89,6 +95,7 @@ var plugin = {};
                         net.sendPOSTRequest({
                             type: 'savegameupdate',
                             gameID: self._gameID,
+                            missionRevision: self._missionRevision,
                             deltaData: deltaGameHistory,
                             deltaIndex: deltaIndex
                         }, function (saveGameInfos) {
@@ -128,6 +135,18 @@ var plugin = {};
             this._gameID = eventData.gameID;
             break;
 
+        case core.GameEvents.MISSION_ID_AVAILABLE:
+            this._missionID = eventData.missionID;
+            break;
+
+        case core.GameEvents.MISSION_REVISION_AVAILABLE:
+            this._missionRevision = eventData.missionRevision;
+            break;
+
+        case core.GameEvents.MISSION_REVISION_CHANGE:
+            this._missionRevision = eventData.missionRevision;
+            break;
+
         case core.GameEvents.GAME_HISTORY_CHANGE:
             this._isSaved =  false;
             if (!this._isInitialized) {
@@ -154,12 +173,17 @@ var plugin = {};
                             net.sendPOSTRequest({
                                 type: 'savegameinit',
                                 missionID: this._missionID,
+                                missionRevision: this._missionRevision,
                                 deltaData: deltaGameHistory
                             }, function (saveGameInfos) {
                                 self._gameID = saveGameInfos.gameID;
+                                self._missionRevision = saveGameInfos.missionRevision;
                                 net.replaceCookie('gameID', self._gameID, self._gameExpiringDays);
                                 self._gameEngine.pluginEvent(core.GameEvents.GAME_ID_CHANGE, {
                                     gameID: self._gameID
+                                });
+                                self._gameEngine.pluginEvent(core.GameEvents.MISSION_REVISION_CHANGE, {
+                                    missionRevision: self._missionRevision
                                 });
                                 setTimeout(self._funAutoSave, self._logInterval * 1000);
                                 console.log('Autosave running');
@@ -180,10 +204,6 @@ var plugin = {};
                     }
                 }
             }
-            break;
-
-        case core.GameEvents.MISSION_ID_AVAILABLE:
-            this._missionID = eventData.missionID;
             break;
         }
     };
@@ -327,6 +347,7 @@ var plugin = {};
         this._doRedirect = false;
         this._isSaved = true;
         this._missionID = null;
+        this._missionRevision = null;
         this._gameID = '';
         this._isLoggedIn = net.isLoggedIn();
 
@@ -374,14 +395,19 @@ var plugin = {};
                         net.sendPOSTRequest({
                             type: 'savegameinit',
                             missionID: this._missionID,
+                            missionRevision: this._missionRevision,
                             name: data.saveName,
                             deltaData: deltaGameHistory
                         }, function (saveGameInfos) {
                             self._gameID = saveGameInfos.gameID;
+                            self._missionRevision = saveGameInfos.missionRevision;
                             net.replaceCookie('gameID', self._gameID, self._gameExpiringDays);
                             self._saveWindow.close();
                             self._gameEngine.pluginEvent(core.GameEvents.GAME_ID_CHANGE, {
                                 gameID: self._gameID
+                            });
+                            self._gameEngine.pluginEvent(core.GameEvents.MISSION_REVISION_CHANGE, {
+                                missionRevision: self._missionRevision
                             });
                             self._isSaved = true;
                             if (self._doRedirect) {
@@ -398,6 +424,9 @@ var plugin = {};
                             }, function (saveGameInfos) {
                                 if (saveGameInfos.name == null || saveGameInfos.name == data.saveName) {
                                     var deltaIndex = saveGameInfos.deltaIndex;
+                                    if (saveGameInfos.missionRevision != self._missionRevision) {
+                                        deltaIndex = 0;
+                                    }
 
                                     var gameHistory = self._gameEngine.pluginEvent(core.GameEvents.GAME_HISTORY_REQUEST, {
                                         compressed: false
@@ -417,6 +446,7 @@ var plugin = {};
                                         net.sendPOSTRequest({
                                             type: 'savegameupdate',
                                             gameID: self._gameID,
+                                            missionRevision: self._missionRevision,
                                             deltaData: deltaGameHistory,
                                             deltaIndex: deltaIndex,
                                             name: data.saveName
@@ -456,13 +486,18 @@ var plugin = {};
                                     net.sendPOSTRequest({
                                         type: 'savegameinit',
                                         missionID: self._missionID,
+                                        missionRevision: self._missionRevision,
                                         name: data.saveName,
                                         deltaData: deltaGameHistory
                                     }, function (saveGameInfos) {
                                         self._gameID = saveGameInfos.gameID;
+                                        self._missionRevision = saveGameInfos.missionRevision;
                                         self._saveWindow.close();
                                         self._gameEngine.pluginEvent(core.GameEvents.GAME_ID_CHANGE, {
                                             gameID: self._gameID
+                                        });
+                                        self._gameEngine.pluginEvent(core.GameEvents.MISSION_REVISION_CHANGE, {
+                                            missionRevision: self._missionRevision
                                         });
                                         self._isSaved = true;
                                         if (self._doRedirect) {
@@ -487,7 +522,7 @@ var plugin = {};
                     gameID: data.gameID
                 }, function (saveGameInfos) {
                     var deltaIndex;
-                    if (data.gameID != self._gameID) {
+                    if (data.gameID != self._gameID || saveGameInfos.missionRevision != self._missionRevision) {
                         deltaIndex = 0;
                     } else {
                         deltaIndex = saveGameInfos.deltaIndex;
@@ -510,6 +545,7 @@ var plugin = {};
                         net.sendPOSTRequest({
                             type: 'savegameupdate',
                             gameID: data.gameID,
+                            missionRevision: self._missionRevision,
                             deltaData: deltaGameHistory,
                             deltaIndex: deltaIndex,
                             missionID: self._missionID,
@@ -550,6 +586,18 @@ var plugin = {};
 
         case core.GameEvents.GAME_ID_CHANGE:
             this._gameID = eventData.gameID;
+            break;
+
+        case core.GameEvents.MISSION_ID_AVAILABLE:
+            this._missionID = eventData.missionID;
+            break;
+
+        case core.GameEvents.MISSION_REVISION_AVAILABLE:
+            this._missionRevision = eventData.missionRevision;
+            break;
+
+        case core.GameEvents.MISSION_REVISION_CHANGE:
+            this._missionRevision = eventData.missionRevision;
             break;
 
         case core.GameEvents.ENGINE_INITIALIZED:
@@ -606,10 +654,6 @@ var plugin = {};
                 break;
             }
             break;
-
-        case core.GameEvents.MISSION_ID_AVAILABLE:
-            this._missionID = eventData.missionID;
-            break;
         }
     };
 
@@ -634,6 +678,9 @@ var plugin = {};
                 net.sendGETRequest('/missions/' + gameID + '.json', 'json', {}, function (missionData) {
                     self._gameEngine.pluginEvent(core.GameEvents.MISSION_ID_AVAILABLE, {
                         missionID: missionData.mission.id
+                    });
+                    self._gameEngine.pluginEvent(core.GameEvents.MISSION_REVISION_AVAILABLE, {
+                        missionRevision: missionData.mission.revision
                     });
                     self._gameEngine.pluginEvent(core.GameEvents.SETUP_GAME, {
                         mission: missionData.mission,

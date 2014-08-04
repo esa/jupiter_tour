@@ -15,7 +15,7 @@ core.GameEngine = function () {
     this._gameHistoryManager = null;
     this._solver = null;
 
-    this._funIsInvalidState = null;
+    this._funSetInvalidReasonsForState = null;
     this._funIsWinningState = null;
     this._funGetTimeUsage = null;
     this._funGetWinningProgress = null;
@@ -297,8 +297,8 @@ core.GameEngine.prototype = {
         if (this._funGetTimeUsage(gameState) > 1) {
             reasonIDs.push(strings.FinalStateReasonIDs.MAX_MISSION_EPOCH);
         }
-        if (this._funIsInvalidState) {
-            reasonIDs.concat(this._funIsInvalidState(gameState));
+        if (this._funSetInvalidReasonsForState) {
+            reasonIDs.concat(this._funSetInvalidReasonsForState(gameState));
         }
         if (dsmResult) {
             if (dsmResult.hasDeltaVLimitation) {
@@ -658,7 +658,7 @@ core.GameEngine.prototype = {
         this._cameraController.setMaxRadius(maxApoapsis * 8);
         this._cameraController.setMinRadius(minPeriapsis * 5);
 
-        this._funIsInvalidState = mission.funIsInvalidState != null ? Function('gameState', mission.funIsInvalidState) : null;
+        this._funSetInvalidReasonsForState = mission.funSetInvalidReasonsForState != null ? Function('gameState', mission.funSetInvalidReasonsForState) : null;
         this._funIsWinningState = mission.funIsWinningState != null ? Function('gameState', mission.funIsWinningState) : null;
         this._funSetScoreForState = mission.funSetScoreForState != null ? Function('gameState', mission.funSetScoreForState) : null;
 
@@ -674,12 +674,10 @@ core.GameEngine.prototype = {
         var gameStates = {};
         var parents = {};
         var rootNode = null;
-        var maxNodeID = 0;
         var rootLessNodes = {};
         var node = null;
         for (var id in nodes) {
             node = nodes[id];
-            maxNodeID = Math.max(maxNodeID, node.id);
             if (node.parentID == null) {
                 parents[node.id] = node.id;
                 rootNode = node;
@@ -729,7 +727,7 @@ core.GameEngine.prototype = {
         for (var id in rootLessNodes) {
             parentGameState = gameStates[parents[id]];
 
-            if (!parentGameState.isInvalid()) {
+            if (parentGameState != null && !parentGameState.isInvalid()) {
                 node = rootLessNodes[id];
                 gameStateData = node.gameState;
                 currentBody = this._orbitingBodies[gameStateData.orbitingBodyID];
@@ -800,24 +798,34 @@ core.GameEngine.prototype = {
             }
         }
 
+
         var rootNode = new core.HistoryNode(gameStates[rootNode.id], rootNode.id);
         rootNode.setHistorySequenceNr(0);
         var key = rootNode.getKey();
+        var maxNodeID = key;
         var jumpTable = {};
         jumpTable[key] = rootNode;
+
+        var newNodeHistory = [key];
+        var newNodeHistoryLength = 1;
 
         for (var i = 1; i < nodeHistory.length; i++) {
             var id = nodeHistory[i];
             var parentNode = jumpTable[parents[id]];
-            var childNode = parentNode.addChild(gameStates[id], id, nodes[id].isVirtual);
-            childNode.setHistorySequenceNr(i);
-            var childKey = childNode.getKey();
-            jumpTable[childKey] = childNode;
+            if (parentNode != null && !parentNode.getValue().isInvalid()) {
+                var childNode = parentNode.addChild(gameStates[id], id, nodes[id].isVirtual);
+                var childKey = childNode.getKey();
+                newNodeHistory.push(childKey);
+                childNode.setHistorySequenceNr(newNodeHistoryLength);
+                newNodeHistoryLength++;
+                jumpTable[childKey] = childNode;
+                maxNodeID = Math.max(maxNodeID, childKey);
+            }
         }
 
         datastructure.updateIDSeed(maxNodeID + 1);
 
-        this._gameHistoryManager = new core.GameHistoryManager(rootNode, jumpTable, nodeHistory);
+        this._gameHistoryManager = new core.GameHistoryManager(rootNode, jumpTable, newNodeHistory);
         this._scoreHUD = new gui.ScoreHUD(this._gameHistoryManager, {
             funGetWinningProgress: this._funGetWinningProgress,
             funGetTimeUsage: this._funGetTimeUsage
@@ -852,6 +860,14 @@ core.GameEngine.prototype = {
 
         case core.GameEvents.MISSION_ID_AVAILABLE:
             this._dispatchEvent(core.GameEvents.MISSION_ID_AVAILABLE, eventData);
+            break;
+
+        case core.GameEvents.MISSION_REVISION_AVAILABLE:
+            this._dispatchEvent(core.GameEvents.MISSION_REVISION_AVAILABLE, eventData);
+            break;
+
+        case core.GameEvents.MISSION_REVISION_CHANGE:
+            this._dispatchEvent(core.GameEvents.MISSION_REVISION_CHANGE, eventData);
             break;
 
         case core.GameEvents.GAME_ID_CHANGE:

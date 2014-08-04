@@ -8,6 +8,11 @@ Array.prototype.remove = function (pos) {
     return this;
 };
 
+Array.prototype.concat = function (array) {
+    this.push.apply(this, array);
+    return this;
+};
+
 Array.prototype.sum = function () {
     var result = 0;
     for (var i = 0; i < this.length; i++) {
