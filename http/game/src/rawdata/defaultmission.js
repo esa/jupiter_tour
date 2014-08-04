@@ -38,6 +38,7 @@ rawdata.defaultMission = {
                 minRadiusFactor: 1.02737476047,
                 maxRadiusFactor: 2.09499041883,
                 maxTimeOfFlight: 30,
+                maxLaunchDelay: 0,
                 scale: 0.000005,
                 meshMaterialURL: 'res/img/iosurface.jpg',
                 surface: {
@@ -94,6 +95,7 @@ rawdata.defaultMission = {
                 minRadiusFactor: 1.03203074952,
                 maxRadiusFactor: 2.28122998078,
                 maxTimeOfFlight: 30,
+                maxLaunchDelay: 0,
                 scale: 0.000005,
                 meshMaterialURL: 'res/img/europasurface.jpg',
                 surface: {
@@ -150,6 +152,7 @@ rawdata.defaultMission = {
                 minRadiusFactor: 1.01898253607,
                 maxRadiusFactor: 1.759301442678,
                 maxTimeOfFlight: 30,
+                maxLaunchDelay: 0,
                 scale: 0.000005,
                 meshMaterialURL: 'res/img/ganymedesurface.jpg',
                 surface: {
@@ -206,6 +209,7 @@ rawdata.defaultMission = {
                 minRadiusFactor: 1.0207641196,
                 maxRadiusFactor: 1.83056478405,
                 maxTimeOfFlight: 30,
+                maxLaunchDelay: 0,
                 scale: 0.000005,
                 meshMaterialURL: 'res/img/callistosurface.jpg',
                 surface: {
@@ -260,17 +264,6 @@ rawdata.defaultMission = {
                 gameState: {
                     orbitingBodyID: 5,
                     epoch: 58849,
-                    passedDays: 0,
-                    transferLeg: {
-                        problemType: null,
-                        chromosome: [],
-                        deltaV: 0,
-                        timeOfFlight: 0,
-                        mappedFaceID: ''
-                    },
-                    score: 0,
-                    totalDeltaV: 0,
-                    mappedFaces: {},
                     vehicle: {
                         isLanded: false,
                         velocityInf: [1000, -400, 1000],
@@ -278,6 +271,7 @@ rawdata.defaultMission = {
                             {
                                 propulsionType: 0,
                                 mass: 2000,
+                                remainingMass: 2000,
                                 emptyMass: 1000,
                                 thrust: 0.105,
                                 specificImpulse: 3500,
