@@ -3,15 +3,7 @@
 */
 core.GameState = function (orbitingBody, epoch, passedDays, totalDeltaV, score, vehicle, mappedFaces, transferLeg) {
     this._orbitingBody = orbitingBody;
-    this._transferLeg = transferLeg || {
-        chromosome: [],
-        deltaV: 0,
-        timeOfFlight: 0,
-        visualization: null,
-        gravityLoss: 1,
-        mappedFaceID: '',
-        problemType: null
-    };
+    this._transferLeg = transferLeg;
     this._epoch = epoch;
     this._passedDays = passedDays;
     this._score = score;
@@ -40,15 +32,18 @@ core.GameState.prototype = {
     },
 
     getTransferLeg: function () {
-        var leg = {
-            chromosome: this._transferLeg.chromosome.clone(),
-            timeOfFlight: this._transferLeg.timeOfFlight,
-            deltaV: this._transferLeg.deltaV,
-            visualization: this._transferLeg.visualization,
-            gravityLoss: this._transferLeg.gravityLoss,
-            mappedFaceID: this._transferLeg.mappedFaceID,
-            problemType: this._transferLeg.problemType
-        };
+        var leg = null;
+        if (this._transferLeg) {
+            leg = {
+                chromosome: this._transferLeg.chromosome.clone(),
+                timeOfFlight: this._transferLeg.timeOfFlight,
+                deltaV: this._transferLeg.deltaV,
+                visualization: this._transferLeg.visualization,
+                gravityLoss: this._transferLeg.gravityLoss,
+                mappedFaceID: this._transferLeg.mappedFaceID,
+                problemType: this._transferLeg.problemType
+            };
+        }
         return leg;
     },
 

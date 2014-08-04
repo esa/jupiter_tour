@@ -725,7 +725,7 @@ var plugin = {};
             vehicleRemainingDeltaV: 'vehicle remaining deltaV',
             velocityInf: 'relative velocity at infinity',
             spacecraftTotalDeltaV: 'spacecraft total used deltaV',
-            mappedArea: 'last mapped area',
+            mappedArea: 'last leg mapped area',
             deltaV: 'last leg deltaV',
             gravityLoss: 'last leg gravity loss',
             timeOfFlight: 'last leg time of flight',
@@ -764,30 +764,35 @@ var plugin = {};
                 this._entries.vehicleRemainingDeltaV.textContent = utility.round(Math.max(0, gameState.getVehicle().getRemainingDeltaV())) + ' m/s';
                 this._entries.score.textContent = gameState.getScore() + ' points';
                 this._entries.sphereOfInfluence.textContent = gameState.getOrbitingBody().getName();
-                var transferLeg = gameState.getTransferLeg();
-                if (!transferLeg.chromosome.length) {
-                    transferLeg.chromosome = [];
-                }
-                this._entries.chromosome.textContent = transferLeg.chromosome.map(function (value) {
-                    return Math.round(value * 100) / 100;
-                }).prettyPrint();
                 this._entries.vehicleState.textContent = vehicle.isLanded() ? 'parked on surface' : 'on flyby trajectory';
-                var mappedFace = '';
-                if (transferLeg.mappedFaceID != '') {
-                    var faceInfos = transferLeg.mappedFaceID.split('_');
-                    switch (this._orbitingBodies[faceInfos[0]].getSurfaceType()) {
-                    case model.SurfaceTypes.SPHERE:
-                        mappedFace = 'part of the surface on ' + this._orbitingBodies[faceInfos[0]].getName();
-                        break;
-                    case model.SurfaceTypes.TRUNCATED_ICOSAHEDRON:
-                        mappedFace = 'Face ' + faceInfos[1] + ' on ' + this._orbitingBodies[faceInfos[0]].getName();
-                        break;
+                var transferLeg = gameState.getTransferLeg();
+                if (transferLeg == null) {
+                    this._entries.chromosome.textContent = 'No previous leg.';
+                    this._entries.mappedArea.textContent = 'No previous leg.';
+                    this._entries.deltaV.textContent = 'No previous leg.';
+                    this._entries.gravityLoss.textContent = 'No previous leg.';
+                    this._entries.timeOfFlight.textContent = 'No previous leg.';
+                } else {
+                    this._entries.chromosome.textContent = transferLeg.chromosome.map(function (value) {
+                        return Math.round(value * 100) / 100;
+                    }).prettyPrint();
+                    var mappedFace = '';
+                    if (transferLeg.mappedFaceID != '') {
+                        var faceInfos = transferLeg.mappedFaceID.split('_');
+                        switch (this._orbitingBodies[faceInfos[0]].getSurfaceType()) {
+                        case model.SurfaceTypes.SPHERE:
+                            mappedFace = 'part of the surface on ' + this._orbitingBodies[faceInfos[0]].getName();
+                            break;
+                        case model.SurfaceTypes.TRUNCATED_ICOSAHEDRON:
+                            mappedFace = 'Face ' + faceInfos[1] + ' on ' + this._orbitingBodies[faceInfos[0]].getName();
+                            break;
+                        }
                     }
+                    this._entries.deltaV.textContent = utility.round(transferLeg.deltaV) + ' m/s';
+                    this._entries.mappedArea.textContent = mappedFace;
+                    this._entries.gravityLoss.textContent = utility.round(transferLeg.gravityLoss * 100) + ' %';
+                    this._entries.timeOfFlight.textContent = utility.round(transferLeg.timeOfFlight) + ' days';
                 }
-                this._entries.mappedArea.textContent = mappedFace;
-                this._entries.deltaV.textContent = utility.round(transferLeg.deltaV) + ' m/s';
-                this._entries.gravityLoss.textContent = utility.round(transferLeg.gravityLoss * 100) + ' %';
-                this._entries.timeOfFlight.textContent = utility.round(transferLeg.timeOfFlight) + ' days';
             }
             break;
         }

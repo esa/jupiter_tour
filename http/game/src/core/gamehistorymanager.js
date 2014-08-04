@@ -30,7 +30,7 @@ core.GameHistoryManager.prototype = {
         var parent = node.getParent();
         var isVirtual = node.isVirtual();
         var name = gameState.getOrbitingBody().getName();
-        var gravityLoss = transferLeg.gravityLoss;
+        var gravityLoss = transferLeg != null ? transferLeg.gravityLoss : 1;
         var passedDays = gameState.getPassedDays();
         var totalDeltaV = gameState.getTotalDeltaV();
         var score = gameState.getScore();
@@ -182,38 +182,26 @@ core.GameHistoryManager.prototype = {
                 var parent = node.getParent();
                 var isVirtual = node.isVirtual();
 
+                var orbitingBodyID = gameState.getOrbitingBody().getID();
+                var vehicle = gameState.getVehicle();
+
                 var nodeResult = {};
                 nodeResult.id = id;
                 nodeResult.parentID = (parent ? parent.getKey() : null);
                 nodeResult.isVirtual = isVirtual;
                 nodeResult.gameState = {};
-                nodeResult.gameState.transferLeg = {};
-                nodeResult.gameState.transferLeg.chromosome = transferLeg.chromosome;
-                if (!compressed) {
-                    var gravityLoss = transferLeg.gravityLoss;
-                    var problemType = transferLeg.problemType;
-                    var timeOfFlight = transferLeg.timeOfFlight;
-                    var orbitingBodyID = gameState.getOrbitingBody().getID();
-                    var passedDays = gameState.getPassedDays();
-                    var totalDeltaV = gameState.getTotalDeltaV();
-                    var deltaV = transferLeg.deltaV;
-                    var score = gameState.getScore();
-                    var epoch = gameState.getEpoch();
-                    var mappedFaceID = transferLeg.mappedFaceID;
-                    var mappedFaces = gameState.getMappedFaces();
-
-                    nodeResult.gameState.orbitingBodyID = orbitingBodyID;
-                    nodeResult.gameState.epoch = epoch;
-                    nodeResult.gameState.transferLeg.gravityLoss = gravityLoss;
-                    nodeResult.gameState.transferLeg.mappedFaceID = mappedFaceID;
-                    nodeResult.gameState.transferLeg.deltaV = deltaV;
-                    nodeResult.gameState.transferLeg.problemType = problemType;
-                    nodeResult.gameState.transferLeg.timeOfFlight = timeOfFlight;
-                    nodeResult.gameState.passedDays = passedDays;
-                    nodeResult.gameState.totalDeltaV = totalDeltaV;
-                    nodeResult.gameState.score = score;
-
-                    var vehicle = gameState.getVehicle();
+                nodeResult.gameState.orbitingBodyID = orbitingBodyID;
+                nodeResult.gameState.transferLeg = null;
+                if (transferLeg) {
+                    nodeResult.gameState.transferLeg = {};
+                    nodeResult.gameState.transferLeg.chromosome = transferLeg.chromosome;
+                    nodeResult.gameState.transferLeg.timeOfFlight = transferLeg.timeOfFlight;
+                    nodeResult.gameState.transferLeg.problemType = transferLeg.problemType;
+                    nodeResult.gameState.transferLeg.deltaV = transferLeg.deltaV;
+                    nodeResult.gameState.transferLeg.performLanding = vehicle.isLanded();
+                }
+                if (nodeResult.parentID == null) {
+                    nodeResult.gameState.epoch = gameState.getEpoch();
                     var isLanded = vehicle.isLanded();
                     var velocityInf = vehicle.getVelocityInf();
                     var stages = vehicle.getStages();
@@ -234,6 +222,8 @@ core.GameHistoryManager.prototype = {
                             imageURL: stage.getImageURL()
                         });
                     }
+
+                    var mappedFaces = gameState.getMappedFaces();
                     nodeResult.gameState.mappedFaces = {};
                     for (var face in mappedFaces) {
                         for (var i = 0; i < mappedFaces[face].length; i++) {
@@ -245,7 +235,6 @@ core.GameHistoryManager.prototype = {
                         }
                     }
                 }
-
                 nodes[nodeResult.id] = nodeResult;
             });
         result.nodes = nodes;

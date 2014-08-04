@@ -269,16 +269,6 @@
                 "gameState": {
                     "orbitingBodyID": 2,
                     "epoch": 60000,
-                    "passedDays": 0,
-                    "transferLeg": {
-                        "problemType": null,
-                        "chromosome": [],
-                        "deltaV": 0,
-                        "timeOfFlight": 0,
-                        "mappedFaceID": ""
-                    },
-                    "totalDeltaV": 0,
-                    "mappedFaces": {},
                     "vehicle": {
                         "isLanded": true,
                         "velocityInf": [0, 0, 0],

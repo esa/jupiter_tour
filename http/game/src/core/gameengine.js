@@ -237,35 +237,43 @@ core.GameEngine.prototype = {
             this._notificationManager.clearScreen();
             this._setGameState(gameState);
             var transferLeg = this._gameState.getTransferLeg();
-            switch (transferLeg.problemType) {
-            case astrodynamics.ProblemTypes.MGA1DSM_LAUNCH:
-                var infos = transferLeg.mappedFaceID.split('_');
-                var currentBody = this._orbitingBodies[infos[0]];
-                this._notificationManager.dispatchLaunchMsg(strings.toText(strings.GameInfos.SPACECRAFT_LAUNCH, [currentBody.getName()]), true);
-                break;
+            if (transferLeg) {
+                switch (transferLeg.problemType) {
+                case astrodynamics.ProblemTypes.MGA1DSM_LAUNCH:
+                    var infos = transferLeg.mappedFaceID.split('_');
+                    var currentBody = this._orbitingBodies[infos[0]];
+                    this._notificationManager.dispatchLaunchMsg(strings.toText(strings.GameInfos.SPACECRAFT_LAUNCH, [currentBody.getName()]), true);
+                    break;
 
-            case astrodynamics.ProblemTypes.MGA1DSM_FLYBY:
-                var infos = transferLeg.mappedFaceID.split('_');
-                var currentBody = this._orbitingBodies[infos[0]];
-                var surfaceType = currentBody.getSurfaceType();
-                switch (surfaceType) {
-                case model.SurfaceTypes.SPHERE:
-                    this._notificationManager.dispatchPlanetMsg(strings.toText(strings.GameInfos.FLYBY_RESULT, [currentBody.getName()]));
+                case astrodynamics.ProblemTypes.MGA1DSM_FLYBY:
+                    var infos = transferLeg.mappedFaceID.split('_');
+                    var currentBody = this._orbitingBodies[infos[0]];
+                    var surfaceType = currentBody.getSurfaceType();
+                    switch (surfaceType) {
+                    case model.SurfaceTypes.SPHERE:
+                        this._notificationManager.dispatchPlanetMsg(strings.toText(strings.GameInfos.FLYBY_RESULT, [currentBody.getName()]));
+                        break;
+                    case model.SurfaceTypes.TRUNCATED_ICOSAHEDRON:
+                        this._notificationManager.dispatchMoonMsg(strings.toText(strings.GameInfos.FACE_MAP_RESULT, [infos[1], currentBody.getName()]));
+                        break;
+                    }
                     break;
-                case model.SurfaceTypes.TRUNCATED_ICOSAHEDRON:
-                    this._notificationManager.dispatchMoonMsg(strings.toText(strings.GameInfos.FACE_MAP_RESULT, [infos[1], currentBody.getName()]));
+
+                default:
+                    if (this._gameState.getVehicle().isLanded()) {
+                        this._notificationManager.dispatchSpacecraftMsg(strings.toText(strings.GameInfos.SPACECRAFT_PARKED, [gameState.getOrbitingBody().getName()]), true);
+                    } else {
+                        this._notificationManager.dispatchSpacecraftMsg(strings.toText(strings.GameInfos.SPACECRAFT_ORBITING, [gameState.getOrbitingBody().getName()]), true);
+                    }
                     break;
+
                 }
-                break;
-
-            default:
+            } else {
                 if (this._gameState.getVehicle().isLanded()) {
                     this._notificationManager.dispatchSpacecraftMsg(strings.toText(strings.GameInfos.SPACECRAFT_PARKED, [gameState.getOrbitingBody().getName()]), true);
                 } else {
                     this._notificationManager.dispatchSpacecraftMsg(strings.toText(strings.GameInfos.SPACECRAFT_ORBITING, [gameState.getOrbitingBody().getName()]), true);
                 }
-                break;
-
             }
         }
     },
@@ -335,7 +343,10 @@ core.GameEngine.prototype = {
         if (this._gameState) {
             var currentBody = this._gameState.getOrbitingBody();
             currentBody.onDeactivated();
-            this._scene.remove(this._gameState.getTransferLeg().visualization);
+            var transferLeg = this._gameState.getTransferLeg();
+            if (transferLeg) {
+                this._scene.remove(transferLeg.visualization);
+            }
         }
         this._gameState = gameState;
 
@@ -347,7 +358,9 @@ core.GameEngine.prototype = {
         };
 
         var transferLeg = this._gameState.getTransferLeg();
-        this._scene.add(transferLeg.visualization);
+        if (transferLeg) {
+            this._scene.add(transferLeg.visualization);
+        }
 
         var mappedFaces = this._gameState.getMappedFaces();
 
@@ -660,101 +673,132 @@ core.GameEngine.prototype = {
 
         var gameStates = {};
         var parents = {};
-        var rootID = null;
+        var rootNode = null;
         var maxNodeID = 0;
+        var rootLessNodes = {};
+        var node = null;
         for (var id in nodes) {
-            var node = nodes[id];
+            node = nodes[id];
             maxNodeID = Math.max(maxNodeID, node.id);
             if (node.parentID == null) {
                 parents[node.id] = node.id;
-                rootID = node.id;
+                rootNode = node;
             } else {
                 parents[node.id] = node.parentID;
+                rootLessNodes[node.id] = node;
             }
         }
 
-        for (var id in nodes) {
-            node = nodes[id];
-            gameState = node.gameState;
-            var currentBody = this._orbitingBodies[gameState.orbitingBodyID];
-            var chromosome = gameState.transferLeg.chromosome;
-            var epoch = gameState.epoch;
-            var passedDays = gameState.passedDays;
-            var deltaV = gameState.transferLeg.deltaV;
-            var problemType = gameState.transferLeg.problemType;
-            var timeOfFlight = gameState.transferLeg.timeOfFlight;
-            var totalDeltaV = gameState.totalDeltaV;
-            var velocityInf = new geometry.Vector3().fromArray(gameState.vehicle.velocityInf);
+        var gameStateData = rootNode.gameState;
+        var currentBody = this._orbitingBodies[gameStateData.orbitingBodyID];
+        var chromosome = null;
+        var epoch = gameStateData.epoch;
+        var passedDays = 0;
+        var totalDeltaV = 0;
+        var velocityInf = new geometry.Vector3().fromArray(gameStateData.vehicle.velocityInf);
+        var stages = [];
+        var vehicleData = gameStateData.vehicle;
+        for (var i = 0; i < vehicleData.stages.length; i++) {
+            var stage = vehicleData.stages[i];
+            stages.push(new gui.Stage(stage.propulsionType, stage.mass, stage.emptyMass, stage.remainingMass, stage.thrust, stage.specificImpulse, stage.imageURL));
+        }
+        var vehicle = new gui.Vehicle(velocityInf, stages, gameStateData.vehicle.isLanded);
+        var dsmResult = null;
+        var transferLeg = null;
+        var score = 0;
+        var mappedFaces = {};
 
-            var stages = [];
-            var vehicleData = gameState.vehicle;
-            for (var i = 0; i < vehicleData.stages.length; i++) {
-                var stage = vehicleData.stages[i];
-                stages.push(new gui.Stage(stage.propulsionType, stage.mass, stage.emptyMass, stage.remainingMass, stage.thrust, stage.specificImpulse, stage.imageURL));
-            }
+        var gameState = new core.GameState(currentBody, epoch, passedDays, totalDeltaV, score, vehicle, mappedFaces, transferLeg);
+        this._markAndSetScoreForGameState(gameState, dsmResult);
+        gameStates[rootNode.id] = gameState;
 
-            var vehicle = new gui.Vehicle(velocityInf, stages, gameState.vehicle.isLanded);
+        var parentGameState = null;
+        var parentVehicle = null;
+        var parentBody = null;
+        var parentScore = 0;
+        var parentEpoch = 0;
+        var parentPassedDays = 0;
+        var parentTotalDeltaV = 0;
+        var parentVelocityInf = null;
+        var timeOfFlight = 0;
+        var deltaV = 0;
+        var problemType = null;
+        var performLanding = false;
+        var vehicle = null;
+        var leg = null;
+        for (var id in rootLessNodes) {
+            parentGameState = gameStates[parents[id]];
 
-            var dsmResult = null;
-            var score = 0;
-            var previousNode = null;
-            var previousBody = null;
-            var leg = null;
-            if (node.parentID != null) {
-                previousNode = nodes[parents[node.id]];
-                previousBody = this._orbitingBodies[previousNode.gameState.orbitingBodyID];
-                var parentGameState = gameStates[node.parentID];
-                var parentVehicle = parentGameState.getVehicle();
-                var parentScore = parentGameState.getScore();
+            if (!parentGameState.isInvalid()) {
+                node = rootLessNodes[id];
+                gameStateData = node.gameState;
+                currentBody = this._orbitingBodies[gameStateData.orbitingBodyID];
+                chromosome = gameStateData.transferLeg.chromosome;
+                problemType = gameStateData.transferLeg.problemType;
+                performLanding = gameStateData.transferLeg.performLanding;
+                deltaV = gameStateData.transferLeg.deltaV;
+                timeOfFlight = gameStateData.transferLeg.timeOfFlight;
+
+                mappedFaces = parentGameState.getMappedFaces();
+
+                parentBody = parentGameState.getOrbitingBody();
+                parentVehicle = parentGameState.getVehicle();
+                parentScore = parentGameState.getScore();
+                parentEpoch = parentGameState.getEpoch();
+                parentPassedDays = parentGameState.getPassedDays();
+                parentTotalDeltaV = parentGameState.getTotalDeltaV();
+                parentVelocityInf = parentVehicle.getVelocityInf();
+
+                leg = null;
+                flybyResult = null;
+                switch (problemType) {
+                case astrodynamics.ProblemTypes.MGA1DSM_LAUNCH:
+                    leg = new gui.LaunchLeg(chromosome, parentBody, currentBody);
+                    flybyResult = parentBody.computeFlybyFaceAndCoords(parentEpoch, parentVelocityInf, chromosome[1], chromosome[2]);
+                    break;
+                case astrodynamics.ProblemTypes.MGA1DSM_FLYBY:
+                    leg = new gui.FlybyLeg(chromosome, parentBody, currentBody, parentVelocityInf, parentEpoch);
+                    flybyResult = parentBody.computeFlybyFaceAndCoords(parentEpoch, parentVelocityInf, chromosome[0], chromosome[1]);
+                    break;
+                }
+
+                faceValue = parentBody.getFaceValue(flybyResult.faceID);
                 var numStages = parentVehicle.getStages().length;
                 if (numStages > 1 && problemType == astrodynamics.ProblemTypes.MGA1DSM_LAUNCH) {
                     parentVehicle.jettisonStage();
                 }
                 dsmResult = parentVehicle.performManeuver(deltaV, timeOfFlight * utility.DAY_TO_SEC);
-                flybyResult = previousBody.computeFlybyFaceAndCoords(parentGameState.getEpoch(), parentVehicle.getVelocityInf(), chromosome[1], chromosome[2]);
-                faceValue = previousBody.getFaceValue(flybyResult.faceID);
-                score = parentScore += faceValue;
-
-                switch (problemType) {
-                case astrodynamics.ProblemTypes.MGA1DSM_LAUNCH:
-                    leg = new gui.LaunchLeg(chromosome, previousBody, currentBody);
+                vehicle = parentVehicle.clone();
+                if (leg) {
                     leg.setGradient(dsmResult.gravityLoss);
-                    break;
-                case astrodynamics.ProblemTypes.MGA1DSM_FLYBY:
-                    leg = new gui.FlybyLeg(chromosome, previousBody, currentBody, new geometry.Vector3().fromArray(previousNode.gameState.vehicle.velocityInf), previousNode.gameState.epoch);
-                    leg.setGradient(dsmResult.gravityLoss);
-                    break;
+                    var nextVelocityInf = leg.getArrivalVelocityInf();
+                    vehicle.setVelocityInf(nextVelocityInf);
                 }
+                vehicle.setLanded(performLanding);
+
+                score = parentScore + faceValue;
+                epoch = parentEpoch + timeOfFlight;
+                passedDays = parentPassedDays + timeOfFlight;
+                totalDeltaV = parentTotalDeltaV + deltaV;
+
+                var transferLeg = {
+                    problemType: problemType,
+                    chromosome: chromosome,
+                    deltaV: deltaV,
+                    timeOfFlight: timeOfFlight,
+                    visualization: leg,
+                    gravityLoss: dsmResult ? dsmResult.gravityLoss : 1,
+                    mappedFaceID: parentBody.getID() + '_' + flybyResult.faceID,
+                    periapsisCoords: flybyResult.coords
+                };
+
+                gameState = new core.GameState(currentBody, epoch, passedDays, totalDeltaV, score, vehicle, mappedFaces, transferLeg);
+                this._markAndSetScoreForGameState(gameState, dsmResult);
+                gameStates[node.id] = gameState;
             }
-
-            var mappedFaceID = gameState.transferLeg.mappedFaceID;
-            var mappedFaces = {};
-            for (var faceID in gameState.mappedFaces) {
-                for (var i = 0; i < gameState.mappedFaces[faceID].length; i++) {
-                    if (mappedFaces[faceID]) {
-                        mappedFaces[faceID].push(new geometry.Vector2().fromArray(gameState.mappedFaces[faceID][i]));
-                    } else {
-                        mappedFaces[faceID] = [new geometry.Vector2().fromArray(gameState.mappedFaces[faceID][i])];
-                    }
-                }
-            }
-
-            var transferLeg = {
-                problemType: problemType,
-                chromosome: chromosome,
-                deltaV: deltaV,
-                timeOfFlight: timeOfFlight,
-                visualization: leg,
-                gravityLoss: dsmResult ? dsmResult.gravityLoss : 1,
-                mappedFaceID: mappedFaceID
-            };
-
-            var gameState = new core.GameState(currentBody, epoch, passedDays, totalDeltaV, score, vehicle, mappedFaces, transferLeg);
-            this._markAndSetScoreForGameState(gameState, dsmResult);
-            gameStates[node.id] = gameState;
         }
 
-        var rootNode = new core.HistoryNode(gameStates[rootID], rootID);
+        var rootNode = new core.HistoryNode(gameStates[rootNode.id], rootNode.id);
         rootNode.setHistorySequenceNr(0);
         var key = rootNode.getKey();
         var jumpTable = {};
