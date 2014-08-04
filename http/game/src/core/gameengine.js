@@ -751,18 +751,20 @@ core.GameEngine.prototype = {
 
                 leg = null;
                 flybyResult = null;
+                faceValue = 0;
                 switch (problemType) {
                 case astrodynamics.ProblemTypes.MGA1DSM_LAUNCH:
                     leg = new gui.LaunchLeg(chromosome, parentBody, currentBody);
                     flybyResult = parentBody.computeFlybyFaceAndCoords(parentEpoch, parentVelocityInf, chromosome[1], chromosome[2]);
+                    faceValue = parentBody.getFaceValue(flybyResult.faceID);
                     break;
                 case astrodynamics.ProblemTypes.MGA1DSM_FLYBY:
                     leg = new gui.FlybyLeg(chromosome, parentBody, currentBody, parentVelocityInf, parentEpoch);
                     flybyResult = parentBody.computeFlybyFaceAndCoords(parentEpoch, parentVelocityInf, chromosome[0], chromosome[1]);
+                    faceValue = parentBody.getFaceValue(flybyResult.faceID);
                     break;
                 }
 
-                faceValue = parentBody.getFaceValue(flybyResult.faceID);
                 var numStages = parentVehicle.getStages().length;
                 if (numStages > 1 && problemType == astrodynamics.ProblemTypes.MGA1DSM_LAUNCH) {
                     parentVehicle.jettisonStage();
@@ -788,8 +790,8 @@ core.GameEngine.prototype = {
                     timeOfFlight: timeOfFlight,
                     visualization: leg,
                     gravityLoss: dsmResult ? dsmResult.gravityLoss : 1,
-                    mappedFaceID: parentBody.getID() + '_' + flybyResult.faceID,
-                    periapsisCoords: flybyResult.coords
+                    mappedFaceID: flybyResult != null ? parentBody.getID() + '_' + flybyResult.faceID : '',
+                    periapsisCoords: flybyResult != null ? flybyResult.coords : null
                 };
 
                 gameState = new core.GameState(currentBody, epoch, passedDays, totalDeltaV, score, vehicle, mappedFaces, transferLeg);
