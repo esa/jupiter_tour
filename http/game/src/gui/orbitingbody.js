@@ -33,16 +33,19 @@ gui.OrbitingBody = function (id, name, centralBody, orbitalElements, orbitalElem
     case model.SurfaceTypes.TRUNCATED_ICOSAHEDRON:
         this._surface = new model.TruncatedIcosahedronSurface(this, surface.values);
         this._departureSelector = new gui.FaceSelector(this);
-        this._arrivalSelector = new gui.DummyTransferLegSelector(this, false);
+        if (this._maxLaunchDelay) {
+            this._arrivalSelector = new gui.TransferLegFaceSelector(this);
+        } else {
+            this._arrivalSelector = new gui.TransferLegFaceSelector(this, false);
+        }
         break;
     case model.SurfaceTypes.SPHERE:
         this._surface = new model.SphericalSurface(this, surface.values);
+        this._departureSelector = new gui.SimpleSelector(this);
         if (this._maxLaunchDelay) {
-            this._departureSelector = new gui.SimpleSelector(this);
-            this._arrivalSelector = new gui.TransferLegSelector(this);
+            this._arrivalSelector = new gui.TransferLegSimpleSelector(this);
         } else {
-            this._departureSelector = new gui.SimpleSelector(this);
-            this._arrivalSelector = new gui.DummyTransferLegSelector(this, false);
+            this._arrivalSelector = new gui.TransferLegSimpleSelector(this, false);
         }
         break;
     }

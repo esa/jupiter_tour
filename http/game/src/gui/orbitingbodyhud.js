@@ -1,8 +1,8 @@
-/* Class OrbitingBodySelector 
+/* Class OrbitingBodyHUD 
     Consider this class abstract.
     Inherit from it and make sure you have at least the members this._backgroundElement and this._containerElement which point to divs in your child class.
 */
-gui.OrbitingBodySelector = function (orbitingBody) {
+gui.OrbitingBodyHUD = function (orbitingBody) {
     var self = this;
     this._id = gui.createID();
     this._orbitingBody = orbitingBody;
@@ -42,8 +42,8 @@ gui.OrbitingBodySelector = function (orbitingBody) {
         self._onMouseMove(event);
     });
 };
-gui.OrbitingBodySelector.prototype = {
-    constructor: gui.OrbitingBodySelector,
+gui.OrbitingBodyHUD.prototype = {
+    constructor: gui.OrbitingBodyHUD,
 
     _onMove: function () {},
 
@@ -177,6 +177,7 @@ gui.OrbitingBodySelector.prototype = {
                 var valY = this._screenPosition.getY();
                 var bBox = this._boundingBox;
                 var bodyPixelSize = screenRadius;
+                var viewDirection = this._viewDirection;
 
                 if (valX + (bBox.right - bBox.left) / 2 > window.innerWidth) {
                     this._viewDirection = gui.ScreenDirections.LEFT;
@@ -186,6 +187,10 @@ gui.OrbitingBodySelector.prototype = {
                     this._viewDirection = gui.ScreenDirections.DOWN;
                 } else {
                     this._viewDirection = gui.ScreenDirections.UP;
+                }
+
+                if (this._viewDirection != viewDirection) {
+                    this._onResize();
                 }
 
                 this._updateCSS();
@@ -199,11 +204,6 @@ gui.OrbitingBodySelector.prototype = {
         this._userAction = userAction;
         this._resetSelection();
     }
-};
-
-gui.OrbitingBodySelector.ConfigurationTypes = {
-    ARRIVAL: 0,
-    DEPARTURE: 1
 };
 
 //Preload Background images

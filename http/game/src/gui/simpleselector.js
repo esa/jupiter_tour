@@ -1,14 +1,14 @@
 /* Class SimpleSelector 
     Provides the time of flight selection graphical user interface. 
-    Inherits OrbitingBodySelector
+    Inherits OrbitingBodyHUD
 */
 gui.SimpleSelector = function (orbitingBody) {
-    gui.OrbitingBodySelector.call(this, orbitingBody);
+    gui.OrbitingBodyHUD.call(this, orbitingBody);
     var self = this;
 
     this._backgroundName = 'simpleselector';
     this._backgroundHeightFactorLR = 0.15;
-    this._backgroundHeightFactorUD = 0.15;
+    this._backgroundHeightFactorUD = 0.195;
     this._backgroundWidthFactorLR = 3.00;
     this._backgroundWidthFactorUD = 2.745;
     this._containerHeightFactor = 0.76;
@@ -58,7 +58,6 @@ gui.SimpleSelector = function (orbitingBody) {
 
     this._infoBar = document.createElement('div');
     this._infoBar.className = 'row1 text-fit';
-    this._infoBar.textContent = 'hello world!';
 
     var toolRow = document.createElement('div');
     toolRow.className = 'row2';
@@ -243,7 +242,7 @@ gui.SimpleSelector = function (orbitingBody) {
 
     this._hideConfiguration();
 };
-gui.SimpleSelector.prototype = Object.create(gui.OrbitingBodySelector.prototype);
+gui.SimpleSelector.prototype = Object.create(gui.OrbitingBodyHUD.prototype);
 gui.SimpleSelector.prototype.constructor = gui.SimpleSelector;
 
 gui.SimpleSelector.prototype._showFlybyConfiguration = function () {
@@ -254,7 +253,7 @@ gui.SimpleSelector.prototype._showFlybyConfiguration = function () {
     this._betaRangeSlider.show();
     this._timeOfFlightRangeSlider.show();
     this._resetSelection();
-    this._infoBar.textContent = 'configure flyby at ' + this._orbitingBody.getName() + ' heading to ' + this._userAction.nextOrbitingBody.getName() + ' for ' + (this._userAction.performLanding ? 'landing' : 'flyby');
+    this._infoBar.textContent = 'configure flyby at ' + this._orbitingBody.getName() + ' heading to ' + this._userAction.nextOrbitingBody.getName() + ' for ' + (this._userAction.nextLeg.performLanding ? 'landing' : 'flyby');
 };
 
 gui.SimpleSelector.prototype._showLaunchConfiguration = function () {
@@ -265,7 +264,7 @@ gui.SimpleSelector.prototype._showLaunchConfiguration = function () {
     this._timeOfFlightRangeSlider.show();
     this._velocityRangeSlider.show();
     this._resetSelection();
-    this._infoBar.textContent = 'configure launch from ' + this._orbitingBody.getName() + ' to ' + this._userAction.nextOrbitingBody.getName() + ' for ' + (this._userAction.performLanding ? 'landing' : 'flyby');
+    this._infoBar.textContent = 'configure launch from ' + this._orbitingBody.getName() + ' to ' + this._userAction.nextOrbitingBody.getName() + ' for ' + (this._userAction.nextLeg.performLanding ? 'landing' : 'flyby');
 };
 
 gui.SimpleSelector.prototype._hideConfiguration = function () {
@@ -319,6 +318,7 @@ gui.SimpleSelector.prototype._onMove = function () {
 gui.SimpleSelector.prototype._onResize = function () {
     this._timeOfFlightRangeSlider.onResize();
     this._launchEpochRangeSlider.onResize();
+    this._velocityRangeSlider.onResize();
     this._radiusRangeSlider.onResize();
 };
 

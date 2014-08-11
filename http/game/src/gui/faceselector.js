@@ -1,16 +1,16 @@
 /* Class FaceSelector 
     Provides the face selection graphical user interface. 
-    Inherits OrbitingBodySelector
+    Inherits OrbitingBodyHUD
 */
 gui.FaceSelector = function (orbitingBody) {
-    gui.OrbitingBodySelector.call(this, orbitingBody);
+    gui.OrbitingBodyHUD.call(this, orbitingBody);
     var self = this;
 
     this._backgroundName = 'faceselector';
-    this._backgroundHeightFactorLR = 1 / 3.9;
-    this._backgroundHeightFactorUD = 1 / 3;
-    this._backgroundWidthFactorLR = 1 / 9 * 18.4;
-    this._backgroundWidthFactorUD = 1 / 9 * 12.1;
+    this._backgroundHeightFactorLR = 0.25;
+    this._backgroundHeightFactorUD = 0.33;
+    this._backgroundWidthFactorLR = 2.04;
+    this._backgroundWidthFactorUD = 1.34;
     this._containerHeightFactor = 0.77;
     this._containerMarginFactorL = 0.15;
     this._containerMarginFactorT = 0.23;
@@ -200,6 +200,11 @@ gui.FaceSelector = function (orbitingBody) {
     rowElement3.appendChild(rowDiv);
 
     this._containerElement.appendChild(rowElement3);
+
+    this._infoBar = document.createElement('div');
+    this._infoBar.className = 'row4 text-fit';
+
+    this._containerElement.appendChild(this._infoBar);
     this._backgroundElement.appendChild(this._containerElement);
     document.body.appendChild(this._backgroundElement);
 
@@ -296,7 +301,7 @@ gui.FaceSelector = function (orbitingBody) {
 
     this._setBetaRadiusBoundsEnabled(this._betaRadiusBoundsEnabled);
 };
-gui.FaceSelector.prototype = Object.create(gui.OrbitingBodySelector.prototype);
+gui.FaceSelector.prototype = Object.create(gui.OrbitingBodyHUD.prototype);
 gui.FaceSelector.prototype.constructor = gui.FaceSelector;
 
 gui.FaceSelector.prototype._onClick = function (d3Face) {
@@ -515,6 +520,7 @@ gui.FaceSelector.prototype.show = function (userAction) {
     this._userAction = userAction;
     this._isEditable = this._userAction != null;
 
+    this._infoBar.textContent = 'configure flyby at ' + this._orbitingBody.getName() + ' heading to ' + this._userAction.nextOrbitingBody.getName() + ' for ' + (this._userAction.nextLeg.performLanding ? 'landing' : 'flyby');
     this._updateMap();
     this._confirmElement.style.display = 'none';
     this._backgroundElement.style.display = 'block';
