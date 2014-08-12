@@ -15,18 +15,6 @@ var core = {};
         PROBLEM_SOLVING: 5
     };
 
-    var TransferLegConfigurationModes = {
-        DEPARTURE: 0,
-        ARRIVAL: 1,
-    };
-
-    var ConfigurationStatus = {
-        PENDING: 0,
-        CONFIRMED: 1,
-        CANCELED: 2,
-        DELIVERED: 3
-    };
-
     var GameEvents = {
         GAME_STATE_CHANGE: 0,
         GAME_PHASE_CHANGE: 1,
@@ -42,9 +30,29 @@ var core = {};
         MISSION_REVISION_CHANGE: 11
     };
 
+    var TransferLegConfigurationModes = {
+        DEPARTURE: 0,
+        ARRIVAL: 1,
+    };
+
+    var ConfigurationStatus = {
+        PENDING: 0,
+        CONFIRMED: 1,
+        CANCELED: 2,
+        DELIVERED: 3
+    };
+
+    var ArrivingOptions = {
+        PERFORM_FLYBY: 0,
+        PERFORM_LANDING: 1,
+        DEFAULT_IS_FLYBY: 2,
+        DEFAULT_IS_LANDING: 3
+    };
+
     //Exposed Interface
     core.GameStatePhases = GameStatePhases;
     core.GameEvents = GameEvents;
     core.TransferLegConfigurationModes = TransferLegConfigurationModes;
     core.ConfigurationStatus = ConfigurationStatus;
+    core.ArrivingOptions = ArrivingOptions;
 })();

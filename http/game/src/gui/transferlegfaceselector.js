@@ -1,7 +1,7 @@
 /* Class TransferLegFaceSelector
     Interface for selecting the transferleg arrival condition for a FaceSelector orbiting body.
 */
-gui.TransferLegFaceSelector = function (orbitingBody, performLanding) {
+gui.TransferLegFaceSelector = function (orbitingBody) {
     gui.OrbitingBodyHUD.call(this, orbitingBody);
     var self = this;
 
@@ -15,7 +15,7 @@ gui.TransferLegFaceSelector = function (orbitingBody, performLanding) {
     this._containerMarginFactorT = 0.23;
     this._containerWidthFactor = 0.85;
 
-    this._performLanding = performLanding;
+    this._arrivingOption = this._orbitingBody.getArrivingOption();
 
     this._currentMapViewID = 0;
     this._jupiterRadius = 10;
@@ -327,11 +327,21 @@ gui.TransferLegFaceSelector.prototype._confirmAndClose = function () {
 };
 
 gui.TransferLegFaceSelector.prototype._resetSelection = function () {
-    this._userAction.nextLeg.performLanding = this._performLanding != null ? this._performLanding : false;
+    switch (this._arrivingOption) {
+    case core.ArrivingOptions.PERFORM_FLYBY:
+    case core.ArrivingOptions.DEFAULT_IS_FLYBY:
+        this._userAction.nextLeg.performLanding = false;
+        break;
+
+    case core.ArrivingOptions.PERFORM_LANDING:
+    case core.ArrivingOptions.DEFAULT_IS_LANDING:
+        this._userAction.nextLeg.performLanding = true;
+        break;
+    }
 };
 
 gui.TransferLegFaceSelector.prototype._update = function () {
-    if (this._isEditable && this._performLanding != null) {
+    if (this._isEditable && (this._arrivingOption == core.ArrivingOptions.PERFORM_LANDING || this._arrivingOption == core.ArrivingOptions.PERFORM_FLYBY)) {
         this._resetSelection();
         this._confirmAndClose();
     }

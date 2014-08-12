@@ -1,7 +1,7 @@
 /* Class TransferLegSimpleSelector
     Interface for selecting the transferleg arrival condition for a SimpleSelector orbiting body.
 */
-gui.TransferLegSimpleSelector = function (orbitingBody, performLanding) {
+gui.TransferLegSimpleSelector = function (orbitingBody) {
     gui.OrbitingBodyHUD.call(this, orbitingBody);
     var self = this;
 
@@ -15,7 +15,7 @@ gui.TransferLegSimpleSelector = function (orbitingBody, performLanding) {
     this._containerMarginFactorL = 0.08;
     this._containerMarginFactorT = 0.24;
 
-    this._performLanding = performLanding
+    this._arrivingOption = this._orbitingBody.getArrivingOption();
 
     var backgroundHeight = Math.round(window.innerHeight * this._backgroundHeightFactorUD);
     var backgroundWidth = Math.round(backgroundHeight * this._backgroundWidthFactorUD);
@@ -93,11 +93,21 @@ gui.TransferLegSimpleSelector.prototype._confirmAndClose = function () {
 };
 
 gui.TransferLegSimpleSelector.prototype._resetSelection = function () {
-    this._userAction.nextLeg.performLanding = this._performLanding != null ? this._performLanding : false;
+    switch (this._arrivingOption) {
+    case core.ArrivingOptions.PERFORM_FLYBY:
+    case core.ArrivingOptions.DEFAULT_IS_FLYBY:
+        this._userAction.nextLeg.performLanding = false;
+        break;
+
+    case core.ArrivingOptions.PERFORM_LANDING:
+    case core.ArrivingOptions.DEFAULT_IS_LANDING:
+        this._userAction.nextLeg.performLanding = true;
+        break;
+    }
 };
 
 gui.TransferLegSimpleSelector.prototype._update = function () {
-    if (this._isEditable && this._performLanding != null) {
+    if (this._isEditable && (this._arrivingOption == core.ArrivingOptions.PERFORM_LANDING || this._arrivingOption == core.ArrivingOptions.PERFORM_FLYBY)) {
         this._resetSelection();
         this._confirmAndClose();
     }

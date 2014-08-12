@@ -1,7 +1,7 @@
 /* Class OrbitingBody: Model & View 
     Inherits Satellite
 */
-gui.OrbitingBody = function (id, name, centralBody, orbitalElements, orbitalElementDerivatives, refEpoch, sgp, radius, minRadiusFactor, maxRadiusFactor, maxTimeOfFlight, maxLaunchDelay, scale, meshMaterialURL, surface) {
+gui.OrbitingBody = function (id, name, centralBody, orbitalElements, orbitalElementDerivatives, refEpoch, sgp, radius, minRadiusFactor, maxRadiusFactor, maxTimeOfFlight, maxLaunchDelay, arrivingOption, scale, meshMaterialURL, surface) {
     astrodynamics.Satellite.call(this, centralBody, orbitalElements, orbitalElementDerivatives, refEpoch, sgp);
     this._id = id;
     this._name = name;
@@ -10,6 +10,8 @@ gui.OrbitingBody = function (id, name, centralBody, orbitalElements, orbitalElem
     this._maxRadius = radius * maxRadiusFactor;
     this._maxTimeOfFlight = maxTimeOfFlight * utility.DAY_TO_SEC;
     this._maxLaunchDelay = maxLaunchDelay != null ? maxLaunchDelay * utility.DAY_TO_SEC : 0;
+    this._arrivingOption = arrivingOption;
+
     this._isMouseOver = false;
     this._isActivated = false;
     this._configurationStatus = core.ConfigurationStatus.DELIVERED;
@@ -33,20 +35,12 @@ gui.OrbitingBody = function (id, name, centralBody, orbitalElements, orbitalElem
     case model.SurfaceTypes.TRUNCATED_ICOSAHEDRON:
         this._surface = new model.TruncatedIcosahedronSurface(this, surface.values);
         this._departureSelector = new gui.FaceSelector(this);
-        if (this._maxLaunchDelay) {
-            this._arrivalSelector = new gui.TransferLegFaceSelector(this);
-        } else {
-            this._arrivalSelector = new gui.TransferLegFaceSelector(this, false);
-        }
+        this._arrivalSelector = new gui.TransferLegFaceSelector(this);
         break;
     case model.SurfaceTypes.SPHERE:
         this._surface = new model.SphericalSurface(this, surface.values);
         this._departureSelector = new gui.SimpleSelector(this);
-        if (this._maxLaunchDelay) {
-            this._arrivalSelector = new gui.TransferLegSimpleSelector(this);
-        } else {
-            this._arrivalSelector = new gui.TransferLegSimpleSelector(this, false);
-        }
+        this._arrivalSelector = new gui.TransferLegSimpleSelector(this);
         break;
     }
 
@@ -134,6 +128,18 @@ gui.OrbitingBody.prototype._getSelector = function () {
     }
 };
 
+gui.OrbitingBody.prototype._displayOrbitAtEpoch = function (epoch) {
+    var orbitPositions = this._sampleOrbitPositions(this._orbitPositions / 2, epoch).map(function (position) {
+        return position.multiplyScalar(gui.POSITION_SCALE).asTHREE();
+    });
+    var spline = new THREE.SplineCurve3(orbitPositions);
+    var splinePoints = spline.getPoints(this._orbitPositions);
+    for (var i = 0; i < this._orbitPositions; i++) {
+        this._orbitMesh.geometry.vertices[i] = splinePoints[i];
+    }
+    this._orbitMesh.geometry.verticesNeedUpdate = true;
+};
+
 gui.OrbitingBody.prototype.onSelected = function () {
     this._bodyMesh.scale.set(4, 4, 4);
     this._isSelected = true;
@@ -153,10 +159,6 @@ gui.OrbitingBody.prototype.onMouseOut = function () {
     $('html,body').css('cursor', 'default');
 };
 
-gui.OrbitingBody.prototype.isMouseOver = function () {
-    return this._isMouseOver;
-};
-
 gui.OrbitingBody.prototype.onConfigurationWindowOver = function () {
     this._configurationWindowHover = true;
 };
@@ -172,10 +174,6 @@ gui.OrbitingBody.prototype.onConfigurationDone = function (isConfirmed) {
     } else {
         this._configurationStatus = core.ConfigurationStatus.CANCELED;
     }
-};
-
-gui.OrbitingBody.prototype.getConfigurationStatus = function () {
-    return this._configurationStatus;
 };
 
 gui.OrbitingBody.prototype.onActivated = function (epoch, vehicle) {
@@ -194,6 +192,14 @@ gui.OrbitingBody.prototype.onDeactivated = function () {
 
 gui.OrbitingBody.prototype.onConfigurationModeChange = function (configurationMode) {
     this._configurationMode = configurationMode;
+};
+
+gui.OrbitingBody.prototype.isMouseOver = function () {
+    return this._isMouseOver;
+};
+
+gui.OrbitingBody.prototype.getConfigurationStatus = function () {
+    return this._configurationStatus;
 };
 
 gui.OrbitingBody.prototype.openConfiguration = function (userAction) {
@@ -238,18 +244,6 @@ gui.OrbitingBody.prototype.update = function (screenPosition, screenRadius) {
     this._arrivalSelector.update(screenPosition, screenRadius);
 };
 
-gui.OrbitingBody.prototype._displayOrbitAtEpoch = function (epoch) {
-    var orbitPositions = this._sampleOrbitPositions(this._orbitPositions / 2, epoch).map(function (position) {
-        return position.multiplyScalar(gui.POSITION_SCALE).asTHREE();
-    });
-    var spline = new THREE.SplineCurve3(orbitPositions);
-    var splinePoints = spline.getPoints(this._orbitPositions);
-    for (var i = 0; i < this._orbitPositions; i++) {
-        this._orbitMesh.geometry.vertices[i] = splinePoints[i];
-    }
-    this._orbitMesh.geometry.verticesNeedUpdate = true;
-};
-
 gui.OrbitingBody.prototype.displayAtEpoch = function (epoch) {
     var orbSVs = this.orbitalStateVectorsAtEpoch(epoch);
     this._position = orbSVs.position;
@@ -288,6 +282,10 @@ gui.OrbitingBody.prototype.getMaxTimeOfFlight = function () {
 
 gui.OrbitingBody.prototype.getMaxLaunchDelay = function () {
     return this._maxLaunchDelay;
+};
+
+gui.OrbitingBody.prototype.getArrivingOption = function () {
+    return this._arrivingOption;
 };
 
 gui.OrbitingBody.prototype.isFaceVisited = function (faceID) {
@@ -368,11 +366,6 @@ gui.OrbitingBody.prototype.getD3Visits = function () {
 
 gui.OrbitingBody.prototype.getBodyMesh = function () {
     return this._bodyMesh;
-};
-
-gui.OrbitingBody.prototype.getBodyMeshSize = function () {
-    this._bodyMesh.geometry.computeBoundingSphere();
-    return this._bodyMesh.geometry.boundingSphere;
 };
 
 gui.OrbitingBody.prototype.getOrbitMesh = function () {

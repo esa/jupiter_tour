@@ -23,7 +23,6 @@
         "orbitingBodies": {
             "2": {
                 "name": "ISS",
-                "sgp": 0.0,
                 "refEpoch": 51544.5,
                 "orbitalElements": {
                     "sma": 6478000,
@@ -33,11 +32,13 @@
                     "ap": 0.9585806336304322,
                     "ma": 0.8792381000505897
                 },
+                "sgp": 0.0,
                 "radius": 6052000,
                 "minRadiusFactor": 1.1,
                 "maxRadiusFactor": 100,
                 "maxTimeOfFlight": 1,
                 "maxLaunchDelay": 1,
+                "arrivingOption": 0,
                 "scale": 0.0000015,
                 "meshMaterialURL": "res/img/isssurface.jpg",
                 "surface": {
@@ -49,7 +50,6 @@
             },
             "3": {
                 "name": "Junk 1",
-                "sgp": 0.0,
                 "refEpoch": 51544.5,
                 "orbitalElements": {
                     "sma": 15478000.44247,
@@ -59,11 +59,13 @@
                     "ap": 1.7966014740491711,
                     "ma": -0.04316391697638581
                 },
+                "sgp": 0.0,
                 "radius": 2,
                 "minRadiusFactor": 1.1,
                 "maxRadiusFactor": 100,
                 "maxTimeOfFlight": 2,
                 "maxLaunchDelay": 1,
+                "arrivingOption": 0,
                 "scale": 4,
                 "meshMaterialURL": "res/img/debrissurface.jpg",
                 "surface": {
@@ -75,7 +77,6 @@
             },
             "4": {
                 "name": "Junk 2",
-                "sgp": 0.0,
                 "refEpoch": 51544.5,
                 "orbitalElements": {
                     "sma": 15678000.44247,
@@ -85,11 +86,13 @@
                     "ap": 2.7966014740491711,
                     "ma": 1.24316391697638581
                 },
+                "sgp": 0.0,
                 "radius": 2,
                 "minRadiusFactor": 1.1,
                 "maxRadiusFactor": 100,
                 "maxTimeOfFlight": 2,
                 "maxLaunchDelay": 1,
+                "arrivingOption": 0,
                 "scale": 4,
                 "meshMaterialURL": "res/img/debrissurface.jpg",
                 "surface": {
@@ -101,7 +104,6 @@
             },
             "5": {
                 "name": "Junk 3",
-                "sgp": 0.0,
                 "refEpoch": 51544.5,
                 "orbitalElements": {
                     "sma": 15178000.44247,
@@ -111,11 +113,13 @@
                     "ap": 2.7966014740491711,
                     "ma": -2.24316391697638581
                 },
+                "sgp": 0.0,
                 "radius": 2,
                 "minRadiusFactor": 1.1,
                 "maxRadiusFactor": 100,
                 "maxTimeOfFlight": 2,
                 "maxLaunchDelay": 1,
+                "arrivingOption": 0,
                 "scale": 4,
                 "meshMaterialURL": "res/img/debrissurface.jpg",
                 "surface": {
@@ -127,7 +131,6 @@
             },
             "6": {
                 "name": "Junk 4",
-                "sgp": 0.0,
                 "refEpoch": 51544.5,
                 "orbitalElements": {
                     "sma": 14234874,
@@ -137,11 +140,13 @@
                     "ap": 2.23,
                     "ma": -0.24316391697638581
                 },
+                "sgp": 0.0,
                 "radius": 2,
                 "minRadiusFactor": 1.1,
                 "maxRadiusFactor": 100,
                 "maxTimeOfFlight": 2,
                 "maxLaunchDelay": 1,
+                "arrivingOption": 0,
                 "scale": 4,
                 "meshMaterialURL": "res/img/debrissurface.jpg",
                 "surface": {
@@ -153,7 +158,6 @@
             },
             "7": {
                 "name": "Junk 5",
-                "sgp": 0.0,
                 "refEpoch": 51544.5,
                 "orbitalElements": {
                     "sma": 14234874,
@@ -163,11 +167,13 @@
                     "ap": -0.23,
                     "ma": 3.24316391697638581
                 },
+                "sgp": 0.0,
                 "radius": 2,
                 "minRadiusFactor": 1.1,
                 "maxRadiusFactor": 100,
                 "maxTimeOfFlight": 2,
                 "maxLaunchDelay": 1,
+                "arrivingOption": 0,
                 "scale": 4,
                 "meshMaterialURL": "res/img/debrissurface.jpg",
                 "surface": {
@@ -179,7 +185,6 @@
             },
             "8": {
                 "name": "Junk 6",
-                "sgp": 0.0,
                 "refEpoch": 51544.5,
                 "orbitalElements": {
                     "sma": 14334874,
@@ -189,11 +194,13 @@
                     "ap": -1.23,
                     "ma": -0.823291697638581
                 },
+                "sgp": 0.0,
                 "radius": 2,
                 "minRadiusFactor": 1.1,
                 "maxRadiusFactor": 100,
                 "maxTimeOfFlight": 2,
                 "maxLaunchDelay": 1,
+                "arrivingOption": 0,
                 "scale": 4,
                 "meshMaterialURL": "res/img/debrissurface.jpg",
                 "surface": {
@@ -205,7 +212,6 @@
             },
             "9": {
                 "name": "Junk 7",
-                "sgp": 0.0,
                 "refEpoch": 51544.5,
                 "orbitalElements": {
                     "sma": 16334874,
@@ -215,11 +221,13 @@
                     "ap": 0.14,
                     "ma": 0.055
                 },
+                "sgp": 0.0,
                 "radius": 2,
                 "minRadiusFactor": 1.1,
                 "maxRadiusFactor": 100,
                 "maxTimeOfFlight": 2,
                 "maxLaunchDelay": 1,
+                "arrivingOption": 0,
                 "scale": 4,
                 "meshMaterialURL": "res/img/debrissurface.jpg",
                 "surface": {
@@ -231,7 +239,6 @@
             },
             "10": {
                 "name": "Junk 8",
-                "sgp": 0.0,
                 "refEpoch": 51544.5,
                 "orbitalElements": {
                     "sma": 14963936,
@@ -241,11 +248,13 @@
                     "ap": 0.69,
                     "ma": 0.06
                 },
+                "sgp": 0.0,
                 "radius": 2,
                 "minRadiusFactor": 1.1,
                 "maxRadiusFactor": 100,
                 "maxTimeOfFlight": 2,
                 "maxLaunchDelay": 1,
+                "arrivingOption": 0,
                 "scale": 4,
                 "meshMaterialURL": "res/img/debrissurface.jpg",
                 "surface": {

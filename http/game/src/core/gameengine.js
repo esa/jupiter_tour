@@ -642,7 +642,7 @@ core.GameEngine.prototype = {
             var orbitalElements = orbitingBodyData.orbitalElements;
             var orbitalElementDerivatives = orbitingBodyData.orbitalElementDerivatives;
 
-            var orbitingBody = new gui.OrbitingBody(id, orbitingBodyData.name, this._centralBody, orbitalElements, orbitalElementDerivatives, orbitingBodyData.refEpoch, orbitingBodyData.sgp, orbitingBodyData.radius, orbitingBodyData.minRadiusFactor, orbitingBodyData.maxRadiusFactor, orbitingBodyData.maxTimeOfFlight, orbitingBodyData.maxLaunchDelay, orbitingBodyData.scale, orbitingBodyData.meshMaterialURL, orbitingBodyData.surface);
+            var orbitingBody = new gui.OrbitingBody(id, orbitingBodyData.name, this._centralBody, orbitalElements, orbitalElementDerivatives, orbitingBodyData.refEpoch, orbitingBodyData.sgp, orbitingBodyData.radius, orbitingBodyData.minRadiusFactor, orbitingBodyData.maxRadiusFactor, orbitingBodyData.maxTimeOfFlight, orbitingBodyData.maxLaunchDelay, orbitingBodyData.arrivingOption, orbitingBodyData.scale, orbitingBodyData.meshMaterialURL, orbitingBodyData.surface);
 
             this._orbitingBodies[orbitingBody.getID()] = orbitingBody;
             this._orbitingBodyMeshs.push(orbitingBody.getBodyMesh());
