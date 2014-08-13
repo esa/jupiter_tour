@@ -1,5 +1,6 @@
 /* Namespace UTILITY
     Add functions that are for convenience here.
+    Don't add any functions which require a browser environment here.
 */
 var utility = {
     JULIAN_CENTURY_TO_DAY: 36525.0,
@@ -7,8 +8,7 @@ var utility = {
     SEC_TO_DAY: 1 / 86400.0,
     YEAR_TO_DAY: 365.25,
     RAD_TO_DEG: 180.0 / Math.PI,
-    DEG_TO_RAD: Math.PI / 180.0,
-    MOUSE_WHEEL_EVENT: (/Firefox/i.test(navigator.userAgent)) ? 'DOMMouseScroll' : 'mousewheel'
+    DEG_TO_RAD: Math.PI / 180.0
 };
 
 utility.toPixelString = function (value, round) {
@@ -74,10 +74,6 @@ utility.cartToFlat = function (cartesianCoords) {
     var longitude = Math.atan2(cartesianCoords.getY(), cartesianCoords.getX());
     var latitude = Math.atan(cartesianCoords.getZ() / Math.sqrt(Math.pow(cartesianCoords.getX(), 2) + Math.pow(cartesianCoords.getY(), 2)));
     return new geometry.Vector2(longitude, latitude);
-};
-
-utility.fitText = function () {
-    $('.text-fit').fitText();
 };
 
 utility.round = function (value, commaDigits) {

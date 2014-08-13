@@ -1,5 +1,6 @@
 /* FlybyLeg Model
     Inherits THREE.Line
+    //Would also inherit from astrodynamics.FlybyLeg, if Javascript prototypical inheritance would allow for multiple inheritance
 */
 gui.FlybyLeg = function (chromosome, currentOBody, nextOBody, velocityInf, epoch) {
     chromosome = chromosome.clone();
@@ -25,7 +26,7 @@ gui.FlybyLeg = function (chromosome, currentOBody, nextOBody, velocityInf, epoch
 
     this._arrivalVelocityInf = lambertProb.velocity2.clone().sub(ephNOBody.velocity);
 
-    legPoints.push(ephCOBody.position.asTHREE().multiplyScalar(gui.POSITION_SCALE));
+    legPoints.push(new THREE.Vector3(ephCOBody.position.getX(), ephCOBody.position.getY(), ephCOBody.position.getZ()).multiplyScalar(gui.POSITION_SCALE));
 
     var tmpPropLagr = {
         position: ephCOBody.position,
@@ -34,11 +35,12 @@ gui.FlybyLeg = function (chromosome, currentOBody, nextOBody, velocityInf, epoch
 
     for (var i = 0; i < 1000; i++) {
         var tmpPropLagr2 = astrodynamics.propagateLagrangian(tmpPropLagr.position, tmpPropLagr.velocity, (chromosome[2] * chromosome[3] * utility.DAY_TO_SEC) / 1000, sgp);
-        legPoints.push(tmpPropLagr2.position.asTHREE().multiplyScalar(gui.POSITION_SCALE));
+        var tmpPos = new THREE.Vector3(tmpPropLagr2.position.getX(), tmpPropLagr2.position.getY(), tmpPropLagr2.position.getZ());
+        legPoints.push(tmpPos.multiplyScalar(gui.POSITION_SCALE));
         tmpPropLagr = tmpPropLagr2;
     }
 
-    legPoints.push(propLagr.position.asTHREE().multiplyScalar(gui.POSITION_SCALE));
+    legPoints.push(new THREE.Vector3(propLagr.position.getX(), propLagr.position.getY(), propLagr.position.getZ()).multiplyScalar(gui.POSITION_SCALE));
 
     var tmpPropLagr = {
         position: propLagr.position,
@@ -47,11 +49,12 @@ gui.FlybyLeg = function (chromosome, currentOBody, nextOBody, velocityInf, epoch
 
     for (var i = 0; i < 1000; i++) {
         var tmpPropLagr2 = astrodynamics.propagateLagrangian(tmpPropLagr.position, tmpPropLagr.velocity, ((1 - chromosome[2]) * chromosome[3] * utility.DAY_TO_SEC) / 1000, sgp);
-        legPoints.push(tmpPropLagr2.position.asTHREE().multiplyScalar(gui.POSITION_SCALE));
+        var tmpPos = new THREE.Vector3(tmpPropLagr2.position.getX(), tmpPropLagr2.position.getY(), tmpPropLagr2.position.getZ());
+        legPoints.push(tmpPos.multiplyScalar(gui.POSITION_SCALE));
         tmpPropLagr = tmpPropLagr2;
     }
 
-    legPoints.push(ephNOBody.position.asTHREE().multiplyScalar(gui.POSITION_SCALE));
+    legPoints.push(new THREE.Vector3(ephNOBody.position.getX(), ephNOBody.position.getY(), ephNOBody.position.getZ()).multiplyScalar(gui.POSITION_SCALE));
 
     var spline = new THREE.SplineCurve3(legPoints);
     var meshGeometry = new THREE.Geometry();

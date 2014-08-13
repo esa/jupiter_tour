@@ -1,16 +1,9 @@
-/* Class OrbitingBody: Model & View 
-    Inherits Satellite
+/* Class OrbitingBody
+    Graphical interface class 
+    Inherits astrodynamics.OrbitingBody
 */
 gui.OrbitingBody = function (id, name, centralBody, orbitalElements, orbitalElementDerivatives, refEpoch, sgp, radius, minRadiusFactor, maxRadiusFactor, maxTimeOfFlight, maxLaunchDelay, arrivingOption, scale, meshMaterialURL, surface) {
-    astrodynamics.Satellite.call(this, centralBody, orbitalElements, orbitalElementDerivatives, refEpoch, sgp);
-    this._id = id;
-    this._name = name;
-    this._radius = radius;
-    this._minRadius = radius * minRadiusFactor;
-    this._maxRadius = radius * maxRadiusFactor;
-    this._maxTimeOfFlight = maxTimeOfFlight * utility.DAY_TO_SEC;
-    this._maxLaunchDelay = maxLaunchDelay != null ? maxLaunchDelay * utility.DAY_TO_SEC : 0;
-    this._arrivingOption = arrivingOption;
+    astrodynamics.OrbitingBody.call(this, id, name, centralBody, orbitalElements, orbitalElementDerivatives, refEpoch, sgp, radius, minRadiusFactor, maxRadiusFactor, maxTimeOfFlight, maxLaunchDelay, arrivingOption, surface);
 
     this._isMouseOver = false;
     this._isActivated = false;
@@ -22,8 +15,6 @@ gui.OrbitingBody = function (id, name, centralBody, orbitalElements, orbitalElem
     this._scaleSpeed = 0.075;
     this._scale = scale;
     this._orbitPositions = 400;
-    this._surfaceType = surface.type;
-    this._vehicle = null;
     this._isSelected = false;
     this._pulseValue = 0;
     this._pulseUp = true;
@@ -48,15 +39,15 @@ gui.OrbitingBody = function (id, name, centralBody, orbitalElements, orbitalElem
     material.map = THREE.ImageUtils.loadTexture(meshMaterialURL);
     var meshGeometry = new THREE.SphereGeometry(this._radius * this._scale, 100, 100);
     var mesh = new THREE.Mesh(meshGeometry, material);
-    var orbSVs = this.orbitalStateVectorsAtEpoch(this._refEpoch);
-    this._position = orbSVs.position;
-    mesh.position = this._position.asTHREE().multiplyScalar(gui.POSITION_SCALE);
+
+    mesh.position = new THREE.Vector3(this._position.getX(), this._position.getY(), this._position.getZ()).multiplyScalar(gui.POSITION_SCALE);
     mesh.rotation.x = 1.57;
     mesh.gID = this._id;
     this._bodyMesh = mesh;
 
     var orbitPositions = this._sampleOrbitPositions(this._orbitPositions / 2, this._refEpoch).map(function (position) {
-        return position.multiplyScalar(gui.POSITION_SCALE).asTHREE();
+        var tmpPos = position.multiplyScalar(gui.POSITION_SCALE);
+        return new THREE.Vector3(tmpPos.getX(), tmpPos.getY(), tmpPos.getZ());
     });
     var spline = new THREE.SplineCurve3(orbitPositions);
     var splinePoints = spline.getPoints(this._orbitPositions);
@@ -73,7 +64,7 @@ gui.OrbitingBody = function (id, name, centralBody, orbitalElements, orbitalElem
     });
     this._orbitMesh = new THREE.Line(meshGeometry, material);
 };
-gui.OrbitingBody.prototype = Object.create(astrodynamics.Satellite.prototype);
+gui.OrbitingBody.prototype = Object.create(astrodynamics.OrbitingBody.prototype);
 gui.OrbitingBody.prototype.constructor = gui.OrbitingBody;
 
 gui.OrbitingBody.prototype._highlight = function () {
@@ -130,7 +121,8 @@ gui.OrbitingBody.prototype._getSelector = function () {
 
 gui.OrbitingBody.prototype._displayOrbitAtEpoch = function (epoch) {
     var orbitPositions = this._sampleOrbitPositions(this._orbitPositions / 2, epoch).map(function (position) {
-        return position.multiplyScalar(gui.POSITION_SCALE).asTHREE();
+        var tmpPos = position.multiplyScalar(gui.POSITION_SCALE);
+        return new THREE.Vector3(tmpPos.getX(), tmpPos.getY(), tmpPos.getZ());
     });
     var spline = new THREE.SplineCurve3(orbitPositions);
     var splinePoints = spline.getPoints(this._orbitPositions);
@@ -247,98 +239,13 @@ gui.OrbitingBody.prototype.update = function (screenPosition, screenRadius) {
 gui.OrbitingBody.prototype.displayAtEpoch = function (epoch) {
     var orbSVs = this.orbitalStateVectorsAtEpoch(epoch);
     this._position = orbSVs.position;
-    var newPos = this._position.asTHREE().multiplyScalar(gui.POSITION_SCALE);
+    var newPos = new THREE.Vector3(this._position.getX(), this._position.getY(), this._position.getZ()).multiplyScalar(gui.POSITION_SCALE);
     this._bodyMesh.position = newPos;
     this._displayOrbitAtEpoch(epoch);
 };
 
-gui.OrbitingBody.prototype.getPosition = function () {
-    return this._position.clone();
-};
-
-gui.OrbitingBody.prototype.getID = function () {
-    return this._id;
-};
-
-gui.OrbitingBody.prototype.getName = function () {
-    return this._name;
-};
-
-gui.OrbitingBody.prototype.getRadius = function () {
-    return this._radius;
-};
-
-gui.OrbitingBody.prototype.getMinRadius = function () {
-    return this._minRadius;
-};
-
-gui.OrbitingBody.prototype.getMaxRadius = function () {
-    return this._maxRadius;
-};
-
-gui.OrbitingBody.prototype.getMaxTimeOfFlight = function () {
-    return this._maxTimeOfFlight;
-};
-
-gui.OrbitingBody.prototype.getMaxLaunchDelay = function () {
-    return this._maxLaunchDelay;
-};
-
-gui.OrbitingBody.prototype.getArrivingOption = function () {
-    return this._arrivingOption;
-};
-
-gui.OrbitingBody.prototype.isFaceVisited = function (faceID) {
-    return this._surface.isFaceVisited(faceID);
-};
-
-gui.OrbitingBody.prototype.setFaceVisited = function (faceID, isVisited) {
-    this._surface.setFaceVisited(faceID, isVisited);
-};
-
-gui.OrbitingBody.prototype.isNewestVisitCoords = function (faceID, coordsID) {
-    return this._surface.isNewestVisitCoords(faceID, coordsID);
-};
-
-gui.OrbitingBody.prototype.setFaceSelected = function (faceID, isSelected) {
-    this._surface.setFaceSelected(faceID, isSelected);
-};
-
-gui.OrbitingBody.prototype.isFaceVisitable = function (faceID) {
-    return this._surface.isFaceVisitable(faceID);
-};
-
-gui.OrbitingBody.prototype.isFaceSelected = function (faceID) {
-    return this._surface.isFaceSelected(faceID);
-};
-
-gui.OrbitingBody.prototype.getFaceBetaBounds = function (faceID) {
-    return this._surface.getFaceBetaBounds(faceID);
-};
-
-gui.OrbitingBody.prototype.getFaceValue = function (faceID) {
-    return this._surface.getFaceValue(faceID);
-};
-
-gui.OrbitingBody.prototype.getFaceRadiusBounds = function (faceID) {
-    return this._surface.getFaceRadiusBounds(faceID);
-};
-
 gui.OrbitingBody.prototype.getDefaultConfiguration = function (userAction) {
     this._getSelector().getDefaultConfiguration(userAction);
-};
-
-gui.OrbitingBody.prototype.computeFlybyFaceAndCoords = function (epoch, velocityInf, beta, radius) {
-    var periapsis = astrodynamics.computePeriapsis(this, epoch, velocityInf, beta, radius);
-    return this._surface.computeFlybyFaceAndCoords(periapsis);
-};
-
-gui.OrbitingBody.prototype.setFlybyCoords = function (faceID, coords, isNewest) {
-    this._surface.setFlybyCoords(faceID, coords, isNewest);
-};
-
-gui.OrbitingBody.prototype.getTotalFlybyScore = function () {
-    return this._surface.getTotalFlybyScore();
 };
 
 gui.OrbitingBody.prototype.reset = function () {
@@ -346,10 +253,6 @@ gui.OrbitingBody.prototype.reset = function () {
     this._configurationStatus = core.ConfigurationStatus.DELIVERED;
     this._configurationMode = core.TransferLegConfigurationModes.ARRIVAL;
     this._surface.reset();
-};
-
-gui.OrbitingBody.prototype.getSurfaceType = function () {
-    return this._surfaceType;
 };
 
 gui.OrbitingBody.prototype.getScale = function () {

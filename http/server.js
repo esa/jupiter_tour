@@ -15,12 +15,16 @@
         randomstring
         escape-html
         url
+        vm
 */
 
 // Convenient stuff
 String.prototype.endsWith = function (suffix) {
     return this.indexOf(suffix, this.length - suffix.length) !== -1;
 };
+
+
+
 
 var Server = {};
 
@@ -38,6 +42,13 @@ var Server = {};
     var randomstring = require('randomstring');
     var escape = require('escape-html');
     var url = require('url');
+    var vm = require('vm');
+
+    // Acts 'like' a C #include statement
+    var include = function (path) {
+        var code = fs.readFileSync(path);
+        vm.runInThisContext(code, path);
+    }.bind(this);
 
 
 
@@ -50,7 +61,33 @@ var Server = {};
     var SESSION_CLEANING_INTERVAL = 5 * 60;
     var SCOREBOARD_REFRESH_INTERVAL = 1 * 60 * 60;
     var FILE_CACHING_TIME = 0 * 24 * 60 * 60;
-    var DATABASE_NAME = 'jupitertour';
+    var DATABASE_NAME = 'spacehopper';
+    var SPACE_HOPPER_ROOT_FOLDER = './game';
+
+
+
+
+    // Include requried spacehopper framework parts
+    include(__dirname + '/game/src/div/array.js');
+    include(__dirname + '/game/src/div/utility.js');
+    include(__dirname + '/game/src/geometry/geometry.js');
+    include(__dirname + '/game/src/geometry/vector2.js');
+    include(__dirname + '/game/src/geometry/vector3.js');
+    include(__dirname + '/game/src/geometry/matrix3.js');
+    include(__dirname + '/game/src/algorithm/algorithm.js');
+    include(__dirname + '/game/src/algorithm/newtonraphson.js');
+    include(__dirname + '/game/src/algorithm/regulafalsi.js');
+    include(__dirname + '/game/src/astrodynamics/astrodynamics.js');
+    include(__dirname + '/game/src/astrodynamics/keplerequations.js');
+    include(__dirname + '/game/src/astrodynamics/satellite.js');
+    include(__dirname + '/game/src/astrodynamics/centralbody.js');
+    include(__dirname + '/game/src/astrodynamics/orbitingbody.js');
+    include(__dirname + '/game/src/model/model.js');
+    include(__dirname + '/game/src/model/surface.js');
+    include(__dirname + '/game/src/model/sphericalsurface.js');
+    include(__dirname + '/game/src/model/truncatedicosahedronsurface.js');
+    include(__dirname + '/game/src/model/stage.js');
+    include(__dirname + '/game/src/model/vehicle.js');
 
     var htmlTemplates = {
         ERROR_400: fs.readFileSync('errors/400.html'),
@@ -195,8 +232,32 @@ var Server = {};
         log('DB: Scoreboard refresh finish @ ' + new Date());
     }
 
-    function checkAndAppendDeltaData(saveGameRecord, deltaData, callback) {
-        //TODO: Implement!
+    function checkAndAppendDeltaData(missionID, saveGameRecord, deltaData, callback) {
+        if (missionID == null || deltaData == null) {
+            callback(null);
+            return;
+        }
+
+        var mission = getMission(missionID).mission;
+
+        var maxObjectID = mission.centralBody.id;
+
+        var centralBody = new astrodynamics.CentralBody(mission.centralBody.id, mission.centralBody.name, mission.centralBody.sgp, mission.centralBody.radius, mission.centralBody.scale, mission.centralBody.isStar, mission.centralBody.meshMaterialURL);
+        var orbitingBodies = {};
+
+        for (var currentBodyID in mission.orbitingBodies) {
+            var id = parseInt(currentBodyID);
+            maxObjectID = Math.max(maxObjectID, id);
+            var orbitingBodyData = mission.orbitingBodies[currentBodyID];
+            var orbitalElements = orbitingBodyData.orbitalElements;
+            var orbitalElementDerivatives = orbitingBodyData.orbitalElementDerivatives;
+
+            var orbitingBody = new astrodynamics.OrbitingBody(id, orbitingBodyData.name, centralBody, orbitalElements, orbitalElementDerivatives, orbitingBodyData.refEpoch, orbitingBodyData.sgp, orbitingBodyData.radius, orbitingBodyData.minRadiusFactor, orbitingBodyData.maxRadiusFactor, orbitingBodyData.maxTimeOfFlight, orbitingBodyData.maxLaunchDelay, orbitingBodyData.arrivingOption, orbitingBodyData.scale, orbitingBodyData.meshMaterialURL, orbitingBodyData.surface);
+
+            orbitingBodies[orbitingBody.getID()] = orbitingBody;
+        }
+
+
         if (saveGameRecord == null) {
             callback(deltaData);
             log('DB: Checked savegame data for correctness.');
@@ -205,8 +266,10 @@ var Server = {};
         }
     }
 
+    var deferredSessionUpdates = {};
+
     function updateSession(session, date) {
-        if (session) {
+        function updateRecord(session, date) {
             var sessions = dbConnection.collection('sessions');
             var timeout = new Date(date.getTime() + SESSION_TIMEOUT * 1000);
             var query = {
@@ -223,7 +286,21 @@ var Server = {};
                     return;
                 }
                 log('DB: Updated session entry with id ' + session._id + ' to new timeout ' + timeout);
+
+                delete deferredSessionUpdates[session._id];
             });
+        }
+        if (session) {
+            if (deferredSessionUpdates[session._id.toHexString()] == null) {
+                deferredSessionUpdates[session._id.toHexString()] = setTimeout(function () {
+                    updateRecord(session, date);
+                }, 1000);
+            } else {
+                clearTimeout(deferredSessionUpdates[session._id.toHexString()]);
+                deferredSessionUpdates[session._id.toHexString()] = setTimeout(function () {
+                    updateRecord(session, date);
+                }, 1000);
+            }
         }
     }
 
@@ -387,7 +464,7 @@ var Server = {};
                         callback(null);
                         return;
                     }
-                    checkAndAppendDeltaData(null, deltaData, function (checkedSaveGame) {
+                    checkAndAppendDeltaData(missionID, null, deltaData, function (checkedSaveGame) {
                         record = {
                             userID: user._id,
                             data: {
@@ -410,7 +487,7 @@ var Server = {};
                     });
                 });
             } else {
-                checkAndAppendDeltaData(null, deltaData, function (checkedSaveGame) {
+                checkAndAppendDeltaData(missionID, null, deltaData, function (checkedSaveGame) {
                     var record = {
                         userID: (user ? user._id : null),
                         data: {
@@ -492,7 +569,7 @@ var Server = {};
                             return;
                         }
                         if (deltaIndex == record.deltaIndex && missionRevision == record.missionRevision) {
-                            checkAndAppendDeltaData(record, deltaData, function (checkedSaveGame) {
+                            checkAndAppendDeltaData(missionID, record, deltaData, function (checkedSaveGame) {
                                 record.data.nodes = checkedSaveGame.nodes;
                                 record.data.nodeHistory = checkedSaveGame.nodeHistory;
                                 record.name = name != null ? name : record.name;
@@ -502,7 +579,7 @@ var Server = {};
                                 deleteRecordIfEmpty(saveGames, record, callback);
                             });
                         } else {
-                            checkAndAppendDeltaData(record, deltaData, function (checkedSaveGame) {
+                            checkAndAppendDeltaData(missionID, record, deltaData, function (checkedSaveGame) {
                                 record.data = checkedSaveGame;
                                 record.name = name;
                                 record.submission = date;
@@ -517,7 +594,7 @@ var Server = {};
                     });
                 } else {
                     if (deltaIndex == record.deltaIndex && missionRevision == record.missionRevision) {
-                        checkAndAppendDeltaData(record, deltaData, function (checkedSaveGame) {
+                        checkAndAppendDeltaData(missionID, record, deltaData, function (checkedSaveGame) {
                             record.data.nodes = checkedSaveGame.nodes;
                             record.data.nodeHistory = checkedSaveGame.nodeHistory;
                             record.name = name != null ? name : record.name;
@@ -527,7 +604,7 @@ var Server = {};
                             deleteRecordIfEmpty(saveGames, record, callback);
                         });
                     } else {
-                        checkAndAppendDeltaData(record, deltaData, function (checkedSaveGame) {
+                        checkAndAppendDeltaData(missionID, record, deltaData, function (checkedSaveGame) {
                             record.data = checkedSaveGame;
                             record.name = name;
                             record.submission = date;

@@ -80,7 +80,7 @@ function register() {
                     password: password1
                 },
                 success: function (response) {
-                    if (response == 'OK') {
+                    if (response == '') {
                         document.location.reload();
                     } else {
                         $('#registererror').html(response);

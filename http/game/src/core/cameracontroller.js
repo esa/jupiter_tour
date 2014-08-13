@@ -57,7 +57,7 @@ core.CameraController.prototype = {
         var oldPosition = this._camera.position.clone();
         this._camera.position.set(focusPosition.getX() + radius * Math.sin(theta) * Math.cos(phi), focusPosition.getY() + radius * Math.sin(theta) * Math.sin(phi), focusPosition.getZ() + radius * Math.cos(theta));
 
-        this._camera.lookAt(focusPosition.asTHREE());
+        this._camera.lookAt(new THREE.Vector3(focusPosition.getX(), focusPosition.getY(), focusPosition.getZ()));
     },
 
     setFocus: function (focus) {

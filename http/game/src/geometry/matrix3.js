@@ -27,5 +27,18 @@ geometry.Matrix3.prototype = {
         elements[7] = el32;
         elements[8] = el33;
         return this;
+    },
+
+    clone: function () {
+        var el11 = elements[0];
+        var el12 = elements[1];
+        var el13 = elements[2];
+        var el21 = elements[3];
+        var el22 = elements[4];
+        var el23 = elements[5];
+        var el31 = elements[6];
+        var el32 = elements[7];
+        var el33 = elements[8];
+        return new geometry.Matrix3(el11, el12, el13, el21, el22, el23, el31, el32, el33);
     }
 };

@@ -182,7 +182,8 @@ core.GameEngine.prototype = {
         this._centralBody.update();
         for (var id in this._orbitingBodies) {
             var currentBody = this._orbitingBodies[id];
-            var currentBodyPosition = currentBody.getPosition().asTHREE().multiplyScalar(gui.POSITION_SCALE);
+            var curBodyPos = currentBody.getPosition();
+            var currentBodyPosition = new THREE.Vector3(curBodyPos.getX(), curBodyPos.getY(), curBodyPos.getZ()).multiplyScalar(gui.POSITION_SCALE);
             var projVec = this._projector.projectVector(currentBodyPosition.clone(), this._camera);
             var screenPosition = new geometry.Vector2((projVec.x + 1) * window.innerWidth / 2, (1 - projVec.y) * window.innerHeight / 2);
 

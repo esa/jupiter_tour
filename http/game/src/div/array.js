@@ -8,8 +8,8 @@ Array.prototype.remove = function (pos) {
     return this;
 };
 
-Array.prototype.concat = function (array) {
-    this.push.apply(this, array);
+Array.prototype.concat = function (arr) {
+    this.push.call(this, arr);
     return this;
 };
 
