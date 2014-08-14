@@ -66,8 +66,13 @@ var Server = {};
 
 
     // Include requried spacehopper framework parts
+    include(__dirname + '/game/src/div/constants.js');
+    include(__dirname + '/game/src/div/math.js');
     include(__dirname + '/game/src/div/array.js');
     include(__dirname + '/game/src/div/utility.js');
+    include(__dirname + '/game/src/div/strings.js');
+    include(__dirname + '/game/src/datastructure/datastructure.js');
+    include(__dirname + '/game/src/datastructure/treenode.js');
     include(__dirname + '/game/src/geometry/geometry.js');
     include(__dirname + '/game/src/geometry/vector2.js');
     include(__dirname + '/game/src/geometry/vector3.js');
@@ -77,15 +82,24 @@ var Server = {};
     include(__dirname + '/game/src/algorithm/regulafalsi.js');
     include(__dirname + '/game/src/astrodynamics/astrodynamics.js');
     include(__dirname + '/game/src/astrodynamics/keplerequations.js');
+    include(__dirname + '/game/src/astrodynamics/lambert.js');
+    include(__dirname + '/game/src/astrodynamics/propagatelagrangian.js');
     include(__dirname + '/game/src/astrodynamics/satellite.js');
     include(__dirname + '/game/src/astrodynamics/centralbody.js');
+    include(__dirname + '/game/src/astrodynamics/flybypropagation.js');
+    include(__dirname + '/game/src/astrodynamics/periapsis.js');
     include(__dirname + '/game/src/astrodynamics/orbitingbody.js');
+    include(__dirname + '/game/src/astrodynamics/launchleg.js');
+    include(__dirname + '/game/src/astrodynamics/flybyleg.js');
     include(__dirname + '/game/src/model/model.js');
     include(__dirname + '/game/src/model/surface.js');
     include(__dirname + '/game/src/model/sphericalsurface.js');
     include(__dirname + '/game/src/model/truncatedicosahedronsurface.js');
     include(__dirname + '/game/src/model/stage.js');
     include(__dirname + '/game/src/model/vehicle.js');
+    include(__dirname + '/game/src/core/core.js');
+    include(__dirname + '/game/src/core/gamestate.js');
+    include(__dirname + '/game/src/core/historynode.js');
 
     var htmlTemplates = {
         ERROR_400: fs.readFileSync('errors/400.html'),
@@ -240,7 +254,7 @@ var Server = {};
 
         var maxObjectID = mission.centralBody.id;
 
-        var centralBody = new astrodynamics.CentralBody(mission.centralBody.id, mission.centralBody.name, mission.centralBody.sgp, mission.centralBody.radius, mission.centralBody.scale, mission.centralBody.isStar, mission.centralBody.meshMaterialURL);
+        var centralBody = new astrodynamics.CentralBody(mission.centralBody.id, mission.centralBody.name, mission.centralBody.sgp, mission.centralBody.radius);
         var orbitingBodies = {};
 
         for (var currentBodyID in mission.orbitingBodies) {
@@ -250,7 +264,7 @@ var Server = {};
             var orbitalElements = orbitingBodyData.orbitalElements;
             var orbitalElementDerivatives = orbitingBodyData.orbitalElementDerivatives;
 
-            var orbitingBody = new astrodynamics.OrbitingBody(id, orbitingBodyData.name, centralBody, orbitalElements, orbitalElementDerivatives, orbitingBodyData.refEpoch, orbitingBodyData.sgp, orbitingBodyData.radius, orbitingBodyData.minRadiusFactor, orbitingBodyData.maxRadiusFactor, orbitingBodyData.maxTimeOfFlight, orbitingBodyData.maxLaunchDelay, orbitingBodyData.arrivingOption, orbitingBodyData.scale, orbitingBodyData.meshMaterialURL, orbitingBodyData.surface);
+            var orbitingBody = new astrodynamics.OrbitingBody(id, orbitingBodyData.name, centralBody, orbitalElements, orbitalElementDerivatives, orbitingBodyData.refEpoch, orbitingBodyData.sgp, orbitingBodyData.radius, orbitingBodyData.minRadiusFactor, orbitingBodyData.maxRadiusFactor, orbitingBodyData.maxTimeOfFlight, orbitingBodyData.maxLaunchDelay, orbitingBodyData.arrivingOption, orbitingBodyData.surface);
 
             orbitingBodies[orbitingBody.getID()] = orbitingBody;
         }
@@ -303,8 +317,160 @@ var Server = {};
 
         if (saveGameRecord == null) {
 
-            callback(deltaData);
+            var nodes = deltaData.nodes;
+            var nodeHistory = deltaData.nodeHistory;
 
+            var gameStates = {};
+            var parents = {};
+            var rootNode = null;
+            var rootLessNodes = {};
+            var node = null;
+            for (var id in nodes) {
+                node = nodes[id];
+                if (node.parentID == null) {
+                    parents[node.id] = node.id;
+                    rootNode = node;
+                } else {
+                    parents[node.id] = node.parentID;
+                    rootLessNodes[node.id] = node;
+                }
+            }
+
+            var gameStateData = rootNode.gameState;
+            var currentBody = orbitingBodies[gameStateData.orbitingBodyID];
+            var chromosome = null;
+            var epoch = gameStateData.epoch;
+            var passedDays = 0;
+            var totalDeltaV = 0;
+            var velocityInf = new geometry.Vector3().fromArray(gameStateData.vehicle.velocityInf);
+            var stages = [];
+            var vehicleData = gameStateData.vehicle;
+            for (var i = 0; i < vehicleData.stages.length; i++) {
+                var stage = vehicleData.stages[i];
+                stages.push(new model.Stage(stage.propulsionType, stage.mass, stage.emptyMass, stage.remainingMass, stage.thrust, stage.specificImpulse));
+            }
+            var vehicle = new model.Vehicle(velocityInf, stages, gameStateData.vehicle.isLanded);
+            var dsmResult = null;
+            var transferLeg = null;
+            var score = 0;
+            var mappedFaces = {};
+
+            var gameState = new core.GameState(currentBody, epoch, passedDays, totalDeltaV, score, vehicle, mappedFaces, transferLeg);
+            markAndSetScoreForGameState(gameState, dsmResult);
+            gameStates[rootNode.id] = gameState;
+
+            var parentGameState = null;
+            var parentVehicle = null;
+            var parentBody = null;
+            var parentScore = 0;
+            var parentEpoch = 0;
+            var parentPassedDays = 0;
+            var parentTotalDeltaV = 0;
+            var parentVelocityInf = null;
+            var timeOfFlight = 0;
+            var deltaV = 0;
+            var problemType = null;
+            var performLanding = false;
+            var leg = null;
+            for (var id in rootLessNodes) {
+                parentGameState = gameStates[parents[id]];
+
+                if (parentGameState != null && !parentGameState.isInvalid()) {
+                    node = rootLessNodes[id];
+                    gameStateData = node.gameState;
+                    currentBody = orbitingBodies[gameStateData.orbitingBodyID];
+                    chromosome = gameStateData.transferLeg.chromosome;
+                    problemType = gameStateData.transferLeg.problemType;
+                    performLanding = gameStateData.transferLeg.performLanding;
+                    deltaV = gameStateData.transferLeg.deltaV;
+                    timeOfFlight = gameStateData.transferLeg.timeOfFlight;
+
+                    mappedFaces = parentGameState.getMappedFaces();
+
+                    parentBody = parentGameState.getOrbitingBody();
+                    parentVehicle = parentGameState.getVehicle();
+                    parentScore = parentGameState.getScore();
+                    parentEpoch = parentGameState.getEpoch();
+                    parentPassedDays = parentGameState.getPassedDays();
+                    parentTotalDeltaV = parentGameState.getTotalDeltaV();
+                    parentVelocityInf = parentVehicle.getVelocityInf();
+
+                    leg = null;
+                    flybyResult = null;
+                    faceValue = 0;
+                    switch (problemType) {
+                    case astrodynamics.ProblemTypes.MGA1DSM_LAUNCH:
+                        leg = new astrodynamics.LaunchLeg(chromosome, parentBody, currentBody);
+                        flybyResult = parentBody.computeFlybyFaceAndCoords(parentEpoch, parentVelocityInf, chromosome[1], chromosome[2]);
+                        faceValue = parentBody.getFaceValue(flybyResult.faceID);
+                        break;
+                    case astrodynamics.ProblemTypes.MGA1DSM_FLYBY:
+                        leg = new astrodynamics.FlybyLeg(chromosome, parentBody, currentBody, parentVelocityInf, parentEpoch);
+                        flybyResult = parentBody.computeFlybyFaceAndCoords(parentEpoch, parentVelocityInf, chromosome[0], chromosome[1]);
+                        faceValue = parentBody.getFaceValue(flybyResult.faceID);
+                        break;
+                    }
+
+                    var numStages = parentVehicle.getStages().length;
+                    if (numStages > 1 && problemType == astrodynamics.ProblemTypes.MGA1DSM_LAUNCH) {
+                        parentVehicle.jettisonStage();
+                    }
+                    dsmResult = parentVehicle.performManeuver(deltaV, timeOfFlight * utility.DAY_TO_SEC);
+                    vehicle = parentVehicle.clone();
+                    if (leg) {
+                        var nextVelocityInf = leg.getArrivalVelocityInf();
+                        vehicle.setVelocityInf(nextVelocityInf);
+                    }
+                    vehicle.setLanded(performLanding);
+
+                    score = parentScore + faceValue;
+                    epoch = parentEpoch + timeOfFlight;
+                    passedDays = parentPassedDays + timeOfFlight;
+                    totalDeltaV = parentTotalDeltaV + deltaV;
+
+                    var transferLeg = {
+                        problemType: problemType,
+                        chromosome: chromosome,
+                        deltaV: deltaV,
+                        timeOfFlight: timeOfFlight,
+                        visualization: leg,
+                        gravityLoss: dsmResult ? dsmResult.gravityLoss : 1,
+                        mappedFaceID: flybyResult != null ? parentBody.getID() + '_' + flybyResult.faceID : '',
+                        periapsisCoords: flybyResult != null ? flybyResult.coords : null
+                    };
+
+                    gameState = new core.GameState(currentBody, epoch, passedDays, totalDeltaV, score, vehicle, mappedFaces, transferLeg);
+                    markAndSetScoreForGameState(gameState, dsmResult);
+                    gameStates[node.id] = gameState;
+                }
+            }
+
+
+            var rootNode = new core.HistoryNode(gameStates[rootNode.id], rootNode.id);
+            rootNode.setHistorySequenceNr(0);
+            var key = rootNode.getKey();
+            var maxNodeID = key;
+            var jumpTable = {};
+            jumpTable[key] = rootNode;
+
+            var newNodeHistory = [key];
+            var newNodeHistoryLength = 1;
+
+            for (var i = 1; i < nodeHistory.length; i++) {
+                var id = nodeHistory[i];
+                var parentNode = jumpTable[parents[id]];
+                if (parentNode != null && !parentNode.getValue().isInvalid()) {
+                    var childNode = parentNode.addChild(gameStates[id], id, nodes[id].isVirtual);
+                    var childKey = childNode.getKey();
+                    newNodeHistory.push(childKey);
+                    childNode.setHistorySequenceNr(newNodeHistoryLength);
+                    newNodeHistoryLength++;
+                    jumpTable[childKey] = childNode;
+                    maxNodeID = Math.max(maxNodeID, childKey);
+                }
+            }
+
+            callback(deltaData);
             log('DB: Checked savegame data for correctness.');
         } else {
 
