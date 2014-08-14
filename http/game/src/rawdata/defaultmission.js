@@ -6,10 +6,10 @@ rawdata.defaultMission = {
 
         maximumMissionDuration: 1461,
 
-        funIsInvalidState: 'return [];',
+        funGetInvalidReasonsForState: null,
+        funSetScoreForState: null,
         funIsWinningState: 'var score = gameState.getScore(); return (score >= 324);',
         funGetWinningProgress: 'var score = gameState.getScore(); return score/324;',
-
 
         centralBody: {
             id: 2,

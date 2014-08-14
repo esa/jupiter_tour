@@ -15,7 +15,7 @@ core.GameEngine = function () {
     this._gameHistoryManager = null;
     this._solver = null;
 
-    this._funSetInvalidReasonsForState = null;
+    this._funGetInvalidReasonsForState = null;
     this._funIsWinningState = null;
     this._funGetTimeUsage = null;
     this._funGetWinningProgress = null;
@@ -298,8 +298,8 @@ core.GameEngine.prototype = {
         if (this._funGetTimeUsage(gameState) > 1) {
             reasonIDs.push(strings.FinalStateReasonIDs.MAX_MISSION_EPOCH);
         }
-        if (this._funSetInvalidReasonsForState) {
-            reasonIDs.concat(this._funSetInvalidReasonsForState(gameState));
+        if (this._funGetInvalidReasonsForState) {
+            reasonIDs.append(this._funGetInvalidReasonsForState(gameState));
         }
         if (dsmResult) {
             if (dsmResult.hasDeltaVLimitation) {
@@ -659,7 +659,7 @@ core.GameEngine.prototype = {
         this._cameraController.setMaxRadius(maxApoapsis * 8);
         this._cameraController.setMinRadius(minPeriapsis * 5);
 
-        this._funSetInvalidReasonsForState = mission.funSetInvalidReasonsForState != null ? Function('gameState', mission.funSetInvalidReasonsForState) : null;
+        this._funGetInvalidReasonsForState = mission.funGetInvalidReasonsForState != null ? Function('gameState', mission.funGetInvalidReasonsForState) : null;
         this._funIsWinningState = mission.funIsWinningState != null ? Function('gameState', mission.funIsWinningState) : null;
         this._funSetScoreForState = mission.funSetScoreForState != null ? Function('gameState', mission.funSetScoreForState) : null;
 

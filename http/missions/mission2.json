@@ -5,7 +5,7 @@
 
         "maximumMissionDuration": 243,
 
-        "funSetInvalidReasonsForState": null,
+        "funGetInvalidReasonsForState": null,
         "funSetScoreForState": null,
         "funIsWinningState": "var score = gameState.getScore(); return (score >= 324);",
         "funGetWinningProgress": "var score = gameState.getScore(); return score/324;",

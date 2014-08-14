@@ -24,8 +24,6 @@ String.prototype.endsWith = function (suffix) {
 };
 
 
-
-
 var Server = {};
 
 (function () {
@@ -257,9 +255,56 @@ var Server = {};
             orbitingBodies[orbitingBody.getID()] = orbitingBody;
         }
 
+        var funGetInvalidReasonsForState = mission.funGetInvalidReasonsForState != null ? Function('gameState', mission.funGetInvalidReasonsForState) : null;
+        var funIsWinningState = mission.funIsWinningState != null ? Function('gameState', mission.funIsWinningState) : null;
+        var funSetScoreForState = mission.funSetScoreForState != null ? Function('gameState', mission.funSetScoreForState) : null;
+        var maximumMissionDuration = mission.maximumMissionDuration;
+        var funGetTimeUsage = function (gameState) {
+            return gameState.getPassedDays() / maximumMissionDuration;
+        };
+        var funGetWinningProgress = Function('gameState', mission.funGetWinningProgress);
+
+        function markAndSetScoreForGameState(gameState, dsmResult) {
+            var reasonIDs = [];
+            if (funGetTimeUsage(gameState) > 1) {
+                reasonIDs.push(strings.FinalStateReasonIDs.MAX_MISSION_EPOCH);
+            }
+            if (funGetInvalidReasonsForState) {
+                reasonIDs.concat(funGetInvalidReasonsForState(gameState));
+            }
+            if (dsmResult) {
+                if (dsmResult.hasDeltaVLimitation) {
+                    reasonIDs.push(strings.FinalStateReasonIDs.SPACECRAFT_LIMITATION);
+                }
+                if (dsmResult.isOutOfFuel) {
+                    reasonIDs.push(strings.FinalStateReasonIDs.MAX_TOTAL_DELTAV);
+                }
+            }
+            if (reasonIDs.length) {
+                gameState.markInvalid(reasonIDs);
+            }
+            if (funIsWinningState) {
+                if (!gameState.isInvalid()) {
+                    if (funIsWinningState(gameState)) {
+                        gameState.markWinning();
+                    }
+                }
+            }
+            if (gameState.isInvalid()) {
+                gameState.setScore(0);
+            } else {
+                if (funSetScoreForState) {
+                    funSetScoreForState(gameState);
+                }
+            }
+        }
+
+
 
         if (saveGameRecord == null) {
+
             callback(deltaData);
+
             log('DB: Checked savegame data for correctness.');
         } else {
 
