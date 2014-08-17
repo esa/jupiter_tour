@@ -73,6 +73,7 @@ var Server = {};
     include(__dirname + '/game/src/div/strings.js');
     include(__dirname + '/game/src/datastructure/datastructure.js');
     include(__dirname + '/game/src/datastructure/treenode.js');
+    include(__dirname + '/game/src/datastructure/queue.js');
     include(__dirname + '/game/src/geometry/geometry.js');
     include(__dirname + '/game/src/geometry/vector2.js');
     include(__dirname + '/game/src/geometry/vector3.js');
@@ -80,6 +81,7 @@ var Server = {};
     include(__dirname + '/game/src/algorithm/algorithm.js');
     include(__dirname + '/game/src/algorithm/newtonraphson.js');
     include(__dirname + '/game/src/algorithm/regulafalsi.js');
+    include(__dirname + '/game/src/algorithm/bfs.js');
     include(__dirname + '/game/src/astrodynamics/astrodynamics.js');
     include(__dirname + '/game/src/astrodynamics/keplerequations.js');
     include(__dirname + '/game/src/astrodynamics/lambert.js');
@@ -97,6 +99,9 @@ var Server = {};
     include(__dirname + '/game/src/model/truncatedicosahedronsurface.js');
     include(__dirname + '/game/src/model/stage.js');
     include(__dirname + '/game/src/model/vehicle.js');
+    include(__dirname + '/game/src/gui/gui.js');
+    include(__dirname + '/game/src/gui/stage.js');
+    include(__dirname + '/game/src/gui/vehicle.js');
     include(__dirname + '/game/src/core/core.js');
     include(__dirname + '/game/src/core/gamestate.js');
     include(__dirname + '/game/src/core/historynode.js');
@@ -244,6 +249,77 @@ var Server = {};
         log('DB: Scoreboard refresh finish @ ' + new Date());
     }
 
+    function jsonifySaveGame(nodeList, nodeHistory) {
+        var result = {};
+        result.nodeHistory = nodeHistory.clone();
+        var nodes = {};
+        for (var nodeID in nodeList) {
+            var node = nodeList[nodeID];
+            var gameState = node.getValue();
+            var transferLeg = gameState.getTransferLeg();
+            var id = node.getKey();
+            var parent = node.getParent();
+            var isVirtual = node.isVirtual();
+
+            var orbitingBodyID = gameState.getOrbitingBody().getID();
+            var vehicle = gameState.getVehicle();
+
+            var nodeResult = {};
+            nodeResult.id = id;
+            nodeResult.parentID = (parent ? parent.getKey() : null);
+            nodeResult.isVirtual = isVirtual;
+            nodeResult.gameState = {};
+            nodeResult.gameState.orbitingBodyID = orbitingBodyID;
+            nodeResult.gameState.transferLeg = null;
+            if (transferLeg) {
+                nodeResult.gameState.transferLeg = {};
+                nodeResult.gameState.transferLeg.chromosome = transferLeg.chromosome;
+                nodeResult.gameState.transferLeg.timeOfFlight = transferLeg.timeOfFlight;
+                nodeResult.gameState.transferLeg.problemType = transferLeg.problemType;
+                nodeResult.gameState.transferLeg.deltaV = transferLeg.deltaV;
+                nodeResult.gameState.transferLeg.performLanding = vehicle.isLanded();
+            }
+            if (nodeResult.parentID == null) {
+                nodeResult.gameState.epoch = gameState.getEpoch();
+                var isLanded = vehicle.isLanded();
+                var velocityInf = vehicle.getVelocityInf();
+                var stages = vehicle.getStages();
+
+                nodeResult.gameState.vehicle = {};
+                nodeResult.gameState.vehicle.velocityInf = velocityInf.asArray();
+                nodeResult.gameState.vehicle.isLanded = vehicle.isLanded();
+                nodeResult.gameState.vehicle.stages = [];
+                for (var i = 0; i < stages.length; i++) {
+                    var stage = stages[i];
+                    nodeResult.gameState.vehicle.stages.push({
+                        propulsionType: stage.getPropulsionType(),
+                        mass: stage.getTotalMass(),
+                        remainingMass: stage.getRemainingMass(),
+                        emptyMass: stage.getEmptyMass(),
+                        thrust: stage.getThrust(),
+                        specificImpulse: stage.getSpecificImpulse(),
+                        imageURL: stage.getImageURL()
+                    });
+                }
+
+                var mappedFaces = gameState.getMappedFaces();
+                nodeResult.gameState.mappedFaces = {};
+                for (var face in mappedFaces) {
+                    for (var i = 0; i < mappedFaces[face].length; i++) {
+                        if (nodeResult.gameState.mappedFaces[face]) {
+                            nodeResult.gameState.mappedFaces[face].push(mappedFaces[face][i].asArray());
+                        } else {
+                            nodeResult.gameState.mappedFaces[face] = [mappedFaces[face][i].asArray()];
+                        }
+                    }
+                }
+            }
+            nodes[nodeResult.id] = nodeResult;
+        }
+        result.nodes = nodes;
+        return result;
+    }
+
     function checkAndAppendDeltaData(missionID, saveGameRecord, deltaData, callback) {
         if (missionID == null || deltaData == null) {
             callback(null);
@@ -313,15 +389,16 @@ var Server = {};
             }
         }
 
+        function checkAndAddToGameStates(gameStates, saveGameNodes, nodes, parents, id) {
 
+        }
+
+        var nodes = deltaData.nodes;
+        var nodeHistory = deltaData.nodeHistory;
+        var gameStates = {};
+        var parents = {};
 
         if (saveGameRecord == null) {
-
-            var nodes = deltaData.nodes;
-            var nodeHistory = deltaData.nodeHistory;
-
-            var gameStates = {};
-            var parents = {};
             var rootNode = null;
             var rootLessNodes = {};
             var node = null;
@@ -347,9 +424,9 @@ var Server = {};
             var vehicleData = gameStateData.vehicle;
             for (var i = 0; i < vehicleData.stages.length; i++) {
                 var stage = vehicleData.stages[i];
-                stages.push(new model.Stage(stage.propulsionType, stage.mass, stage.emptyMass, stage.remainingMass, stage.thrust, stage.specificImpulse));
+                stages.push(new gui.Stage(stage.propulsionType, stage.mass, stage.emptyMass, stage.remainingMass, stage.thrust, stage.specificImpulse, stage.imageURL));
             }
-            var vehicle = new model.Vehicle(velocityInf, stages, gameStateData.vehicle.isLanded);
+            var vehicle = new gui.Vehicle(velocityInf, stages, gameStateData.vehicle.isLanded);
             var dsmResult = null;
             var transferLeg = null;
             var score = 0;
@@ -445,13 +522,11 @@ var Server = {};
                 }
             }
 
-
-            var rootNode = new core.HistoryNode(gameStates[rootNode.id], rootNode.id);
-            rootNode.setHistorySequenceNr(0);
-            var key = rootNode.getKey();
-            var maxNodeID = key;
+            var rootHistoryNode = new core.HistoryNode(gameStates[rootNode.id], rootNode.id);
+            rootHistoryNode.setHistorySequenceNr(0);
+            var key = rootHistoryNode.getKey();
             var jumpTable = {};
-            jumpTable[key] = rootNode;
+            jumpTable[key] = rootHistoryNode;
 
             var newNodeHistory = [key];
             var newNodeHistoryLength = 1;
@@ -466,15 +541,43 @@ var Server = {};
                     childNode.setHistorySequenceNr(newNodeHistoryLength);
                     newNodeHistoryLength++;
                     jumpTable[childKey] = childNode;
-                    maxNodeID = Math.max(maxNodeID, childKey);
                 }
             }
 
-            callback(deltaData);
-            log('DB: Checked savegame data for correctness.');
-        } else {
+            saveGameRecord = jsonifySaveGame(jumpTable, newNodeHistory);
 
+        } else {
+            var saveGameNodes = saveGameRecord.nodes;
+            var saveGameNodeHistory = saveGameRecord.nodeHistory;
+            var jumpTable = {};
+            var deltaJumpTable = {};
+            var deltaNodeHistory = [];
+            var deltaNodeHistoryLength = saveGameNodeHistory.length;
+            for (var i = 0; i < nodeHistory.length; i++) {
+                var id = nodeHistory[i];
+                var gameState = getGameState(gameStates, saveGameNodes, nodes, id);
+                var parentNode = getParentNode(gameStates, jumpTable, saveGameNodes, nodes, id);
+
+                if (parentNode != null && !parentNode.getValue().isInvalid()) {
+                    var childNode = parentNode.addChild(gameState, id, nodes[id].isVirtual);
+                    var childKey = childNode.getKey();
+                    deltaNodeHistory.push(childKey);
+                    childNode.setHistorySequenceNr(deltaNodeHistoryLength);
+                    deltaNodeHistoryLength++;
+                    jumpTable[childKey] = childNode;
+                    deltaJumpTable[childKey] = childNode;
+                }
+            }
+
+            var deltaSaveGameRecord = jsonifySaveGame(deltaJumpTable, deltaNodeHistory);
+            saveGameRecord.nodeHistory.append(deltaSaveGameRecord.nodeHistory);
+            for (var key in deltaSaveGameRecord.nodes) {
+                saveGameRecord.nodes[key] = deltaSaveGameRecord.nodes[key];
+            }
         }
+
+        log('DB: Checked savegame data for correctness.');
+        callback(saveGameRecord);
     }
 
     var deferredSessionUpdates = {};
