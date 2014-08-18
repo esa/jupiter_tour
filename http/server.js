@@ -246,6 +246,8 @@ var Server = {};
     function periodicScoreboardRefresh() {
         log('DB: Scoreboard refresh start @ ' + new Date());
 
+        //TODO 
+
         log('DB: Scoreboard refresh finish @ ' + new Date());
     }
 
@@ -347,7 +349,7 @@ var Server = {};
 
         // Private functions
         function merge(obj1, obj2) {
-            var result =   {};
+            var result = {};
             for (var key in obj1) {
                 result[key] = obj1[key];
             }
@@ -575,7 +577,7 @@ var Server = {};
                 totalNodes = nodes;
                 totalNodeHistory = [];
             } else {
-                totalNodes =  merge(nodes, saveGameNodes);
+                totalNodes = merge(nodes, saveGameNodes);
                 totalNodeHistory = saveGameNodeHistory.clone();
             }
 
@@ -592,6 +594,9 @@ var Server = {};
                     node.setHistorySequenceNr(nodeHistoryLength);
                     nodeHistoryLength++;
                     deltaJumpTable[node.getKey()] = node;
+                    if (id !=  node.getKey()) {
+                        log('ERROR: Key mismatch.');
+                    }
                 }
             }
 
@@ -636,6 +641,8 @@ var Server = {};
                 delete deferredSessionUpdates[session._id];
             });
         }
+
+
         if (session) {
             if (deferredSessionUpdates[session._id.toHexString()] == null) {
                 deferredSessionUpdates[session._id.toHexString()] = setTimeout(function () {
