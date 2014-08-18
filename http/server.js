@@ -320,6 +320,17 @@ var Server = {};
         return result;
     }
 
+    function merge(obj1, obj2) {
+        var result =   {};
+        for (var key in obj1) {
+            result[key] = obj1[key];
+        }
+        for (var key in obj2) {
+            result[key] = obj2[key];
+        }
+        return result;
+    }
+
     function checkAndAppendDeltaData(missionID, saveGameRecord, deltaData, callback) {
         if (missionID == null || deltaData == null) {
             callback(null);
@@ -389,27 +400,115 @@ var Server = {};
             }
         }
 
-        function checkAndAddToGameStates(gameStates, saveGameNodes, nodes, parents, id) {
+        var gameStates = {};
 
+        function getGameState(parentGameState, nodes, id) {
+            if (gameStates[id]) {
+                return gameStates[id];
+            } else {
+                var node = nodes[id];
+                if (parentGameState != null && !parentGameState.isInvalid()) {
+                    var gameStateData = node.gameState;
+                    var currentBody = orbitingBodies[gameStateData.orbitingBodyID];
+                    var chromosome = gameStateData.transferLeg.chromosome;
+                    var problemType = gameStateData.transferLeg.problemType;
+                    var performLanding = gameStateData.transferLeg.performLanding;
+                    var deltaV = gameStateData.transferLeg.deltaV;
+                    var timeOfFlight = gameStateData.transferLeg.timeOfFlight;
+
+                    var mappedFaces = parentGameState.getMappedFaces();
+
+                    var parentBody = parentGameState.getOrbitingBody();
+                    var parentVehicle = parentGameState.getVehicle();
+                    var parentScore = parentGameState.getScore();
+                    var parentEpoch = parentGameState.getEpoch();
+                    var parentPassedDays = parentGameState.getPassedDays();
+                    var parentTotalDeltaV = parentGameState.getTotalDeltaV();
+                    var parentVelocityInf = parentVehicle.getVelocityInf();
+
+                    var leg = null;
+                    var flybyResult = null;
+                    var faceValue = 0;
+                    switch (problemType) {
+                    case astrodynamics.ProblemTypes.MGA1DSM_LAUNCH:
+                        leg = new astrodynamics.LaunchLeg(chromosome, parentBody, currentBody);
+                        flybyResult = parentBody.computeFlybyFaceAndCoords(parentEpoch, parentVelocityInf, chromosome[1], chromosome[2]);
+                        faceValue = parentBody.getFaceValue(flybyResult.faceID);
+                        break;
+                    case astrodynamics.ProblemTypes.MGA1DSM_FLYBY:
+                        leg = new astrodynamics.FlybyLeg(chromosome, parentBody, currentBody, parentVelocityInf, parentEpoch);
+                        flybyResult = parentBody.computeFlybyFaceAndCoords(parentEpoch, parentVelocityInf, chromosome[0], chromosome[1]);
+                        faceValue = parentBody.getFaceValue(flybyResult.faceID);
+                        break;
+                    }
+
+                    var numStages = parentVehicle.getStages().length;
+                    if (numStages > 1 && problemType == astrodynamics.ProblemTypes.MGA1DSM_LAUNCH) {
+                        parentVehicle.jettisonStage();
+                    }
+                    var dsmResult = parentVehicle.performManeuver(deltaV, timeOfFlight * utility.DAY_TO_SEC);
+                    var vehicle = parentVehicle.clone();
+                    if (leg) {
+                        var nextVelocityInf = leg.getArrivalVelocityInf();
+                        vehicle.setVelocityInf(nextVelocityInf);
+                    }
+                    vehicle.setLanded(performLanding);
+
+                    var score = parentScore + faceValue;
+                    var epoch = parentEpoch + timeOfFlight;
+                    var passedDays = parentPassedDays + timeOfFlight;
+                    var totalDeltaV = parentTotalDeltaV + deltaV;
+
+                    var transferLeg = {
+                        problemType: problemType,
+                        chromosome: chromosome,
+                        deltaV: deltaV,
+                        timeOfFlight: timeOfFlight,
+                        visualization: leg,
+                        gravityLoss: dsmResult ? dsmResult.gravityLoss : 1,
+                        mappedFaceID: flybyResult != null ? parentBody.getID() + '_' + flybyResult.faceID : '',
+                        periapsisCoords: flybyResult != null ? flybyResult.coords : null
+                    };
+
+                    var gameState = new core.GameState(currentBody, epoch, passedDays, totalDeltaV, score, vehicle, mappedFaces, transferLeg);
+                    markAndSetScoreForGameState(gameState, dsmResult);
+                    gameStates[id] = gameState;
+                    return gameState;
+                }
+            }
+        }
+
+        var jumpTable = {};
+
+        function getNode(nodes, id) {
+            if (jumpTable[id]) {
+                return jumpTable[id];
+            } else {
+                var childNode = null;
+                var node = nodes[id];
+                var parentNode = getNode(nodes, node.parentID);
+                if (parentNode) {
+                    var parentGameState = parentNode.getValue();
+                    if (!parentGameState.isInvalid()) {
+                        var gameState = getGameState(parentGameState, nodes, id);
+                        childNode = parentNode.addChild(gameState, id, nodes[id].isVirtual);
+                        jumpTable[childID] = childNode;
+                    }
+                }
+                return childNode;
+            }
         }
 
         var nodes = deltaData.nodes;
         var nodeHistory = deltaData.nodeHistory;
-        var gameStates = {};
-        var parents = {};
 
         if (saveGameRecord == null) {
             var rootNode = null;
-            var rootLessNodes = {};
-            var node = null;
             for (var id in nodes) {
-                node = nodes[id];
+                var node = nodes[id];
                 if (node.parentID == null) {
-                    parents[node.id] = node.id;
                     rootNode = node;
-                } else {
-                    parents[node.id] = node.parentID;
-                    rootLessNodes[node.id] = node;
+                    break;
                 }
             }
 
@@ -436,112 +535,19 @@ var Server = {};
             markAndSetScoreForGameState(gameState, dsmResult);
             gameStates[rootNode.id] = gameState;
 
-            var parentGameState = null;
-            var parentVehicle = null;
-            var parentBody = null;
-            var parentScore = 0;
-            var parentEpoch = 0;
-            var parentPassedDays = 0;
-            var parentTotalDeltaV = 0;
-            var parentVelocityInf = null;
-            var timeOfFlight = 0;
-            var deltaV = 0;
-            var problemType = null;
-            var performLanding = false;
-            var leg = null;
-            for (var id in rootLessNodes) {
-                parentGameState = gameStates[parents[id]];
-
-                if (parentGameState != null && !parentGameState.isInvalid()) {
-                    node = rootLessNodes[id];
-                    gameStateData = node.gameState;
-                    currentBody = orbitingBodies[gameStateData.orbitingBodyID];
-                    chromosome = gameStateData.transferLeg.chromosome;
-                    problemType = gameStateData.transferLeg.problemType;
-                    performLanding = gameStateData.transferLeg.performLanding;
-                    deltaV = gameStateData.transferLeg.deltaV;
-                    timeOfFlight = gameStateData.transferLeg.timeOfFlight;
-
-                    mappedFaces = parentGameState.getMappedFaces();
-
-                    parentBody = parentGameState.getOrbitingBody();
-                    parentVehicle = parentGameState.getVehicle();
-                    parentScore = parentGameState.getScore();
-                    parentEpoch = parentGameState.getEpoch();
-                    parentPassedDays = parentGameState.getPassedDays();
-                    parentTotalDeltaV = parentGameState.getTotalDeltaV();
-                    parentVelocityInf = parentVehicle.getVelocityInf();
-
-                    leg = null;
-                    flybyResult = null;
-                    faceValue = 0;
-                    switch (problemType) {
-                    case astrodynamics.ProblemTypes.MGA1DSM_LAUNCH:
-                        leg = new astrodynamics.LaunchLeg(chromosome, parentBody, currentBody);
-                        flybyResult = parentBody.computeFlybyFaceAndCoords(parentEpoch, parentVelocityInf, chromosome[1], chromosome[2]);
-                        faceValue = parentBody.getFaceValue(flybyResult.faceID);
-                        break;
-                    case astrodynamics.ProblemTypes.MGA1DSM_FLYBY:
-                        leg = new astrodynamics.FlybyLeg(chromosome, parentBody, currentBody, parentVelocityInf, parentEpoch);
-                        flybyResult = parentBody.computeFlybyFaceAndCoords(parentEpoch, parentVelocityInf, chromosome[0], chromosome[1]);
-                        faceValue = parentBody.getFaceValue(flybyResult.faceID);
-                        break;
-                    }
-
-                    var numStages = parentVehicle.getStages().length;
-                    if (numStages > 1 && problemType == astrodynamics.ProblemTypes.MGA1DSM_LAUNCH) {
-                        parentVehicle.jettisonStage();
-                    }
-                    dsmResult = parentVehicle.performManeuver(deltaV, timeOfFlight * utility.DAY_TO_SEC);
-                    vehicle = parentVehicle.clone();
-                    if (leg) {
-                        var nextVelocityInf = leg.getArrivalVelocityInf();
-                        vehicle.setVelocityInf(nextVelocityInf);
-                    }
-                    vehicle.setLanded(performLanding);
-
-                    score = parentScore + faceValue;
-                    epoch = parentEpoch + timeOfFlight;
-                    passedDays = parentPassedDays + timeOfFlight;
-                    totalDeltaV = parentTotalDeltaV + deltaV;
-
-                    var transferLeg = {
-                        problemType: problemType,
-                        chromosome: chromosome,
-                        deltaV: deltaV,
-                        timeOfFlight: timeOfFlight,
-                        visualization: leg,
-                        gravityLoss: dsmResult ? dsmResult.gravityLoss : 1,
-                        mappedFaceID: flybyResult != null ? parentBody.getID() + '_' + flybyResult.faceID : '',
-                        periapsisCoords: flybyResult != null ? flybyResult.coords : null
-                    };
-
-                    gameState = new core.GameState(currentBody, epoch, passedDays, totalDeltaV, score, vehicle, mappedFaces, transferLeg);
-                    markAndSetScoreForGameState(gameState, dsmResult);
-                    gameStates[node.id] = gameState;
-                }
-            }
-
-            var rootHistoryNode = new core.HistoryNode(gameStates[rootNode.id], rootNode.id);
+            var rootHistoryNode = new core.HistoryNode(gameState, rootNode.id);
             rootHistoryNode.setHistorySequenceNr(0);
-            var key = rootHistoryNode.getKey();
-            var jumpTable = {};
-            jumpTable[key] = rootHistoryNode;
+            var id = rootHistoryNode.getKey();
+            jumpTable[id] = rootHistoryNode;
 
-            var newNodeHistory = [key];
+            var newNodeHistory = [id];
             var newNodeHistoryLength = 1;
 
             for (var i = 1; i < nodeHistory.length; i++) {
                 var id = nodeHistory[i];
-                var parentNode = jumpTable[parents[id]];
-                if (parentNode != null && !parentNode.getValue().isInvalid()) {
-                    var childNode = parentNode.addChild(gameStates[id], id, nodes[id].isVirtual);
-                    var childKey = childNode.getKey();
-                    newNodeHistory.push(childKey);
-                    childNode.setHistorySequenceNr(newNodeHistoryLength);
-                    newNodeHistoryLength++;
-                    jumpTable[childKey] = childNode;
-                }
+                var node = getNode(nodes, id);
+                node.setHistorySequenceNr(newNodeHistory.length);
+                newNodeHistory.push(node.getKey());
             }
 
             saveGameRecord = jsonifySaveGame(jumpTable, newNodeHistory);
@@ -549,30 +555,33 @@ var Server = {};
         } else {
             var saveGameNodes = saveGameRecord.nodes;
             var saveGameNodeHistory = saveGameRecord.nodeHistory;
-            var jumpTable = {};
+            var totalNodes = merge(nodes, saveGameNodes);
+            var totalNodeHistory = saveGameNodeHistory.clone();
+            totalNodeHistory.append(nodeHistory);
+
             var deltaJumpTable = {};
             var deltaNodeHistory = [];
-            var deltaNodeHistoryLength = saveGameNodeHistory.length;
+            var nodeHistoryLength = saveGameNodeHistory.length;
             for (var i = 0; i < nodeHistory.length; i++) {
                 var id = nodeHistory[i];
-                var gameState = getGameState(gameStates, saveGameNodes, nodes, id);
-                var parentNode = getParentNode(gameStates, jumpTable, saveGameNodes, nodes, id);
-
+                var node = totalNodes[id];
+                var parentNode = getNode(node.parentID);
                 if (parentNode != null && !parentNode.getValue().isInvalid()) {
-                    var childNode = parentNode.addChild(gameState, id, nodes[id].isVirtual);
-                    var childKey = childNode.getKey();
-                    deltaNodeHistory.push(childKey);
-                    childNode.setHistorySequenceNr(deltaNodeHistoryLength);
-                    deltaNodeHistoryLength++;
-                    jumpTable[childKey] = childNode;
-                    deltaJumpTable[childKey] = childNode;
+                    var gameState = getGameState(nodes, id);
+                    var childNode = parentNode.addChild(gameState, id, totalNodes[id].isVirtual);
+                    var childID = childNode.getKey();
+                    deltaNodeHistory.push(childID);
+                    childNode.setHistorySequenceNr(nodeHistoryLength);
+                    nodeHistoryLength++;
+                    jumpTable[childID] = childNode;
+                    deltaJumpTable[childID] = childNode;
                 }
             }
 
             var deltaSaveGameRecord = jsonifySaveGame(deltaJumpTable, deltaNodeHistory);
             saveGameRecord.nodeHistory.append(deltaSaveGameRecord.nodeHistory);
-            for (var key in deltaSaveGameRecord.nodes) {
-                saveGameRecord.nodes[key] = deltaSaveGameRecord.nodes[key];
+            for (var id in deltaSaveGameRecord.nodes) {
+                saveGameRecord.nodes[id] = deltaSaveGameRecord.nodes[id];
             }
         }
 
