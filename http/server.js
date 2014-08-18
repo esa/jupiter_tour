@@ -56,8 +56,8 @@ var Server = {};
     var PORT = 8081;
     var ENABLE_HTTPS = false;
     var SESSION_ID_LENGTH = 48;
-    var SESSION_CLEANING_INTERVAL = 5 * 60;
-    var SCOREBOARD_REFRESH_INTERVAL = 1 * 60 * 60;
+    var SESSION_CLEANING_INTERVAL = 30 * 60;
+    var SCOREBOARD_REFRESH_INTERVAL = 0.1 * 60;
     var FILE_CACHING_TIME = 0 * 24 * 60 * 60;
     var DATABASE_NAME = 'spacehopper';
     var SPACE_HOPPER_ROOT_FOLDER = './game';
@@ -199,7 +199,7 @@ var Server = {};
                     dbConnection = database;
                     periodicSessionCleaning();
                     setInterval(periodicSessionCleaning, SESSION_CLEANING_INTERVAL * 1000);
-                    periodicScoreboardRefresh();
+                    //periodicScoreboardRefresh();
                     setInterval(periodicScoreboardRefresh, SCOREBOARD_REFRESH_INTERVAL * 1000);
                 }
             });
@@ -243,12 +243,123 @@ var Server = {};
         });
     }
 
+
+
+
     function periodicScoreboardRefresh() {
         log('DB: Scoreboard refresh start @ ' + new Date());
 
-        //TODO 
+        var users = {};
+        // private function
 
-        log('DB: Scoreboard refresh finish @ ' + new Date());
+        function isParetoDominant(score1, score2) {
+            if (score1.score > score2.score) {
+                return true;
+            } else if (score1.score == score2.score) {
+                if (score1.totalDeltaV < score2.totalDeltaV) {
+                    return true;
+                } else if (score1.totalDeltaV == score2.totalDeltaV) {
+                    if (score1.passedDays < score2.passedDays) {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        }
+
+        function getMaximumScore(saveGame) {
+            return {
+                score: 0,
+                totalDeltaV: 0,
+                passedDays: 0
+            };
+        }
+
+        function addOrUpdateScore(scores, error, score, userID, missionID) {
+            if (error) {
+                return;
+            }
+            var maxScore = users[userID][missionID];
+            if (maxScore.score == 0) {
+                return;
+            }
+            if (score) {
+                if (isParetoDominant(maxScore, score)) {
+                    score.score = maxScore.score;
+                    score.totalDeltaV = maxScore.totalDeltaV;
+                    score.passedDays = maxScore.passedDays;
+
+                    scores.save(score, function (error) {});
+                }
+            } else {
+                score = {
+                    userID: new mongodb.ObjectID.createFromHexString(userID),
+                    score: maxScore.score,
+                    totalDeltaV: maxScore.totalDeltaV,
+                    passedDays: maxScore.passedDays,
+                    missionID: parseInt(missionID)
+                };
+                scores.insert(score, function (error, records) {});
+            }
+        }
+
+        var saveGames = dbConnection.collection('savegames');
+        var query = {
+            userID: {
+                $ne: null
+            },
+            recomputeScore: true
+        };
+        saveGames.find(query).toArray(function (error, records) {
+            if (error) {
+                callback(null);
+                return;
+            }
+            for (var i = 0; i < records.length; i++) {
+                var record = records[i];
+                var userID = record.userID.toHexString();
+                var missionID = record.missionID;
+                if (users[userID]) {
+                    if (users[userID][missionID] == null) {
+                        users[userID][missionID] = {
+                            score: 0,
+                            totalDeltaV: 0,
+                            passedDays: 0
+                        };
+                    }
+                } else {
+                    users[userID] = {};
+                    users[userID][missionID] = {
+                        score: 0,
+                        totalDeltaV: 0,
+                        passedDays: 0
+                    };
+                }
+                var curMaxScore = users[userID][missionID].score;
+                var newMaxScore = getMaximumScore(record.data);
+                if (isParetoDominant(newMaxScore, curMaxScore)) {
+                    users[userID][missionID] = newMaxScore;
+                }
+            }
+            var scores = dbConnection.collection('scores');
+            for (var userID in users) {
+                for (var missionID in users[userID]) {
+                    var query = {
+                        userID: new mongodb.ObjectID.createFromHexString(userID),
+                        missionID: parseInt(missionID)
+                    };
+                    scores.findOne(query, function (error, score) {
+                        addOrUpdateScore(scores, error, score, userID, missionID);
+                    });
+                }
+            }
+            log('DB: Scoreboard refresh finish @ ' + new Date());
+        });
     }
 
     function jsonifySaveGame(nodeList, nodeHistory) {
@@ -824,11 +935,12 @@ var Server = {};
                                 nodes: checkedSaveGame.nodes,
                                 nodeHistory: checkedSaveGame.nodeHistory
                             },
+                            deltaIndex: checkedSaveGame.nodeHistory.length,
                             name: name,
-                            submission: date,
                             missionID: missionID,
                             missionRevision: missionRevision,
-                            deltaIndex: checkedSaveGame.nodeHistory.length
+                            submission: date,
+                            recomputeScore: true
                         };
                         saveGames.insert(record, function (error, records) {
                             if (error) {
@@ -847,11 +959,12 @@ var Server = {};
                             nodes: checkedSaveGame.nodes,
                             nodeHistory: checkedSaveGame.nodeHistory
                         },
+                        deltaIndex: checkedSaveGame.nodeHistory.length,
                         name: name,
-                        submission: date,
                         missionID: missionID,
                         missionRevision: missionRevision,
-                        deltaIndex: checkedSaveGame.nodeHistory.length
+                        submission: date,
+                        recomputeScore: user != null
                     };
                     saveGames.insert(record, function (error, records) {
                         if (error) {
@@ -913,7 +1026,7 @@ var Server = {};
                 if (user && name && record.name != name) {
                     query = {
                         name: name,
-                        missionID: missionID != null ? missionID : record.missionID,
+                        missionID: missionID,
                         userID: user._id
                     };
                     saveGames.findOne(query, function (error, existingRecord) {
@@ -921,13 +1034,14 @@ var Server = {};
                             callback(null);
                             return;
                         }
-                        if (deltaIndex == record.deltaIndex && missionRevision == record.missionRevision) {
+                        if (deltaIndex == record.deltaIndex && missionRevision == record.missionRevision && missionID == record.missionID) {
                             checkAndAppendDeltaData(missionID, record.data, deltaData, false, function (checkedSaveGame) {
                                 record.data.nodes = checkedSaveGame.nodes;
                                 record.data.nodeHistory = checkedSaveGame.nodeHistory;
                                 record.name = name != null ? name : record.name;
                                 record.deltaIndex = record.data.nodeHistory.length;
                                 record.submission = date;
+                                record.recomputeScore = true;
 
                                 deleteRecordIfEmpty(saveGames, record, callback);
                             });
@@ -935,10 +1049,11 @@ var Server = {};
                             checkAndAppendDeltaData(missionID, record.data, deltaData, true, function (checkedSaveGame) {
                                 record.data = checkedSaveGame;
                                 record.name = name;
-                                record.submission = date;
-                                record.missionID = missionID != null ? missionID : record.missionID;
+                                record.deltaIndex = record.data.nodeHistory.length;
+                                record.missionID = missionID;
                                 record.missionRevision = missionRevision;
-                                record.deltaIndex = deltaData.nodeHistory.length;
+                                record.submission = date;
+                                record.recomputeScore = true;
 
                                 deleteRecordIfEmpty(saveGames, record, callback);
                             });
@@ -946,13 +1061,14 @@ var Server = {};
 
                     });
                 } else {
-                    if (deltaIndex == record.deltaIndex && missionRevision == record.missionRevision) {
+                    if (deltaIndex == record.deltaIndex && missionRevision == record.missionRevision && missionID == record.missionID) {
                         checkAndAppendDeltaData(missionID, record.data, deltaData, false, function (checkedSaveGame) {
                             record.data.nodes = checkedSaveGame.nodes;
                             record.data.nodeHistory = checkedSaveGame.nodeHistory;
                             record.name = name != null ? name : record.name;
                             record.deltaIndex = record.data.nodeHistory.length;
                             record.submission = date;
+                            record.recomputeScore = user != null;
 
                             deleteRecordIfEmpty(saveGames, record, callback);
                         });
@@ -960,10 +1076,11 @@ var Server = {};
                         checkAndAppendDeltaData(missionID, record.data, deltaData, true, function (checkedSaveGame) {
                             record.data = checkedSaveGame;
                             record.name = name;
-                            record.submission = date;
-                            record.missionID = missionID != null ? missionID : record.missionID;
+                            record.deltaIndex = record.data.nodeHistory.length;
+                            record.missionID = missionID;
                             record.missionRevision = missionRevision;
-                            record.deltaIndex = deltaData.nodeHistory.length;
+                            record.submission = date;
+                            record.recomputeScore = user != null;
 
                             deleteRecordIfEmpty(saveGames, record, callback);
                         });
@@ -1005,103 +1122,6 @@ var Server = {};
             }
             callback(record);
         });
-    }
-
-    function isParetoDominant(score1, score2) {
-        if (score1.score > score2.score) {
-            return true;
-        } else if (score1.score == score2.score) {
-            if (score1.totalDeltaV < score2.totalDeltaV) {
-                return true;
-            } else if (score1.totalDeltaV == score2.totalDeltaV) {
-                if (score1.passedDays < score2.passedDays) {
-                    return true;
-                } else {
-                    return false;
-                }
-            } else {
-                return false;
-            }
-        } else {
-            return false;
-        }
-    }
-
-    function addOrUpdateScore(user, saveGame, callback) {
-        if (user && saveGame) {
-            var nodes = saveGame.data.nodes;
-            if (nodes) {
-                var bestScore = null;
-                for (var id in nodes) {
-                    var node = nodes[id];
-                    var gameState = node.gameState;
-                    var score = {};
-                    score.score = gameState.score;
-                    score.totalDeltaV = gameState.totalDeltaV;
-                    score.passedDays = gameState.passedDays;
-                    if (bestScore) {
-                        if (isParetoDominant(score, bestScore)) {
-                            bestScore =  score;
-                        }
-                    } else {
-                        bestScore = score;
-                    }
-                }
-                if (bestScore && bestScore.score != 0) {
-                    var scores = dbConnection.collection('scores');
-                    var query = {
-                        userID: user._id,
-                        missionID: saveGame.missionID
-                    };
-                    scores.findOne(query, function (error, score) {
-                        if (error) {
-                            callback(null);
-                            return;
-                        }
-                        if (score) {
-                            if (isParetoDominant(bestScore, score)) {
-                                score.score = bestScore.score;
-                                score.totalDeltaV = bestScore.totalDeltaV;
-                                score.passedDays = bestScore.passedDays;
-
-                                scores.save(score, function (error) {
-                                    if (error) {
-                                        callback(null);
-                                        return;
-                                    }
-                                    log('DB: New state for highscore by user ' + user.name);
-                                    callback(score);
-                                });
-                            } else {
-                                callback(score);
-                            }
-                        } else {
-                            var score = {
-                                userID: user._id,
-                                score: bestScore.score,
-                                totalDeltaV: bestScore.totalDeltaV,
-                                passedDays: bestScore.passedDays,
-                                missionID: saveGame.missionID
-                            };
-                            scores.insert(score, function (error, records) {
-                                if (error) {
-                                    callback(null);
-                                    return;
-                                }
-                                log('DB: New state for highscore by user ' + user.name);
-                                callback(records[0]);
-                            });
-                        }
-                    });
-                } else {
-                    callback(null);
-                }
-            } else {
-                callback(null);
-            }
-        } else {
-            callback(null);
-        }
     }
 
     function updateSessionCookie(session, response) {
@@ -1270,13 +1290,14 @@ var Server = {};
                 var name = request.body.name;
                 var deltaData = request.body.deltaData;
                 var deltaIndex = request.body.deltaIndex;
-                if ((deltaData != null) && (deltaIndex != null) && (gameID != null) && (missionRevision != null)) {
+                if ((deltaData != null) && (deltaIndex != null) && (gameID != null) && (missionRevision != null) && (missionID != null)) {
                     gameID = new mongodb.ObjectID.createFromHexString(gameID);
-                    missionID = missionID != null ? parseInt(missionID) : null;
+                    missionID = parseInt(missionID);
                     name = name != null ? escape(name) : null;
                     deltaData = JSON.parse(deltaData);
                     deltaIndex = parseInt(deltaIndex);
-                    updateSaveGame(gameID, user, missionID, parseInt(missionRevision), name, deltaData, deltaIndex, now, function (saveGame) {
+                    missionRevision = parseInt(missionRevision);
+                    updateSaveGame(gameID, user, missionID, missionRevision, name, deltaData, deltaIndex, now, function (saveGame) {
                         if (!saveGame) {
                             sendErrorResponse(response, 500);
                             return;
