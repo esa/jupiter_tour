@@ -95,6 +95,7 @@ var plugin = {};
                         net.sendPOSTRequest({
                             type: 'savegameupdate',
                             gameID: self._gameID,
+                            missionID: self._missionID,
                             missionRevision: self._missionRevision,
                             deltaData: deltaGameHistory,
                             deltaIndex: deltaIndex
@@ -446,6 +447,7 @@ var plugin = {};
                                         net.sendPOSTRequest({
                                             type: 'savegameupdate',
                                             gameID: self._gameID,
+                                            missionID: self._missionID,
                                             missionRevision: self._missionRevision,
                                             deltaData: deltaGameHistory,
                                             deltaIndex: deltaIndex,
@@ -545,10 +547,10 @@ var plugin = {};
                         net.sendPOSTRequest({
                             type: 'savegameupdate',
                             gameID: data.gameID,
+                            missionID: self._missionID,
                             missionRevision: self._missionRevision,
                             deltaData: deltaGameHistory,
                             deltaIndex: deltaIndex,
-                            missionID: self._missionID,
                             name: data.saveName
                         }, function (saveGameInfos) {
                             self._gameID = saveGameInfos.gameID;

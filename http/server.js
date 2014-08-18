@@ -320,18 +320,7 @@ var Server = {};
         return result;
     }
 
-    function merge(obj1, obj2) {
-        var result =   {};
-        for (var key in obj1) {
-            result[key] = obj1[key];
-        }
-        for (var key in obj2) {
-            result[key] = obj2[key];
-        }
-        return result;
-    }
-
-    function checkAndAppendDeltaData(missionID, saveGameRecord, deltaData, callback) {
+    function checkAndAppendDeltaData(missionID, saveGameData, deltaData, overwrite, callback) {
         if (missionID == null || deltaData == null) {
             callback(null);
             return;
@@ -354,6 +343,18 @@ var Server = {};
             var orbitingBody = new astrodynamics.OrbitingBody(id, orbitingBodyData.name, centralBody, orbitalElements, orbitalElementDerivatives, orbitingBodyData.refEpoch, orbitingBodyData.sgp, orbitingBodyData.radius, orbitingBodyData.minRadiusFactor, orbitingBodyData.maxRadiusFactor, orbitingBodyData.maxTimeOfFlight, orbitingBodyData.maxLaunchDelay, orbitingBodyData.arrivingOption, orbitingBodyData.surface);
 
             orbitingBodies[orbitingBody.getID()] = orbitingBody;
+        }
+
+        // Private functions
+        function merge(obj1, obj2) {
+            var result =   {};
+            for (var key in obj1) {
+                result[key] = obj1[key];
+            }
+            for (var key in obj2) {
+                result[key] = obj2[key];
+            }
+            return result;
         }
 
         var funGetInvalidReasonsForState = mission.funGetInvalidReasonsForState != null ? Function('gameState', mission.funGetInvalidReasonsForState) : null;
@@ -492,17 +493,14 @@ var Server = {};
                     if (!parentGameState.isInvalid()) {
                         var gameState = getGameState(parentGameState, nodes, id);
                         childNode = parentNode.addChild(gameState, id, nodes[id].isVirtual);
-                        jumpTable[childID] = childNode;
+                        jumpTable[childNode.getKey()] = childNode;
                     }
                 }
                 return childNode;
             }
         }
 
-        var nodes = deltaData.nodes;
-        var nodeHistory = deltaData.nodeHistory;
-
-        if (saveGameRecord == null) {
+        function getRootNode(nodes) {
             var rootNode = null;
             for (var id in nodes) {
                 var node = nodes[id];
@@ -539,59 +537,84 @@ var Server = {};
             rootHistoryNode.setHistorySequenceNr(0);
             var id = rootHistoryNode.getKey();
             jumpTable[id] = rootHistoryNode;
+            return rootHistoryNode;
+        }
 
-            var newNodeHistory = [id];
+        // End private functions
+
+        var nodes = deltaData.nodes;
+        var nodeHistory = deltaData.nodeHistory;
+
+        if (saveGameData == null) {
+            var rootNode = getRootNode(nodes);
+
+            var newNodeHistory = [rootNode.getKey()];
             var newNodeHistoryLength = 1;
 
             for (var i = 1; i < nodeHistory.length; i++) {
                 var id = nodeHistory[i];
                 var node = getNode(nodes, id);
-                node.setHistorySequenceNr(newNodeHistory.length);
-                newNodeHistory.push(node.getKey());
-            }
-
-            saveGameRecord = jsonifySaveGame(jumpTable, newNodeHistory);
-
-        } else {
-            var saveGameNodes = saveGameRecord.nodes;
-            var saveGameNodeHistory = saveGameRecord.nodeHistory;
-            var totalNodes = merge(nodes, saveGameNodes);
-            var totalNodeHistory = saveGameNodeHistory.clone();
-            totalNodeHistory.append(nodeHistory);
-
-            var deltaJumpTable = {};
-            var deltaNodeHistory = [];
-            var nodeHistoryLength = saveGameNodeHistory.length;
-            for (var i = 0; i < nodeHistory.length; i++) {
-                var id = nodeHistory[i];
-                var node = totalNodes[id];
-                var parentNode = getNode(node.parentID);
-                if (parentNode != null && !parentNode.getValue().isInvalid()) {
-                    var gameState = getGameState(nodes, id);
-                    var childNode = parentNode.addChild(gameState, id, totalNodes[id].isVirtual);
-                    var childID = childNode.getKey();
-                    deltaNodeHistory.push(childID);
-                    childNode.setHistorySequenceNr(nodeHistoryLength);
-                    nodeHistoryLength++;
-                    jumpTable[childID] = childNode;
-                    deltaJumpTable[childID] = childNode;
+                if (node) {
+                    if (node.getKey() != id) {
+                        log('ERROR: Key mismatch.');
+                    }
+                    node.setHistorySequenceNr(newNodeHistory.length);
+                    newNodeHistory.push(node.getKey());
                 }
             }
 
-            var deltaSaveGameRecord = jsonifySaveGame(deltaJumpTable, deltaNodeHistory);
-            saveGameRecord.nodeHistory.append(deltaSaveGameRecord.nodeHistory);
-            for (var id in deltaSaveGameRecord.nodes) {
-                saveGameRecord.nodes[id] = deltaSaveGameRecord.nodes[id];
+            saveGameData = jsonifySaveGame(jumpTable, newNodeHistory);
+
+        } else {
+            var saveGameNodes = saveGameData.nodes;
+            var saveGameNodeHistory = saveGameData.nodeHistory;
+            var totalNodes;
+            var totalNodeHistory;
+
+            if (overwrite) {
+                totalNodes = nodes;
+                totalNodeHistory = [];
+            } else {
+                totalNodes =  merge(nodes, saveGameNodes);
+                totalNodeHistory = saveGameNodeHistory.clone();
+            }
+
+            getRootNode(totalNodes);
+
+            var deltaJumpTable = {};
+            var deltaNodeHistory = [];
+            var nodeHistoryLength = totalNodeHistory.length;
+            for (var i = 0; i < nodeHistory.length; i++) {
+                var id = nodeHistory[i];
+                var node = getNode(totalNodes, id);
+                if (node) {
+                    deltaNodeHistory.push(node.getKey());
+                    node.setHistorySequenceNr(nodeHistoryLength);
+                    nodeHistoryLength++;
+                    deltaJumpTable[node.getKey()] = node;
+                }
+            }
+
+            var deltaSaveGameData = jsonifySaveGame(deltaJumpTable, deltaNodeHistory);
+            saveGameData.nodeHistory = totalNodeHistory.append(deltaNodeHistory);
+
+            if (overwrite) {
+                saveGameData.nodes = {};
+            }
+            for (var id in deltaSaveGameData.nodes) {
+                saveGameData.nodes[id] = deltaSaveGameData.nodes[id];
             }
         }
 
-        log('DB: Checked savegame data for correctness.');
-        callback(saveGameRecord);
+        log('DB: Checked savegame for correctness.');
+        callback(saveGameData);
     }
 
     var deferredSessionUpdates = {};
 
     function updateSession(session, date) {
+
+        // Private function
         function updateRecord(session, date) {
             var sessions = dbConnection.collection('sessions');
             var timeout = new Date(date.getTime() + SESSION_TIMEOUT * 1000);
@@ -787,7 +810,7 @@ var Server = {};
                         callback(null);
                         return;
                     }
-                    checkAndAppendDeltaData(missionID, null, deltaData, function (checkedSaveGame) {
+                    checkAndAppendDeltaData(missionID, null, deltaData, false, function (checkedSaveGame) {
                         record = {
                             userID: user._id,
                             data: {
@@ -810,7 +833,7 @@ var Server = {};
                     });
                 });
             } else {
-                checkAndAppendDeltaData(missionID, null, deltaData, function (checkedSaveGame) {
+                checkAndAppendDeltaData(missionID, null, deltaData, false, function (checkedSaveGame) {
                     var record = {
                         userID: (user ? user._id : null),
                         data: {
@@ -892,7 +915,7 @@ var Server = {};
                             return;
                         }
                         if (deltaIndex == record.deltaIndex && missionRevision == record.missionRevision) {
-                            checkAndAppendDeltaData(missionID, record, deltaData, function (checkedSaveGame) {
+                            checkAndAppendDeltaData(missionID, record.data, deltaData, false, function (checkedSaveGame) {
                                 record.data.nodes = checkedSaveGame.nodes;
                                 record.data.nodeHistory = checkedSaveGame.nodeHistory;
                                 record.name = name != null ? name : record.name;
@@ -902,7 +925,7 @@ var Server = {};
                                 deleteRecordIfEmpty(saveGames, record, callback);
                             });
                         } else {
-                            checkAndAppendDeltaData(missionID, record, deltaData, function (checkedSaveGame) {
+                            checkAndAppendDeltaData(missionID, record.data, deltaData, true, function (checkedSaveGame) {
                                 record.data = checkedSaveGame;
                                 record.name = name;
                                 record.submission = date;
@@ -917,7 +940,7 @@ var Server = {};
                     });
                 } else {
                     if (deltaIndex == record.deltaIndex && missionRevision == record.missionRevision) {
-                        checkAndAppendDeltaData(missionID, record, deltaData, function (checkedSaveGame) {
+                        checkAndAppendDeltaData(missionID, record.data, deltaData, false, function (checkedSaveGame) {
                             record.data.nodes = checkedSaveGame.nodes;
                             record.data.nodeHistory = checkedSaveGame.nodeHistory;
                             record.name = name != null ? name : record.name;
@@ -927,7 +950,7 @@ var Server = {};
                             deleteRecordIfEmpty(saveGames, record, callback);
                         });
                     } else {
-                        checkAndAppendDeltaData(missionID, record, deltaData, function (checkedSaveGame) {
+                        checkAndAppendDeltaData(missionID, record.data, deltaData, true, function (checkedSaveGame) {
                             record.data = checkedSaveGame;
                             record.name = name;
                             record.submission = date;
