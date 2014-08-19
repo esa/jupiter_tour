@@ -617,6 +617,10 @@ var Server = {};
             }
             for (var i = 0; i < records.length; i++) {
                 var record = records[i];
+
+                record.recomputeScore = false;
+                saveGames.save(record, function () {});
+
                 var userID = record.userID.toHexString();
                 var missionID = record.missionID;
                 if (users[userID]) {
@@ -655,6 +659,7 @@ var Server = {};
                     })(userID, missionID);
                 }
             }
+
             log('DB: Scoreboard refresh finish @ ' + new Date());
         });
     }
