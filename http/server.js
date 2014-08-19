@@ -87,7 +87,7 @@ String.prototype.endsWith = function (suffix) {
 
 utility.clone = function (obj) {
     if (obj == null || typeof (obj) != 'object') {
-        if (typeof (obj) ==  'array') {
+        if (typeof (obj) == 'array') {
             return obj.clone();
         } else {
             return obj;
@@ -421,7 +421,7 @@ var Server = {};
     var ENABLE_HTTPS = false;
     var SESSION_ID_LENGTH = 48;
     var SESSION_CLEANING_INTERVAL = 30 * 60;
-    var SCOREBOARD_REFRESH_INTERVAL = 0.2 * 60;
+    var SCOREBOARD_REFRESH_INTERVAL = 10 * 60;
     var FILE_CACHING_TIME = 0 * 24 * 60 * 60;
     var DATABASE_NAME = 'spacehopper';
     var SPACE_HOPPER_ROOT_FOLDER = './game';
@@ -520,7 +520,7 @@ var Server = {};
                     dbConnection = database;
                     periodicSessionCleaning();
                     setInterval(periodicSessionCleaning, SESSION_CLEANING_INTERVAL * 1000);
-                    //periodicScoreboardRefresh();
+                    periodicScoreboardRefresh();
                     setInterval(periodicScoreboardRefresh, SCOREBOARD_REFRESH_INTERVAL * 1000);
                 }
             });
