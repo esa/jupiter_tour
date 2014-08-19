@@ -18,37 +18,401 @@
         vm
 */
 
+var express = require('express');
+var https = require('https');
+var http = require('http');
+var mime = require('mime');
+var fs = require('fs');
+var bodyparser = require('body-parser');
+var ejs = require('ejs');
+var cookieparser = require('cookie-parser');
+var mongodb = require('mongodb');
+var crypto = require('crypto');
+var randomstring = require('randomstring');
+var escape = require('escape-html');
+var url = require('url');
+var vm = require('vm');
+
+// Acts 'like' a C #include statement
+var include = function (path) {
+    var code = fs.readFileSync(path);
+    vm.runInThisContext(code, path);
+}.bind(this);
+
+// Include requried spacehopper framework parts
+include(__dirname + '/game/src/div/constants.js');
+include(__dirname + '/game/src/div/math.js');
+include(__dirname + '/game/src/div/array.js');
+include(__dirname + '/game/src/div/utility.js');
+include(__dirname + '/game/src/div/strings.js');
+include(__dirname + '/game/src/datastructure/datastructure.js');
+include(__dirname + '/game/src/datastructure/treenode.js');
+include(__dirname + '/game/src/datastructure/queue.js');
+include(__dirname + '/game/src/geometry/geometry.js');
+include(__dirname + '/game/src/geometry/vector2.js');
+include(__dirname + '/game/src/geometry/vector3.js');
+include(__dirname + '/game/src/geometry/matrix3.js');
+include(__dirname + '/game/src/algorithm/algorithm.js');
+include(__dirname + '/game/src/algorithm/newtonraphson.js');
+include(__dirname + '/game/src/algorithm/regulafalsi.js');
+include(__dirname + '/game/src/algorithm/bfs.js');
+include(__dirname + '/game/src/astrodynamics/astrodynamics.js');
+include(__dirname + '/game/src/astrodynamics/keplerequations.js');
+include(__dirname + '/game/src/astrodynamics/lambert.js');
+include(__dirname + '/game/src/astrodynamics/propagatelagrangian.js');
+include(__dirname + '/game/src/astrodynamics/satellite.js');
+include(__dirname + '/game/src/astrodynamics/centralbody.js');
+include(__dirname + '/game/src/astrodynamics/flybypropagation.js');
+include(__dirname + '/game/src/astrodynamics/periapsis.js');
+include(__dirname + '/game/src/astrodynamics/orbitingbody.js');
+include(__dirname + '/game/src/astrodynamics/launchleg.js');
+include(__dirname + '/game/src/astrodynamics/flybyleg.js');
+include(__dirname + '/game/src/model/model.js');
+include(__dirname + '/game/src/model/surface.js');
+include(__dirname + '/game/src/model/sphericalsurface.js');
+include(__dirname + '/game/src/model/truncatedicosahedronsurface.js');
+include(__dirname + '/game/src/model/stage.js');
+include(__dirname + '/game/src/model/vehicle.js');
+include(__dirname + '/game/src/gui/gui.js');
+include(__dirname + '/game/src/gui/stage.js');
+include(__dirname + '/game/src/gui/vehicle.js');
+include(__dirname + '/game/src/core/core.js');
+include(__dirname + '/game/src/core/gamestate.js');
+include(__dirname + '/game/src/core/historynode.js');
+
 // Convenient stuff
 String.prototype.endsWith = function (suffix) {
     return this.indexOf(suffix, this.length - suffix.length) !== -1;
 };
 
+utility.clone = function (obj) {
+    if (obj == null || typeof (obj) != 'object') {
+        if (typeof (obj) ==  'array') {
+            return obj.clone();
+        } else {
+            return obj;
+        }
+    }
+    var temp = obj.constructor();
+    for (var key in obj) {
+        if (obj.hasOwnProperty(key)) {
+            temp[key] = utility.clone(obj[key]);
+        }
+    }
+    return temp;
+};
+
+utility.merge = function (obj1, obj2) {
+    var result = {};
+    if (obj1 != null) {
+        for (var key in obj1) {
+            result[key] = obj1[key];
+        }
+    }
+    if (obj2 != null) {
+        for (var key in obj2) {
+            result[key] = obj2[key];
+        }
+    }
+    return result;
+};
+
+utility.isParetoDominant = function (score1, score2) {
+    if (score1.score > score2.score) {
+        return true;
+    } else if (score1.score == score2.score) {
+        if (score1.totalDeltaV < score2.totalDeltaV) {
+            return true;
+        } else if (score1.totalDeltaV == score2.totalDeltaV) {
+            if (score1.passedDays < score2.passedDays) {
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    } else {
+        return false;
+    }
+};
+
+// Spacehopper namespace
+var spacehopper = {};
+spacehopper.SaveGameParser = function (missionPath, missionID, saveGame, deltaSaveGame) {
+    this._missionID = missionID;
+    this._saveGameNodeHistory = (saveGame != null ? saveGame.nodeHistory.clone() : null);
+    this._deltaSaveGameNodeHistory = (deltaSaveGame != null ? deltaSaveGame.nodeHistory.clone() : null);
+    this._saveGamesSize = (saveGame != null ? saveGame.nodeHistory.length : 0);
+    this._nodes = utility.clone((saveGame != null && deltaSaveGame != null ? utility.merge(deltaSaveGame.nodes, saveGame.nodes) : (saveGame == null ? deltaSaveGame.nodes : saveGame.nodes)));
+    this._jumpTable = {};
+
+    var mission = null;
+    var localPath = missionPath + missionID + '.json';
+    if (fs.existsSync(localPath)) {
+        mission = JSON.parse(fs.readFileSync(localPath)).mission;
+    } else {
+        throw Error(localPath + ' does not exist.');
+    }
+
+    this._mission = {};
+
+    this._mission.centralBody = new astrodynamics.CentralBody(mission.centralBody.id, mission.centralBody.name, mission.centralBody.sgp, mission.centralBody.radius);
+
+    this._mission.orbitingBodies = {};
+    for (var currentBodyID in mission.orbitingBodies) {
+        var id = parseInt(currentBodyID);
+        var orbitingBodyData = mission.orbitingBodies[currentBodyID];
+        var orbitalElements = orbitingBodyData.orbitalElements;
+        var orbitalElementDerivatives = orbitingBodyData.orbitalElementDerivatives;
+
+        var orbitingBody = new astrodynamics.OrbitingBody(id, orbitingBodyData.name, this._mission.centralBody, orbitalElements, orbitalElementDerivatives, orbitingBodyData.refEpoch, orbitingBodyData.sgp, orbitingBodyData.radius, orbitingBodyData.minRadiusFactor, orbitingBodyData.maxRadiusFactor, orbitingBodyData.maxTimeOfFlight, orbitingBodyData.maxLaunchDelay, orbitingBodyData.arrivingOption, orbitingBodyData.surface);
+
+        this._mission.orbitingBodies[orbitingBody.getID()] = orbitingBody;
+    }
+
+    this._mission.funGetInvalidReasonsForState = mission.funGetInvalidReasonsForState != null ? Function('gameState', mission.funGetInvalidReasonsForState) : null;
+    this._mission.funIsWinningState = mission.funIsWinningState != null ? Function('gameState', mission.funIsWinningState) : null;
+    this._mission.funSetScoreForState = mission.funSetScoreForState != null ? Function('gameState', mission.funSetScoreForState) : null;
+    var maximumMissionDuration = mission.maximumMissionDuration;
+    this._mission.funGetTimeUsage = function (gameState) {
+        return gameState.getPassedDays() / maximumMissionDuration;
+    };
+    this._mission.funGetWinningProgress = Function('gameState', mission.funGetWinningProgress);
+};
+
+spacehopper.SaveGameParser.prototype = {
+    constructor: spacehopper.SaveGameParser,
+
+    _markAndSetScoreForGameState: function (gameState, dsmResult) {
+        var reasonIDs = [];
+        if (this._mission.funGetTimeUsage(gameState) > 1) {
+            reasonIDs.push(strings.FinalStateReasonIDs.MAX_MISSION_EPOCH);
+        }
+        if (this._mission.funGetInvalidReasonsForState) {
+            reasonIDs.append(this._mission.funGetInvalidReasonsForState(gameState));
+        }
+        if (dsmResult) {
+            if (dsmResult.hasDeltaVLimitation) {
+                reasonIDs.push(strings.FinalStateReasonIDs.SPACECRAFT_LIMITATION);
+            }
+            if (dsmResult.isOutOfFuel) {
+                reasonIDs.push(strings.FinalStateReasonIDs.MAX_TOTAL_DELTAV);
+            }
+        }
+        if (reasonIDs.length) {
+            gameState.markInvalid(reasonIDs);
+        }
+        if (this._mission.funIsWinningState) {
+            if (!gameState.isInvalid()) {
+                if (this._mission.funIsWinningState(gameState)) {
+                    gameState.markWinning();
+                }
+            }
+        }
+
+        if (gameState.isInvalid()) {
+            gameState.setScore(0);
+        } else {
+            if (this._mission.funSetScoreForState) {
+                this._mission.funSetScoreForState(gameState);
+            }
+        }
+    },
+
+    _createGameState: function (parentGameState, gameStateData) {
+        var gameState = null;
+        if (parentGameState != null) {
+            var currentBody = this._mission.orbitingBodies[gameStateData.orbitingBodyID];
+            var chromosome = gameStateData.transferLeg.chromosome;
+            var problemType = gameStateData.transferLeg.problemType;
+            var performLanding = gameStateData.transferLeg.performLanding;
+            var deltaV = gameStateData.transferLeg.deltaV;
+            var timeOfFlight = gameStateData.transferLeg.timeOfFlight;
+
+            var mappedFaces = parentGameState.getMappedFaces();
+
+            var parentBody = parentGameState.getOrbitingBody();
+            var parentVehicle = parentGameState.getVehicle();
+            var parentScore = parentGameState.getScore();
+            var parentEpoch = parentGameState.getEpoch();
+            var parentPassedDays = parentGameState.getPassedDays();
+            var parentTotalDeltaV = parentGameState.getTotalDeltaV();
+            var parentVelocityInf = parentVehicle.getVelocityInf();
+
+            var leg = null;
+            var flybyResult = null;
+            var faceValue = 0;
+            switch (problemType) {
+            case astrodynamics.ProblemTypes.MGA1DSM_LAUNCH:
+                leg = new astrodynamics.LaunchLeg(chromosome, parentBody, currentBody);
+                flybyResult = parentBody.computeFlybyFaceAndCoords(parentEpoch, parentVelocityInf, chromosome[1], chromosome[2]);
+                faceValue = parentBody.getFaceValue(flybyResult.faceID);
+                break;
+            case astrodynamics.ProblemTypes.MGA1DSM_FLYBY:
+                leg = new astrodynamics.FlybyLeg(chromosome, parentBody, currentBody, parentVelocityInf, parentEpoch);
+                flybyResult = parentBody.computeFlybyFaceAndCoords(parentEpoch, parentVelocityInf, chromosome[0], chromosome[1]);
+                faceValue = parentBody.getFaceValue(flybyResult.faceID);
+                break;
+            }
+
+            var numStages = parentVehicle.getStages().length;
+            if (numStages > 1 && problemType == astrodynamics.ProblemTypes.MGA1DSM_LAUNCH) {
+                parentVehicle.jettisonStage();
+            }
+            var dsmResult = parentVehicle.performManeuver(deltaV, timeOfFlight * utility.DAY_TO_SEC);
+            var vehicle = parentVehicle.clone();
+            if (leg) {
+                var nextVelocityInf = leg.getArrivalVelocityInf();
+                vehicle.setVelocityInf(nextVelocityInf);
+            }
+            vehicle.setLanded(performLanding);
+
+            var score = parentScore + faceValue;
+            var epoch = parentEpoch + timeOfFlight;
+            var passedDays = parentPassedDays + timeOfFlight;
+            var totalDeltaV = parentTotalDeltaV + deltaV;
+
+            var transferLeg = {
+                problemType: problemType,
+                chromosome: chromosome,
+                deltaV: deltaV,
+                timeOfFlight: timeOfFlight,
+                visualization: leg,
+                gravityLoss: dsmResult ? dsmResult.gravityLoss : 1,
+                mappedFaceID: flybyResult != null ? parentBody.getID() + '_' + flybyResult.faceID : '',
+                periapsisCoords: flybyResult != null ? flybyResult.coords : null
+            };
+
+            gameState = new core.GameState(currentBody, epoch, passedDays, totalDeltaV, score, vehicle, mappedFaces, transferLeg);
+            this._markAndSetScoreForGameState(gameState, dsmResult);
+        }
+        return gameState;
+    },
+
+    getRootNode: function () {
+        var rootNode = null;
+        for (var id in this._nodes) {
+            var node = this._nodes[id];
+            if (node.parentID == null) {
+                rootNode = node;
+                break;
+            }
+        }
+
+        var gameStateData = rootNode.gameState;
+        var currentBody = this._mission.orbitingBodies[gameStateData.orbitingBodyID];
+        var chromosome = null;
+        var epoch = gameStateData.epoch;
+        var passedDays = 0;
+        var totalDeltaV = 0;
+        var velocityInf = new geometry.Vector3().fromArray(gameStateData.vehicle.velocityInf);
+        var stages = [];
+        var vehicleData = gameStateData.vehicle;
+        for (var i = 0; i < vehicleData.stages.length; i++) {
+            var stage = vehicleData.stages[i];
+            stages.push(new gui.Stage(stage.propulsionType, stage.mass, stage.emptyMass, stage.remainingMass, stage.thrust, stage.specificImpulse, stage.imageURL));
+        }
+        var vehicle = new gui.Vehicle(velocityInf, stages, gameStateData.vehicle.isLanded);
+        var dsmResult = null;
+        var transferLeg = null;
+        var score = 0;
+        var mappedFaces = {};
+
+        var gameState = new core.GameState(currentBody, epoch, passedDays, totalDeltaV, score, vehicle, mappedFaces, transferLeg);
+        this._markAndSetScoreForGameState(gameState, dsmResult);
+
+        var rootHistoryNode = new core.HistoryNode(gameState, rootNode.id, false);
+        rootHistoryNode.setHistorySequenceNr(0);
+        var id = rootHistoryNode.getKey();
+        this._jumpTable[id] = rootHistoryNode;
+        return rootHistoryNode;
+    },
+
+    getNode: function (id) {
+        if (this._jumpTable[id]) {
+            return this._jumpTable[id];
+        } else {
+            var childNode = null;
+            var node = this._nodes[id];
+            var parentNode = this.getNode(node.parentID);
+            if (parentNode) {
+                var parentGameState = parentNode.getValue();
+                if (!parentGameState.isInvalid()) {
+                    var gameState = this._createGameState(parentGameState, node.gameState);
+                    childNode = parentNode.addChild(gameState, id, node.isVirtual);
+                    this._jumpTable[childNode.getKey()] = childNode;
+                }
+            }
+            return childNode;
+        }
+    },
+
+    getCheckedSaveGame: function (isDelta) {
+        var rootNode = this.getRootNode();
+
+        var newNodes = {};
+        var newNodeHistory = [];
+        var newNodeHistoryLength = 0;
+        if (isDelta) {
+            newNodeHistoryLength = this._saveGamesSize;
+        } else {
+            newNodes[rootNode.getKey()] = rootNode;
+            newNodeHistory.push(rootNode.getKey());
+            newNodeHistoryLength = 1;
+        }
+
+        for (var i = (isDelta == true ? 0 : 1); i < this._deltaSaveGameNodeHistory.length; i++) {
+            var id = this._deltaSaveGameNodeHistory[i];
+            var node = this.getNode(id);
+            if (node) {
+                if (node.getKey() != id) {
+                    log('ERROR: Key mismatch.');
+                }
+                node.setHistorySequenceNr(newNodeHistoryLength);
+                newNodes[node.getKey()] = node;
+                newNodeHistory.push(node.getKey());
+                newNodeHistoryLength++;
+            }
+        }
+
+        return {
+            nodes: newNodes,
+            nodeHistory: newNodeHistory
+        };
+    },
+
+    getMaximumScore: function () {
+        var maxScore = {
+            score: 0,
+            totalDeltaV: 0,
+            passedDays: 0
+        };
+
+        this.getRootNode();
+        for (var i = 0; i < this._saveGameNodeHistory.length; i++) {
+            var id = this._saveGameNodeHistory[i];
+            var node = this.getNode(id);
+            var gameState = node.getValue();
+            var score = gameState.getScore();
+            var totalDeltaV = gameState.getTotalDeltaV();
+            var passedDays = gameState.getPassedDays();
+            var curScore = {
+                score: score,
+                totalDeltaV: totalDeltaV,
+                passedDays: passedDays
+            };
+            if (utility.isParetoDominant(curScore, maxScore)) {
+                maxScore = curScore;
+            }
+        }
+        return maxScore;
+    }
+};
 
 var Server = {};
 
 (function () {
-    var express = require('express');
-    var https = require('https');
-    var http = require('http');
-    var mime = require('mime');
-    var fs = require('fs');
-    var bodyparser = require('body-parser');
-    var ejs = require('ejs');
-    var cookieparser = require('cookie-parser');
-    var mongodb = require('mongodb');
-    var crypto = require('crypto');
-    var randomstring = require('randomstring');
-    var escape = require('escape-html');
-    var url = require('url');
-    var vm = require('vm');
-
-    // Acts 'like' a C #include statement
-    var include = function (path) {
-        var code = fs.readFileSync(path);
-        vm.runInThisContext(code, path);
-    }.bind(this);
-
-
 
     // Server Configuration
     var SESSION_TIMEOUT = 30 * 60;
@@ -57,54 +421,11 @@ var Server = {};
     var ENABLE_HTTPS = false;
     var SESSION_ID_LENGTH = 48;
     var SESSION_CLEANING_INTERVAL = 30 * 60;
-    var SCOREBOARD_REFRESH_INTERVAL = 0.1 * 60;
+    var SCOREBOARD_REFRESH_INTERVAL = 0.2 * 60;
     var FILE_CACHING_TIME = 0 * 24 * 60 * 60;
     var DATABASE_NAME = 'spacehopper';
     var SPACE_HOPPER_ROOT_FOLDER = './game';
-
-
-
-
-    // Include requried spacehopper framework parts
-    include(__dirname + '/game/src/div/constants.js');
-    include(__dirname + '/game/src/div/math.js');
-    include(__dirname + '/game/src/div/array.js');
-    include(__dirname + '/game/src/div/utility.js');
-    include(__dirname + '/game/src/div/strings.js');
-    include(__dirname + '/game/src/datastructure/datastructure.js');
-    include(__dirname + '/game/src/datastructure/treenode.js');
-    include(__dirname + '/game/src/datastructure/queue.js');
-    include(__dirname + '/game/src/geometry/geometry.js');
-    include(__dirname + '/game/src/geometry/vector2.js');
-    include(__dirname + '/game/src/geometry/vector3.js');
-    include(__dirname + '/game/src/geometry/matrix3.js');
-    include(__dirname + '/game/src/algorithm/algorithm.js');
-    include(__dirname + '/game/src/algorithm/newtonraphson.js');
-    include(__dirname + '/game/src/algorithm/regulafalsi.js');
-    include(__dirname + '/game/src/algorithm/bfs.js');
-    include(__dirname + '/game/src/astrodynamics/astrodynamics.js');
-    include(__dirname + '/game/src/astrodynamics/keplerequations.js');
-    include(__dirname + '/game/src/astrodynamics/lambert.js');
-    include(__dirname + '/game/src/astrodynamics/propagatelagrangian.js');
-    include(__dirname + '/game/src/astrodynamics/satellite.js');
-    include(__dirname + '/game/src/astrodynamics/centralbody.js');
-    include(__dirname + '/game/src/astrodynamics/flybypropagation.js');
-    include(__dirname + '/game/src/astrodynamics/periapsis.js');
-    include(__dirname + '/game/src/astrodynamics/orbitingbody.js');
-    include(__dirname + '/game/src/astrodynamics/launchleg.js');
-    include(__dirname + '/game/src/astrodynamics/flybyleg.js');
-    include(__dirname + '/game/src/model/model.js');
-    include(__dirname + '/game/src/model/surface.js');
-    include(__dirname + '/game/src/model/sphericalsurface.js');
-    include(__dirname + '/game/src/model/truncatedicosahedronsurface.js');
-    include(__dirname + '/game/src/model/stage.js');
-    include(__dirname + '/game/src/model/vehicle.js');
-    include(__dirname + '/game/src/gui/gui.js');
-    include(__dirname + '/game/src/gui/stage.js');
-    include(__dirname + '/game/src/gui/vehicle.js');
-    include(__dirname + '/game/src/core/core.js');
-    include(__dirname + '/game/src/core/gamestate.js');
-    include(__dirname + '/game/src/core/historynode.js');
+    var MISSION_DEFINITIONS_PATH = './missions/mission';
 
     var htmlTemplates = {
         ERROR_400: fs.readFileSync('errors/400.html'),
@@ -224,7 +545,7 @@ var Server = {};
     }
 
     function getMission(missionID) {
-        var localPath = './missions/mission' + missionID + '.json';
+        var localPath = MISSION_DEFINITIONS_PATH + missionID + '.json';
         if (fs.existsSync(localPath)) {
             return JSON.parse(fs.readFileSync(localPath));
         } else {
@@ -243,41 +564,16 @@ var Server = {};
         });
     }
 
-
-
-
     function periodicScoreboardRefresh() {
         log('DB: Scoreboard refresh start @ ' + new Date());
 
         var users = {};
-        // private function
 
-        function isParetoDominant(score1, score2) {
-            if (score1.score > score2.score) {
-                return true;
-            } else if (score1.score == score2.score) {
-                if (score1.totalDeltaV < score2.totalDeltaV) {
-                    return true;
-                } else if (score1.totalDeltaV == score2.totalDeltaV) {
-                    if (score1.passedDays < score2.passedDays) {
-                        return true;
-                    } else {
-                        return false;
-                    }
-                } else {
-                    return false;
-                }
-            } else {
-                return false;
-            }
-        }
-
-        function getMaximumScore(saveGame) {
-            return {
-                score: 0,
-                totalDeltaV: 0,
-                passedDays: 0
-            };
+        //private functions
+        function getMaximumScore(record) {
+            var missionID = record.missionID;
+            var parser = new spacehopper.SaveGameParser(MISSION_DEFINITIONS_PATH, missionID, record.data, null);
+            return parser.getMaximumScore();
         }
 
         function addOrUpdateScore(scores, error, score, userID, missionID) {
@@ -289,11 +585,10 @@ var Server = {};
                 return;
             }
             if (score) {
-                if (isParetoDominant(maxScore, score)) {
+                if (utility.isParetoDominant(maxScore, score)) {
                     score.score = maxScore.score;
                     score.totalDeltaV = maxScore.totalDeltaV;
                     score.passedDays = maxScore.passedDays;
-
                     scores.save(score, function (error) {});
                 }
             } else {
@@ -340,9 +635,9 @@ var Server = {};
                         passedDays: 0
                     };
                 }
-                var curMaxScore = users[userID][missionID].score;
-                var newMaxScore = getMaximumScore(record.data);
-                if (isParetoDominant(newMaxScore, curMaxScore)) {
+                var curMaxScore = users[userID][missionID];
+                var newMaxScore = getMaximumScore(record);
+                if (utility.isParetoDominant(newMaxScore, curMaxScore)) {
                     users[userID][missionID] = newMaxScore;
                 }
             }
@@ -353,9 +648,11 @@ var Server = {};
                         userID: new mongodb.ObjectID.createFromHexString(userID),
                         missionID: parseInt(missionID)
                     };
-                    scores.findOne(query, function (error, score) {
-                        addOrUpdateScore(scores, error, score, userID, missionID);
-                    });
+                    (function (userID, missionID) {
+                        scores.findOne(query, function (error, score) {
+                            addOrUpdateScore(scores, error, score, userID, missionID);
+                        });
+                    })(userID, missionID);
                 }
             }
             log('DB: Scoreboard refresh finish @ ' + new Date());
@@ -439,286 +736,31 @@ var Server = {};
             return;
         }
 
-        var mission = getMission(missionID).mission;
-
-        var maxObjectID = mission.centralBody.id;
-
-        var centralBody = new astrodynamics.CentralBody(mission.centralBody.id, mission.centralBody.name, mission.centralBody.sgp, mission.centralBody.radius);
-        var orbitingBodies = {};
-
-        for (var currentBodyID in mission.orbitingBodies) {
-            var id = parseInt(currentBodyID);
-            maxObjectID = Math.max(maxObjectID, id);
-            var orbitingBodyData = mission.orbitingBodies[currentBodyID];
-            var orbitalElements = orbitingBodyData.orbitalElements;
-            var orbitalElementDerivatives = orbitingBodyData.orbitalElementDerivatives;
-
-            var orbitingBody = new astrodynamics.OrbitingBody(id, orbitingBodyData.name, centralBody, orbitalElements, orbitalElementDerivatives, orbitingBodyData.refEpoch, orbitingBodyData.sgp, orbitingBodyData.radius, orbitingBodyData.minRadiusFactor, orbitingBodyData.maxRadiusFactor, orbitingBodyData.maxTimeOfFlight, orbitingBodyData.maxLaunchDelay, orbitingBodyData.arrivingOption, orbitingBodyData.surface);
-
-            orbitingBodies[orbitingBody.getID()] = orbitingBody;
-        }
-
-        // Private functions
-        function merge(obj1, obj2) {
-            var result = {};
-            for (var key in obj1) {
-                result[key] = obj1[key];
-            }
-            for (var key in obj2) {
-                result[key] = obj2[key];
-            }
-            return result;
-        }
-
-        var funGetInvalidReasonsForState = mission.funGetInvalidReasonsForState != null ? Function('gameState', mission.funGetInvalidReasonsForState) : null;
-        var funIsWinningState = mission.funIsWinningState != null ? Function('gameState', mission.funIsWinningState) : null;
-        var funSetScoreForState = mission.funSetScoreForState != null ? Function('gameState', mission.funSetScoreForState) : null;
-        var maximumMissionDuration = mission.maximumMissionDuration;
-        var funGetTimeUsage = function (gameState) {
-            return gameState.getPassedDays() / maximumMissionDuration;
-        };
-        var funGetWinningProgress = Function('gameState', mission.funGetWinningProgress);
-
-        function markAndSetScoreForGameState(gameState, dsmResult) {
-            var reasonIDs = [];
-            if (funGetTimeUsage(gameState) > 1) {
-                reasonIDs.push(strings.FinalStateReasonIDs.MAX_MISSION_EPOCH);
-            }
-            if (funGetInvalidReasonsForState) {
-                reasonIDs.concat(funGetInvalidReasonsForState(gameState));
-            }
-            if (dsmResult) {
-                if (dsmResult.hasDeltaVLimitation) {
-                    reasonIDs.push(strings.FinalStateReasonIDs.SPACECRAFT_LIMITATION);
-                }
-                if (dsmResult.isOutOfFuel) {
-                    reasonIDs.push(strings.FinalStateReasonIDs.MAX_TOTAL_DELTAV);
-                }
-            }
-            if (reasonIDs.length) {
-                gameState.markInvalid(reasonIDs);
-            }
-            if (funIsWinningState) {
-                if (!gameState.isInvalid()) {
-                    if (funIsWinningState(gameState)) {
-                        gameState.markWinning();
-                    }
-                }
-            }
-            if (gameState.isInvalid()) {
-                gameState.setScore(0);
-            } else {
-                if (funSetScoreForState) {
-                    funSetScoreForState(gameState);
-                }
-            }
-        }
-
-        var gameStates = {};
-
-        function getGameState(parentGameState, nodes, id) {
-            if (gameStates[id]) {
-                return gameStates[id];
-            } else {
-                var node = nodes[id];
-                if (parentGameState != null && !parentGameState.isInvalid()) {
-                    var gameStateData = node.gameState;
-                    var currentBody = orbitingBodies[gameStateData.orbitingBodyID];
-                    var chromosome = gameStateData.transferLeg.chromosome;
-                    var problemType = gameStateData.transferLeg.problemType;
-                    var performLanding = gameStateData.transferLeg.performLanding;
-                    var deltaV = gameStateData.transferLeg.deltaV;
-                    var timeOfFlight = gameStateData.transferLeg.timeOfFlight;
-
-                    var mappedFaces = parentGameState.getMappedFaces();
-
-                    var parentBody = parentGameState.getOrbitingBody();
-                    var parentVehicle = parentGameState.getVehicle();
-                    var parentScore = parentGameState.getScore();
-                    var parentEpoch = parentGameState.getEpoch();
-                    var parentPassedDays = parentGameState.getPassedDays();
-                    var parentTotalDeltaV = parentGameState.getTotalDeltaV();
-                    var parentVelocityInf = parentVehicle.getVelocityInf();
-
-                    var leg = null;
-                    var flybyResult = null;
-                    var faceValue = 0;
-                    switch (problemType) {
-                    case astrodynamics.ProblemTypes.MGA1DSM_LAUNCH:
-                        leg = new astrodynamics.LaunchLeg(chromosome, parentBody, currentBody);
-                        flybyResult = parentBody.computeFlybyFaceAndCoords(parentEpoch, parentVelocityInf, chromosome[1], chromosome[2]);
-                        faceValue = parentBody.getFaceValue(flybyResult.faceID);
-                        break;
-                    case astrodynamics.ProblemTypes.MGA1DSM_FLYBY:
-                        leg = new astrodynamics.FlybyLeg(chromosome, parentBody, currentBody, parentVelocityInf, parentEpoch);
-                        flybyResult = parentBody.computeFlybyFaceAndCoords(parentEpoch, parentVelocityInf, chromosome[0], chromosome[1]);
-                        faceValue = parentBody.getFaceValue(flybyResult.faceID);
-                        break;
-                    }
-
-                    var numStages = parentVehicle.getStages().length;
-                    if (numStages > 1 && problemType == astrodynamics.ProblemTypes.MGA1DSM_LAUNCH) {
-                        parentVehicle.jettisonStage();
-                    }
-                    var dsmResult = parentVehicle.performManeuver(deltaV, timeOfFlight * utility.DAY_TO_SEC);
-                    var vehicle = parentVehicle.clone();
-                    if (leg) {
-                        var nextVelocityInf = leg.getArrivalVelocityInf();
-                        vehicle.setVelocityInf(nextVelocityInf);
-                    }
-                    vehicle.setLanded(performLanding);
-
-                    var score = parentScore + faceValue;
-                    var epoch = parentEpoch + timeOfFlight;
-                    var passedDays = parentPassedDays + timeOfFlight;
-                    var totalDeltaV = parentTotalDeltaV + deltaV;
-
-                    var transferLeg = {
-                        problemType: problemType,
-                        chromosome: chromosome,
-                        deltaV: deltaV,
-                        timeOfFlight: timeOfFlight,
-                        visualization: leg,
-                        gravityLoss: dsmResult ? dsmResult.gravityLoss : 1,
-                        mappedFaceID: flybyResult != null ? parentBody.getID() + '_' + flybyResult.faceID : '',
-                        periapsisCoords: flybyResult != null ? flybyResult.coords : null
-                    };
-
-                    var gameState = new core.GameState(currentBody, epoch, passedDays, totalDeltaV, score, vehicle, mappedFaces, transferLeg);
-                    markAndSetScoreForGameState(gameState, dsmResult);
-                    gameStates[id] = gameState;
-                    return gameState;
-                }
-            }
-        }
-
-        var jumpTable = {};
-
-        function getNode(nodes, id) {
-            if (jumpTable[id]) {
-                return jumpTable[id];
-            } else {
-                var childNode = null;
-                var node = nodes[id];
-                var parentNode = getNode(nodes, node.parentID);
-                if (parentNode) {
-                    var parentGameState = parentNode.getValue();
-                    if (!parentGameState.isInvalid()) {
-                        var gameState = getGameState(parentGameState, nodes, id);
-                        childNode = parentNode.addChild(gameState, id, nodes[id].isVirtual);
-                        jumpTable[childNode.getKey()] = childNode;
-                    }
-                }
-                return childNode;
-            }
-        }
-
-        function getRootNode(nodes) {
-            var rootNode = null;
-            for (var id in nodes) {
-                var node = nodes[id];
-                if (node.parentID == null) {
-                    rootNode = node;
-                    break;
-                }
-            }
-
-            var gameStateData = rootNode.gameState;
-            var currentBody = orbitingBodies[gameStateData.orbitingBodyID];
-            var chromosome = null;
-            var epoch = gameStateData.epoch;
-            var passedDays = 0;
-            var totalDeltaV = 0;
-            var velocityInf = new geometry.Vector3().fromArray(gameStateData.vehicle.velocityInf);
-            var stages = [];
-            var vehicleData = gameStateData.vehicle;
-            for (var i = 0; i < vehicleData.stages.length; i++) {
-                var stage = vehicleData.stages[i];
-                stages.push(new gui.Stage(stage.propulsionType, stage.mass, stage.emptyMass, stage.remainingMass, stage.thrust, stage.specificImpulse, stage.imageURL));
-            }
-            var vehicle = new gui.Vehicle(velocityInf, stages, gameStateData.vehicle.isLanded);
-            var dsmResult = null;
-            var transferLeg = null;
-            var score = 0;
-            var mappedFaces = {};
-
-            var gameState = new core.GameState(currentBody, epoch, passedDays, totalDeltaV, score, vehicle, mappedFaces, transferLeg);
-            markAndSetScoreForGameState(gameState, dsmResult);
-            gameStates[rootNode.id] = gameState;
-
-            var rootHistoryNode = new core.HistoryNode(gameState, rootNode.id);
-            rootHistoryNode.setHistorySequenceNr(0);
-            var id = rootHistoryNode.getKey();
-            jumpTable[id] = rootHistoryNode;
-            return rootHistoryNode;
-        }
-
-        // End private functions
-
-        var nodes = deltaData.nodes;
-        var nodeHistory = deltaData.nodeHistory;
-
         if (saveGameData == null) {
-            var rootNode = getRootNode(nodes);
-
-            var newNodeHistory = [rootNode.getKey()];
-            var newNodeHistoryLength = 1;
-
-            for (var i = 1; i < nodeHistory.length; i++) {
-                var id = nodeHistory[i];
-                var node = getNode(nodes, id);
-                if (node) {
-                    if (node.getKey() != id) {
-                        log('ERROR: Key mismatch.');
-                    }
-                    node.setHistorySequenceNr(newNodeHistory.length);
-                    newNodeHistory.push(node.getKey());
-                }
-            }
-
-            saveGameData = jsonifySaveGame(jumpTable, newNodeHistory);
+            var parser = new spacehopper.SaveGameParser(MISSION_DEFINITIONS_PATH, missionID, null, deltaData);
+            var checkedSaveGame = parser.getCheckedSaveGame();
+            saveGameData = jsonifySaveGame(checkedSaveGame.nodes, checkedSaveGame.nodeHistory);
 
         } else {
-            var saveGameNodes = saveGameData.nodes;
-            var saveGameNodeHistory = saveGameData.nodeHistory;
-            var totalNodes;
-            var totalNodeHistory;
-
+            var parser = null;
             if (overwrite) {
-                totalNodes = nodes;
-                totalNodeHistory = [];
+                parser = new spacehopper.SaveGameParser(MISSION_DEFINITIONS_PATH, missionID, null, deltaData);
             } else {
-                totalNodes = merge(nodes, saveGameNodes);
-                totalNodeHistory = saveGameNodeHistory.clone();
+                parser = new spacehopper.SaveGameParser(MISSION_DEFINITIONS_PATH, missionID, saveGameData, deltaData);
             }
 
-            getRootNode(totalNodes);
-
-            var deltaJumpTable = {};
-            var deltaNodeHistory = [];
-            var nodeHistoryLength = totalNodeHistory.length;
-            for (var i = 0; i < nodeHistory.length; i++) {
-                var id = nodeHistory[i];
-                var node = getNode(totalNodes, id);
-                if (node) {
-                    deltaNodeHistory.push(node.getKey());
-                    node.setHistorySequenceNr(nodeHistoryLength);
-                    nodeHistoryLength++;
-                    deltaJumpTable[node.getKey()] = node;
-                    if (id !=  node.getKey()) {
-                        log('ERROR: Key mismatch.');
-                    }
-                }
-            }
-
-            var deltaSaveGameData = jsonifySaveGame(deltaJumpTable, deltaNodeHistory);
-            saveGameData.nodeHistory = totalNodeHistory.append(deltaNodeHistory);
+            var checkedSaveGame = parser.getCheckedSaveGame(true);
+            var saveGameDeltaData = jsonifySaveGame(checkedSaveGame.nodes, checkedSaveGame.nodeHistory);
 
             if (overwrite) {
                 saveGameData.nodes = {};
+                saveGameData.nodeHistory = saveGameDeltaData.nodeHistory.clone();
+            } else {
+                saveGameData.nodeHistory.append(saveGameDeltaData.nodeHistory);
             }
-            for (var id in deltaSaveGameData.nodes) {
-                saveGameData.nodes[id] = deltaSaveGameData.nodes[id];
+
+            for (var id in saveGameDeltaData.nodes) {
+                saveGameData.nodes[id] = saveGameDeltaData.nodes[id];
             }
         }
 
