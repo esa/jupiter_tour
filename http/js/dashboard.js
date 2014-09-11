@@ -1,3 +1,14 @@
+function getUrlParameter(param) {
+    var pageURL = window.location.search.substring(1);
+    var urlVariables = pageURL.split('&');
+    for (var i = 0; i < urlVariables.length; i++) {
+        var parameterName = urlVariables[i].split('=');
+        if (parameterName[0] == param) {
+            return parameterName[1];
+        }
+    }
+}
+
 $(document).ready(function () {
     $('.tab-links .tab-link').on('click', function (event) {
         event.preventDefault();
@@ -11,7 +22,12 @@ $(document).ready(function () {
         });
     });
 
-    $('.tab-links .tab-link.active').trigger('click');
+    var tab = getUrlParameter('tab');
+    if (tab) {
+        $('#' + tab + 'tabbutton').trigger('click');
+    } else {
+        $('.tab-links .tab-link.active').trigger('click');
+    }
 });
 
 function setCookie(name, value, expDays) {
@@ -42,7 +58,7 @@ function login() {
                 password: password
             },
             success: function (response) {
-                document.location.reload();
+                document.location = '/dashboard/index.html?tab=profile';
             },
             error: function (error) {
                 switch (error.status) {
@@ -81,7 +97,7 @@ function register() {
                 },
                 success: function (response) {
                     if (response == 'OK') {
-                        document.location.reload();
+                        document.location = '/dashboard/index.html?tab=profile';
                     } else {
                         $('#registererror').html(response);
                     }
