@@ -15,7 +15,7 @@
 .face-selector .row1 {
     display: inline-block;
     width: 100%;
-    height: 15%;
+    height: 12%;
     position: relative;
 }
 .face-selector .row1 .col1 {
@@ -78,7 +78,7 @@
 .face-selector .row2 {
     display: inline-block;
     width: 100%;
-    height: 15%;
+    height: 12%;
     position: relative;
 }
 .face-selector .row2 .col1 {
@@ -141,7 +141,7 @@
 .face-selector .row3 {
     display: inline-block;
     width: 100%;
-    height: 66%;
+    height: 61%;
     position: relative;
 }
 .face-selector .row3 .col1 {
@@ -156,4 +156,12 @@
     height: 100%;
     overflow: hidden;
     cursor: default;
+}
+.face-selector .row4 {
+    display: flex;
+    justify-content: center;
+    align-content: center;
+    position: relative;
+    width: 100%;
+    height: 8%;
 }

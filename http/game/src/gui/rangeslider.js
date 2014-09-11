@@ -1,9 +1,9 @@
 /* Class Rangeslider 
     Requires jQuery.
 */
-gui.RangeSlider = function (domElement, params) {
+gui.RangeSlider = function (wrapper, params) {
     var self = this;
-    this._domElement = domElement;
+    this._wrapper = wrapper;
     this._container = document.createElement('div');
     this._container.className = 'rangeslider-container';
     this._bar = document.createElement('div');
@@ -27,19 +27,20 @@ gui.RangeSlider = function (domElement, params) {
     this._container.appendChild(this._label1);
     this._container.appendChild(this._label2);
 
-    this._domElement.appendChild(this._container);
+    this._wrapper.appendChild(this._container);
 
     this._val1 = 0;
     this._val2 = 1;
     this._range = [0, 0];
     this._handlePercentage = 10;
-    this._labelPercentage = 40;
+    this._labelPercentage = 30;
     this._paddingPercentage = 5;
-    this._width = $(this._domElement).width();
-    this._left = $(this._domElement).offset().left;
+    this._width = $(this._wrapper).width();
+    this._left = $(this._wrapper).offset().left;
     this._handleWidth = this._width / 100 * this._handlePercentage;
     this._labelWidth = this._width / 100 * this._labelPercentage;
     this._paddingWidth = this._width / 100 * this._paddingPercentage;
+    this._labelTopOffset = $(this._label1).outerHeight();
 
     this._rangeMarkerStep = 0;
     this._rangeMarkers = [];
@@ -56,13 +57,13 @@ gui.RangeSlider = function (domElement, params) {
 
     var mouseDriver = new utility.MouseDriver(this._bar);
     mouseDriver.registerLeftUp(function () {
-        if ($(self._domElement).is(':visible')) {
+        if ($(self._wrapper).is(':visible')) {
             $('html,body').css('cursor', 'default');
             self._hideLabels();
         }
     });
     mouseDriver.registerLeftDown(function () {
-        if (($(self._domElement).is(':visible'))) {
+        if (($(self._wrapper).is(':visible'))) {
             $('html,body').css('cursor', 'ew-resize');
             self._showLabels();
         }
@@ -70,7 +71,7 @@ gui.RangeSlider = function (domElement, params) {
     mouseDriver.registerLeftDblClick(this._zoomIn);
     mouseDriver.registerRightDblClick(this._zoomOut);
     mouseDriver.registerLeftDrag(function (event) {
-        if ($(self._domElement).is(':visible')) {
+        if ($(self._wrapper).is(':visible')) {
             $('html,body').css('cursor', 'ew-resize');
             self._val1 = Math.min(1, Math.max(0, self._val1 + event.deltaX / (self._width - self._handleWidth)));
             self._val2 = Math.min(1, Math.max(0, self._val2 + event.deltaX / (self._width - self._handleWidth)));
@@ -81,13 +82,13 @@ gui.RangeSlider = function (domElement, params) {
 
     mouseDriver = new utility.MouseDriver(this._handle1);
     mouseDriver.registerLeftDown(function () {
-        if ($(self._domElement).is(':visible')) {
+        if ($(self._wrapper).is(':visible')) {
             $('html,body').css('cursor', 'ew-resize');
             self._showLabels();
         }
     });
     mouseDriver.registerLeftDrag(function (event) {
-        if ($(self._domElement).is(':visible')) {
+        if ($(self._wrapper).is(':visible')) {
             $('html,body').css('cursor', 'ew-resize');
             self._val1 = Math.min(1, Math.max(0, self._val1 + event.deltaX / (self._width - self._handleWidth)));
             self._update();
@@ -97,13 +98,13 @@ gui.RangeSlider = function (domElement, params) {
 
     mouseDriver = new utility.MouseDriver(this._handle2);
     mouseDriver.registerLeftDown(function () {
-        if ($(self._domElement).is(':visible')) {
+        if ($(self._wrapper).is(':visible')) {
             $('html,body').css('cursor', 'ew-resize');
             self._showLabels();
         }
     });
     mouseDriver.registerLeftDrag(function (event) {
-        if ($(self._domElement).is(':visible')) {
+        if ($(self._wrapper).is(':visible')) {
             $('html,body').css('cursor', 'ew-resize');
             self._val2 = Math.min(1, Math.max(0, self._val2 + event.deltaX / (self._width - self._handleWidth)));
             self._update();
@@ -139,6 +140,9 @@ gui.RangeSlider.prototype = {
 
         $(this._label1).css('width', this._labelWidth);
         $(this._label2).css('width', this._labelWidth);
+
+        $(this._label1).css('top', -this._labelTopOffset);
+        $(this._label2).css('top', -this._labelTopOffset);
 
         var label1Pos = min * (this._width) - this._labelWidth / 2 - this._paddingWidth;
         var label2Pos = max * (this._width) - this._labelWidth / 2 - this._paddingWidth;
@@ -227,18 +231,19 @@ gui.RangeSlider.prototype = {
     onResize: function () {
         var self = this;
         setTimeout(function () {
-            if ($(self._domElement).is(':visible')) {
-                self._width = $(self._domElement).width();
+            if ($(self._wrapper).is(':visible')) {
+                self._width = $(self._wrapper).width();
                 self._handleWidth = self._width / 100 * self._handlePercentage;
                 self._labelWidth = self._width / 100 * self._labelPercentage;
                 self._paddingWidth = self._width / 100 * self._paddingPercentage;
-                self._left = $(self._domElement).offset().left;
+                self._left = $(self._wrapper).offset().left;
+                self._labelTopOffset = $(self._label1).outerHeight();
                 self._update();
             }
         }, 50);
     },
 
     onMove: function () {
-        this._left = $(this._domElement).offset().left;
+        this._left = $(this._wrapper).offset().left;
     }
 };

@@ -1,5 +1,6 @@
 /* Namespace UTILITY
     Add functions that are for convenience here.
+    Don't add any functions which require a browser environment here.
 */
 var utility = {
     JULIAN_CENTURY_TO_DAY: 36525.0,
@@ -7,8 +8,7 @@ var utility = {
     SEC_TO_DAY: 1 / 86400.0,
     YEAR_TO_DAY: 365.25,
     RAD_TO_DEG: 180.0 / Math.PI,
-    DEG_TO_RAD: Math.PI / 180.0,
-    MOUSE_WHEEL_EVENT: (/Firefox/i.test(navigator.userAgent)) ? 'DOMMouseScroll' : 'mousewheel'
+    DEG_TO_RAD: Math.PI / 180.0
 };
 
 utility.toPixelString = function (value, round) {
@@ -76,10 +76,6 @@ utility.cartToFlat = function (cartesianCoords) {
     return new geometry.Vector2(longitude, latitude);
 };
 
-utility.fitText = function () {
-    $('.text-fit').fitText();
-};
-
 utility.round = function (value, commaDigits) {
     if (arguments.length > 1) {
         commaDigits = Math.pow(10, commaDigits);
@@ -91,4 +87,10 @@ utility.round = function (value, commaDigits) {
 
 utility.clone = function (object) {
     return jQuery.extend(true, {}, object);
+};
+
+utility.insert = function (obj2, obj1) {
+    for (var key in obj2) {
+        obj1[key] = obj2[key];
+    }
 };

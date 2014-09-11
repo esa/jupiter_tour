@@ -121,10 +121,6 @@ geometry.Vector3.prototype = {
         return [this._valX, this._valY, this._valZ];
     },
 
-    asTHREE: function () {
-        return new THREE.Vector3(this._valX, this._valY, this._valZ);
-    },
-
     toString: function (round) {
         if (arguments.length) {
             round = Math.pow(10, round);

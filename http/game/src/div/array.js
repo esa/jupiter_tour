@@ -8,6 +8,15 @@ Array.prototype.remove = function (pos) {
     return this;
 };
 
+Array.prototype.append = function (arr) {
+    if (arr) {
+        for (var i = 0; i < arr.length; i++) {
+            this.push(arr[i]);
+        }
+    }
+    return this;
+};
+
 Array.prototype.sum = function () {
     var result = 0;
     for (var i = 0; i < this.length; i++) {

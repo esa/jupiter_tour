@@ -4,13 +4,12 @@ rawdata.defaultMission = {
     mission: {
         id: 2,
 
-
         maximumMissionDuration: 1461,
-        launchConstraints: null,
-        funIsInvalidState: 'return [];',
+
+        funGetInvalidReasonsForState: null,
+        funSetScoreForState: null,
         funIsWinningState: 'var score = gameState.getScore(); return (score >= 324);',
         funGetWinningProgress: 'var score = gameState.getScore(); return score/324;',
-
 
         centralBody: {
             id: 2,
@@ -25,7 +24,6 @@ rawdata.defaultMission = {
         orbitingBodies: {
             3: {
                 name: 'Io',
-                sgp: 5959.916e9,
                 refEpoch: 58849.0,
                 orbitalElements: {
                     sma: 422029687.14001,
@@ -35,10 +33,13 @@ rawdata.defaultMission = {
                     ap: 0.66307270809,
                     ma: 5.00651891805
                 },
+                sgp: 5959.916e9,
                 radius: 1826.5e3,
                 minRadiusFactor: 1.02737476047,
                 maxRadiusFactor: 2.09499041883,
-                maxTimeOfFlyby: 30,
+                maxTimeOfFlight: 30,
+                maxLaunchDelay: 0,
+                arrivingOption: 0,
                 scale: 0.000005,
                 meshMaterialURL: 'res/img/iosurface.jpg',
                 surface: {
@@ -81,7 +82,6 @@ rawdata.defaultMission = {
             },
             4: {
                 name: 'Europa',
-                sgp: 3202.739e9,
                 refEpoch: 58849.0,
                 orbitalElements: {
                     sma: 671224237.12681,
@@ -91,10 +91,13 @@ rawdata.defaultMission = {
                     ap: -1.38878710982,
                     ma: 5.55028257727
                 },
+                sgp: 3202.739e9,
                 radius: 1561.0e3,
                 minRadiusFactor: 1.03203074952,
                 maxRadiusFactor: 2.28122998078,
-                maxTimeOfFlyby: 30,
+                maxTimeOfFlight: 30,
+                maxLaunchDelay: 0,
+                arrivingOption: 0,
                 scale: 0.000005,
                 meshMaterialURL: 'res/img/europasurface.jpg',
                 surface: {
@@ -137,7 +140,6 @@ rawdata.defaultMission = {
             },
             5: {
                 name: 'Ganymede',
-                sgp: 9887.834e9,
                 refEpoch: 58849.0,
                 orbitalElements: {
                     sma: 1070587469.23740,
@@ -147,10 +149,13 @@ rawdata.defaultMission = {
                     ap: -0.74833600978,
                     ma: 3.85016858447
                 },
+                sgp: 9887.834e9,
                 radius: 2634.0e3,
                 minRadiusFactor: 1.01898253607,
                 maxRadiusFactor: 1.759301442678,
-                maxTimeOfFlyby: 30,
+                maxTimeOfFlight: 30,
+                maxLaunchDelay: 0,
+                arrivingOption: 0,
                 scale: 0.000005,
                 meshMaterialURL: 'res/img/ganymedesurface.jpg',
                 surface: {
@@ -193,7 +198,6 @@ rawdata.defaultMission = {
             },
             6: {
                 name: 'Callisto',
-                sgp: 7179.289e9,
                 refEpoch: 58849.0,
                 orbitalElements: {
                     sma: 1883136616.73050,
@@ -203,10 +207,13 @@ rawdata.defaultMission = {
                     ap: -2.80579190487,
                     ma: 5.60384218299
                 },
+                sgp: 7179.289e9,
                 radius: 2408.0e3,
                 minRadiusFactor: 1.0207641196,
                 maxRadiusFactor: 1.83056478405,
-                maxTimeOfFlyby: 30,
+                maxTimeOfFlight: 30,
+                maxLaunchDelay: 0,
+                arrivingOption: 0,
                 scale: 0.000005,
                 meshMaterialURL: 'res/img/callistosurface.jpg',
                 surface: {
@@ -257,30 +264,23 @@ rawdata.defaultMission = {
             1: {
                 id: 1,
                 parentID: null,
+                isVirtual: false,
                 gameState: {
                     orbitingBodyID: 5,
                     epoch: 58849,
-                    passedDays: 0,
-                    transferLeg: {
-                        problemType: null,
-                        chromosome: [],
-                        deltaV: 0,
-                        timeOfFlight: 0,
-                        mappedFaceID: '',
-                        dsmRating: 1
-                    },
-                    score: 0,
-                    totalDeltaV: 0,
-                    velocityInf: [1000, -400, 1000],
-                    mappedFaces: {},
-                    isRoot: true,
-                    invalidReasonIDs: [],
-                    spacecraft: {
-                        mass: 2000,
-                        emptyMass: 1000,
-                        maxThrust: 0.105,
-                        specificImpulse: 3500,
-                        isLanded: false
+                    vehicle: {
+                        isLanded: false,
+                        velocityInf: [1000, -400, 1000],
+                        stages: [
+                            {
+                                propulsionType: 0,
+                                mass: 2000,
+                                remainingMass: 2000,
+                                emptyMass: 1000,
+                                thrust: 0.105,
+                                specificImpulse: 3500,
+                                imageURL: 'res/img/spacecraft.jpg'
+                        }]
                     }
                 }
             }

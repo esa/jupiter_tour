@@ -15,39 +15,417 @@
         randomstring
         escape-html
         url
+        vm
 */
+
+var express = require('express');
+var https = require('https');
+var http = require('http');
+var mime = require('mime');
+var fs = require('fs');
+var bodyparser = require('body-parser');
+var ejs = require('ejs');
+var cookieparser = require('cookie-parser');
+var mongodb = require('mongodb');
+var crypto = require('crypto');
+var randomstring = require('randomstring');
+var escape = require('escape-html');
+var url = require('url');
+var vm = require('vm');
+
+// Acts 'like' a C #include statement
+var include = function (path) {
+    var code = fs.readFileSync(path);
+    vm.runInThisContext(code, path);
+}.bind(this);
+
+// Include requried spacehopper framework parts
+include(__dirname + '/game/src/div/constants.js');
+include(__dirname + '/game/src/div/math.js');
+include(__dirname + '/game/src/div/array.js');
+include(__dirname + '/game/src/div/utility.js');
+include(__dirname + '/game/src/div/strings.js');
+include(__dirname + '/game/src/datastructure/datastructure.js');
+include(__dirname + '/game/src/datastructure/treenode.js');
+include(__dirname + '/game/src/datastructure/queue.js');
+include(__dirname + '/game/src/geometry/geometry.js');
+include(__dirname + '/game/src/geometry/vector2.js');
+include(__dirname + '/game/src/geometry/vector3.js');
+include(__dirname + '/game/src/geometry/matrix3.js');
+include(__dirname + '/game/src/algorithm/algorithm.js');
+include(__dirname + '/game/src/algorithm/newtonraphson.js');
+include(__dirname + '/game/src/algorithm/regulafalsi.js');
+include(__dirname + '/game/src/algorithm/bfs.js');
+include(__dirname + '/game/src/astrodynamics/astrodynamics.js');
+include(__dirname + '/game/src/astrodynamics/keplerequations.js');
+include(__dirname + '/game/src/astrodynamics/lambert.js');
+include(__dirname + '/game/src/astrodynamics/propagatelagrangian.js');
+include(__dirname + '/game/src/astrodynamics/satellite.js');
+include(__dirname + '/game/src/astrodynamics/centralbody.js');
+include(__dirname + '/game/src/astrodynamics/flybypropagation.js');
+include(__dirname + '/game/src/astrodynamics/periapsis.js');
+include(__dirname + '/game/src/astrodynamics/orbitingbody.js');
+include(__dirname + '/game/src/astrodynamics/launchleg.js');
+include(__dirname + '/game/src/astrodynamics/flybyleg.js');
+include(__dirname + '/game/src/model/model.js');
+include(__dirname + '/game/src/model/surface.js');
+include(__dirname + '/game/src/model/sphericalsurface.js');
+include(__dirname + '/game/src/model/truncatedicosahedronsurface.js');
+include(__dirname + '/game/src/model/stage.js');
+include(__dirname + '/game/src/model/vehicle.js');
+include(__dirname + '/game/src/gui/gui.js');
+include(__dirname + '/game/src/gui/stage.js');
+include(__dirname + '/game/src/gui/vehicle.js');
+include(__dirname + '/game/src/core/core.js');
+include(__dirname + '/game/src/core/gamestate.js');
+include(__dirname + '/game/src/core/historynode.js');
+
+// Convenient stuff
+String.prototype.endsWith = function (suffix) {
+    return this.indexOf(suffix, this.length - suffix.length) !== -1;
+};
+
+utility.clone = function (obj) {
+    if (obj == null || typeof (obj) != 'object') {
+        if (typeof (obj) == 'array') {
+            return obj.clone();
+        } else {
+            return obj;
+        }
+    }
+    var temp = obj.constructor();
+    for (var key in obj) {
+        if (obj.hasOwnProperty(key)) {
+            temp[key] = utility.clone(obj[key]);
+        }
+    }
+    return temp;
+};
+
+utility.merge = function (obj1, obj2) {
+    var result = {};
+    if (obj1 != null) {
+        for (var key in obj1) {
+            result[key] = obj1[key];
+        }
+    }
+    if (obj2 != null) {
+        for (var key in obj2) {
+            result[key] = obj2[key];
+        }
+    }
+    return result;
+};
+
+utility.isParetoDominant = function (score1, score2) {
+    if (score1.score > score2.score) {
+        return true;
+    } else if (score1.score == score2.score) {
+        if (score1.totalDeltaV < score2.totalDeltaV) {
+            return true;
+        } else if (score1.totalDeltaV == score2.totalDeltaV) {
+            if (score1.passedDays < score2.passedDays) {
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    } else {
+        return false;
+    }
+};
+
+// Spacehopper namespace
+var spacehopper = {};
+spacehopper.SaveGameParser = function (missionPath, missionID, saveGame, deltaSaveGame) {
+    this._missionID = missionID;
+    this._saveGameNodeHistory = (saveGame != null ? saveGame.nodeHistory.clone() : null);
+    this._deltaSaveGameNodeHistory = (deltaSaveGame != null ? deltaSaveGame.nodeHistory.clone() : null);
+    this._saveGamesSize = (saveGame != null ? saveGame.nodeHistory.length : 0);
+    this._nodes = utility.clone((saveGame != null && deltaSaveGame != null ? utility.merge(deltaSaveGame.nodes, saveGame.nodes) : (saveGame == null ? deltaSaveGame.nodes : saveGame.nodes)));
+    this._jumpTable = {};
+
+    var mission = null;
+    var localPath = missionPath + missionID + '.json';
+    if (fs.existsSync(localPath)) {
+        mission = JSON.parse(fs.readFileSync(localPath)).mission;
+    } else {
+        throw Error(localPath + ' does not exist.');
+    }
+
+    this._mission = {};
+
+    this._mission.centralBody = new astrodynamics.CentralBody(mission.centralBody.id, mission.centralBody.name, mission.centralBody.sgp, mission.centralBody.radius);
+
+    this._mission.orbitingBodies = {};
+    for (var currentBodyID in mission.orbitingBodies) {
+        var id = parseInt(currentBodyID);
+        var orbitingBodyData = mission.orbitingBodies[currentBodyID];
+        var orbitalElements = orbitingBodyData.orbitalElements;
+        var orbitalElementDerivatives = orbitingBodyData.orbitalElementDerivatives;
+
+        var orbitingBody = new astrodynamics.OrbitingBody(id, orbitingBodyData.name, this._mission.centralBody, orbitalElements, orbitalElementDerivatives, orbitingBodyData.refEpoch, orbitingBodyData.sgp, orbitingBodyData.radius, orbitingBodyData.minRadiusFactor, orbitingBodyData.maxRadiusFactor, orbitingBodyData.maxTimeOfFlight, orbitingBodyData.maxLaunchDelay, orbitingBodyData.arrivingOption, orbitingBodyData.surface);
+
+        this._mission.orbitingBodies[orbitingBody.getID()] = orbitingBody;
+    }
+
+    this._mission.funGetInvalidReasonsForState = mission.funGetInvalidReasonsForState != null ? Function('gameState', mission.funGetInvalidReasonsForState) : null;
+    this._mission.funIsWinningState = mission.funIsWinningState != null ? Function('gameState', mission.funIsWinningState) : null;
+    this._mission.funSetScoreForState = mission.funSetScoreForState != null ? Function('gameState', mission.funSetScoreForState) : null;
+    var maximumMissionDuration = mission.maximumMissionDuration;
+    this._mission.funGetTimeUsage = function (gameState) {
+        return gameState.getPassedDays() / maximumMissionDuration;
+    };
+    this._mission.funGetWinningProgress = Function('gameState', mission.funGetWinningProgress);
+};
+
+spacehopper.SaveGameParser.prototype = {
+    constructor: spacehopper.SaveGameParser,
+
+    _markAndSetScoreForGameState: function (gameState, dsmResult) {
+        var reasonIDs = [];
+        if (this._mission.funGetTimeUsage(gameState) > 1) {
+            reasonIDs.push(strings.FinalStateReasonIDs.MAX_MISSION_EPOCH);
+        }
+        if (this._mission.funGetInvalidReasonsForState) {
+            reasonIDs.append(this._mission.funGetInvalidReasonsForState(gameState));
+        }
+        if (dsmResult) {
+            if (dsmResult.hasDeltaVLimitation) {
+                reasonIDs.push(strings.FinalStateReasonIDs.SPACECRAFT_LIMITATION);
+            }
+            if (dsmResult.isOutOfFuel) {
+                reasonIDs.push(strings.FinalStateReasonIDs.MAX_TOTAL_DELTAV);
+            }
+        }
+        if (reasonIDs.length) {
+            gameState.markInvalid(reasonIDs);
+        }
+        if (this._mission.funIsWinningState) {
+            if (!gameState.isInvalid()) {
+                if (this._mission.funIsWinningState(gameState)) {
+                    gameState.markWinning();
+                }
+            }
+        }
+
+        if (gameState.isInvalid()) {
+            gameState.setScore(0);
+        } else {
+            if (this._mission.funSetScoreForState) {
+                this._mission.funSetScoreForState(gameState);
+            }
+        }
+    },
+
+    _createGameState: function (parentGameState, gameStateData) {
+        var gameState = null;
+        if (parentGameState != null) {
+            var currentBody = this._mission.orbitingBodies[gameStateData.orbitingBodyID];
+            var chromosome = gameStateData.transferLeg.chromosome;
+            var problemType = gameStateData.transferLeg.problemType;
+            var performLanding = gameStateData.transferLeg.performLanding;
+            var deltaV = gameStateData.transferLeg.deltaV;
+            var timeOfFlight = gameStateData.transferLeg.timeOfFlight;
+
+            var mappedFaces = parentGameState.getMappedFaces();
+
+            var parentBody = parentGameState.getOrbitingBody();
+            var parentVehicle = parentGameState.getVehicle();
+            var parentScore = parentGameState.getScore();
+            var parentEpoch = parentGameState.getEpoch();
+            var parentPassedDays = parentGameState.getPassedDays();
+            var parentTotalDeltaV = parentGameState.getTotalDeltaV();
+            var parentVelocityInf = parentVehicle.getVelocityInf();
+
+            var leg = null;
+            var flybyResult = null;
+            var faceValue = 0;
+            switch (problemType) {
+            case astrodynamics.ProblemTypes.MGA1DSM_LAUNCH:
+                leg = new astrodynamics.LaunchLeg(chromosome, parentBody, currentBody);
+                flybyResult = parentBody.computeFlybyFaceAndCoords(parentEpoch, parentVelocityInf, chromosome[1], chromosome[2]);
+                faceValue = parentBody.getFaceValue(flybyResult.faceID);
+                break;
+            case astrodynamics.ProblemTypes.MGA1DSM_FLYBY:
+                leg = new astrodynamics.FlybyLeg(chromosome, parentBody, currentBody, parentVelocityInf, parentEpoch);
+                flybyResult = parentBody.computeFlybyFaceAndCoords(parentEpoch, parentVelocityInf, chromosome[0], chromosome[1]);
+                faceValue = parentBody.getFaceValue(flybyResult.faceID);
+                break;
+            }
+
+            var numStages = parentVehicle.getStages().length;
+            if (numStages > 1 && problemType == astrodynamics.ProblemTypes.MGA1DSM_LAUNCH) {
+                parentVehicle.jettisonStage();
+            }
+            var dsmResult = parentVehicle.performManeuver(deltaV, timeOfFlight * utility.DAY_TO_SEC);
+            var vehicle = parentVehicle.clone();
+            if (leg) {
+                var nextVelocityInf = leg.getArrivalVelocityInf();
+                vehicle.setVelocityInf(nextVelocityInf);
+            }
+            vehicle.setLanded(performLanding);
+
+            var score = parentScore + faceValue;
+            var epoch = parentEpoch + timeOfFlight;
+            var passedDays = parentPassedDays + timeOfFlight;
+            var totalDeltaV = parentTotalDeltaV + deltaV;
+
+            var transferLeg = {
+                problemType: problemType,
+                chromosome: chromosome,
+                deltaV: deltaV,
+                timeOfFlight: timeOfFlight,
+                visualization: leg,
+                gravityLoss: dsmResult ? dsmResult.gravityLoss : 1,
+                mappedFaceID: flybyResult != null ? parentBody.getID() + '_' + flybyResult.faceID : '',
+                periapsisCoords: flybyResult != null ? flybyResult.coords : null
+            };
+
+            gameState = new core.GameState(currentBody, epoch, passedDays, totalDeltaV, score, vehicle, mappedFaces, transferLeg);
+            this._markAndSetScoreForGameState(gameState, dsmResult);
+        }
+        return gameState;
+    },
+
+    getRootNode: function () {
+        var rootNode = null;
+        for (var id in this._nodes) {
+            var node = this._nodes[id];
+            if (node.parentID == null) {
+                rootNode = node;
+                break;
+            }
+        }
+
+        var gameStateData = rootNode.gameState;
+        var currentBody = this._mission.orbitingBodies[gameStateData.orbitingBodyID];
+        var chromosome = null;
+        var epoch = gameStateData.epoch;
+        var passedDays = 0;
+        var totalDeltaV = 0;
+        var velocityInf = new geometry.Vector3().fromArray(gameStateData.vehicle.velocityInf);
+        var stages = [];
+        var vehicleData = gameStateData.vehicle;
+        for (var i = 0; i < vehicleData.stages.length; i++) {
+            var stage = vehicleData.stages[i];
+            stages.push(new gui.Stage(stage.propulsionType, stage.mass, stage.emptyMass, stage.remainingMass, stage.thrust, stage.specificImpulse, stage.imageURL));
+        }
+        var vehicle = new gui.Vehicle(velocityInf, stages, gameStateData.vehicle.isLanded);
+        var dsmResult = null;
+        var transferLeg = null;
+        var score = 0;
+        var mappedFaces = {};
+
+        var gameState = new core.GameState(currentBody, epoch, passedDays, totalDeltaV, score, vehicle, mappedFaces, transferLeg);
+        this._markAndSetScoreForGameState(gameState, dsmResult);
+
+        var rootHistoryNode = new core.HistoryNode(gameState, rootNode.id, false);
+        rootHistoryNode.setHistorySequenceNr(0);
+        var id = rootHistoryNode.getKey();
+        this._jumpTable[id] = rootHistoryNode;
+        return rootHistoryNode;
+    },
+
+    getNode: function (id) {
+        if (this._jumpTable[id]) {
+            return this._jumpTable[id];
+        } else {
+            var childNode = null;
+            var node = this._nodes[id];
+            var parentNode = this.getNode(node.parentID);
+            if (parentNode) {
+                var parentGameState = parentNode.getValue();
+                if (!parentGameState.isInvalid()) {
+                    var gameState = this._createGameState(parentGameState, node.gameState);
+                    childNode = parentNode.addChild(gameState, id, node.isVirtual);
+                    this._jumpTable[childNode.getKey()] = childNode;
+                }
+            }
+            return childNode;
+        }
+    },
+
+    getCheckedSaveGame: function (isDelta) {
+        var rootNode = this.getRootNode();
+
+        var newNodes = {};
+        var newNodeHistory = [];
+        var newNodeHistoryLength = 0;
+        if (isDelta) {
+            newNodeHistoryLength = this._saveGamesSize;
+        } else {
+            newNodes[rootNode.getKey()] = rootNode;
+            newNodeHistory.push(rootNode.getKey());
+            newNodeHistoryLength = 1;
+        }
+
+        for (var i = (isDelta == true ? 0 : 1); i < this._deltaSaveGameNodeHistory.length; i++) {
+            var id = this._deltaSaveGameNodeHistory[i];
+            var node = this.getNode(id);
+            if (node) {
+                if (node.getKey() != id) {
+                    log('ERROR: Key mismatch.');
+                }
+                node.setHistorySequenceNr(newNodeHistoryLength);
+                newNodes[node.getKey()] = node;
+                newNodeHistory.push(node.getKey());
+                newNodeHistoryLength++;
+            }
+        }
+
+        return {
+            nodes: newNodes,
+            nodeHistory: newNodeHistory
+        };
+    },
+
+    getMaximumScore: function () {
+        var maxScore = {
+            score: 0,
+            totalDeltaV: 0,
+            passedDays: 0
+        };
+
+        this.getRootNode();
+        for (var i = 0; i < this._saveGameNodeHistory.length; i++) {
+            var id = this._saveGameNodeHistory[i];
+            var node = this.getNode(id);
+            var gameState = node.getValue();
+            var score = gameState.getScore();
+            var totalDeltaV = gameState.getTotalDeltaV();
+            var passedDays = gameState.getPassedDays();
+            var curScore = {
+                score: score,
+                totalDeltaV: totalDeltaV,
+                passedDays: passedDays
+            };
+            if (utility.isParetoDominant(curScore, maxScore)) {
+                maxScore = curScore;
+            }
+        }
+        return maxScore;
+    }
+};
 
 var Server = {};
 
 (function () {
-    var express = require('express');
-    var https = require('https');
-    var http = require('http');
-    var mime = require('mime');
-    var fs = require('fs');
-    var bodyparser = require('body-parser');
-    var ejs = require('ejs');
-    var cookieparser = require('cookie-parser');
-    var mongodb = require('mongodb');
-    var crypto = require('crypto');
-    var randomstring = require('randomstring');
-    var escape = require('escape-html');
-    var url = require('url');
-
-    // Convenient stuff
-    String.prototype.endsWith = function (suffix) {
-        return this.indexOf(suffix, this.length - suffix.length) !== -1;
-    };
 
     // Server Configuration
     var SESSION_TIMEOUT = 30 * 60;
     var VERBOSE = true;
-    var PORT = 8080;
+    var PORT = 8081;
     var ENABLE_HTTPS = false;
     var SESSION_ID_LENGTH = 48;
-    var SESSION_CLEANING_INTERVAL = 300;
-    var FILE_CACHING_TIME = 1 * 24 * 60 * 60;
-    var DATABASE_NAME = 'jupitertour';
+    var SESSION_CLEANING_INTERVAL = 30 * 60;
+    var SCOREBOARD_REFRESH_INTERVAL = 10 * 60;
+    var FILE_CACHING_TIME = 0 * 24 * 60 * 60;
+    var DATABASE_NAME = 'spacehopper';
+    var SPACE_HOPPER_ROOT_FOLDER = './game';
+    var MISSION_DEFINITIONS_PATH = './missions/mission';
 
     var htmlTemplates = {
         ERROR_400: fs.readFileSync('errors/400.html'),
@@ -140,8 +518,10 @@ var Server = {};
                 } else {
                     log('DB: Connection opened.', true);
                     dbConnection = database;
-                    periodicDBCleaning();
-                    setInterval(periodicDBCleaning, SESSION_CLEANING_INTERVAL * 1000);
+                    periodicSessionCleaning();
+                    setInterval(periodicSessionCleaning, SESSION_CLEANING_INTERVAL * 1000);
+                    periodicScoreboardRefresh();
+                    setInterval(periodicScoreboardRefresh, SCOREBOARD_REFRESH_INTERVAL * 1000);
                 }
             });
         });
@@ -165,7 +545,7 @@ var Server = {};
     }
 
     function getMission(missionID) {
-        var localPath = './missions/mission' + missionID + '.json';
+        var localPath = MISSION_DEFINITIONS_PATH + missionID + '.json';
         if (fs.existsSync(localPath)) {
             return JSON.parse(fs.readFileSync(localPath));
         } else {
@@ -173,7 +553,7 @@ var Server = {};
         }
     }
 
-    function periodicDBCleaning() {
+    function periodicSessionCleaning() {
         log('DB: Session cleanup start @ ' + new Date());
         cleanSessions(function (error) {
             if (error) {
@@ -184,8 +564,221 @@ var Server = {};
         });
     }
 
-    function updateSession(session, date, callback) {
-        if (session) {
+    function periodicScoreboardRefresh() {
+        log('DB: Scoreboard refresh start @ ' + new Date());
+
+        var users = {};
+
+        //private functions
+        function getMaximumScore(record) {
+            var missionID = record.missionID;
+            var parser = new spacehopper.SaveGameParser(MISSION_DEFINITIONS_PATH, missionID, record.data, null);
+            return parser.getMaximumScore();
+        }
+
+        function addOrUpdateScore(scores, error, score, userID, missionID) {
+            if (error) {
+                return;
+            }
+            var maxScore = users[userID][missionID];
+            if (maxScore.score == 0) {
+                return;
+            }
+            if (score) {
+                if (utility.isParetoDominant(maxScore, score)) {
+                    score.score = maxScore.score;
+                    score.totalDeltaV = maxScore.totalDeltaV;
+                    score.passedDays = maxScore.passedDays;
+                    scores.save(score, function (error) {});
+                }
+            } else {
+                score = {
+                    userID: new mongodb.ObjectID.createFromHexString(userID),
+                    score: maxScore.score,
+                    totalDeltaV: maxScore.totalDeltaV,
+                    passedDays: maxScore.passedDays,
+                    missionID: parseInt(missionID)
+                };
+                scores.insert(score, function (error, records) {});
+            }
+        }
+
+        var saveGames = dbConnection.collection('savegames');
+        var query = {
+            userID: {
+                $ne: null
+            },
+            recomputeScore: true
+        };
+        saveGames.find(query).toArray(function (error, records) {
+            if (error) {
+                callback(null);
+                return;
+            }
+            for (var i = 0; i < records.length; i++) {
+                var record = records[i];
+
+                record.recomputeScore = false;
+                saveGames.save(record, function () {});
+
+                var userID = record.userID.toHexString();
+                var missionID = record.missionID;
+                if (users[userID]) {
+                    if (users[userID][missionID] == null) {
+                        users[userID][missionID] = {
+                            score: 0,
+                            totalDeltaV: 0,
+                            passedDays: 0
+                        };
+                    }
+                } else {
+                    users[userID] = {};
+                    users[userID][missionID] = {
+                        score: 0,
+                        totalDeltaV: 0,
+                        passedDays: 0
+                    };
+                }
+                var curMaxScore = users[userID][missionID];
+                var newMaxScore = getMaximumScore(record);
+                if (utility.isParetoDominant(newMaxScore, curMaxScore)) {
+                    users[userID][missionID] = newMaxScore;
+                }
+            }
+            var scores = dbConnection.collection('scores');
+            for (var userID in users) {
+                for (var missionID in users[userID]) {
+                    var query = {
+                        userID: new mongodb.ObjectID.createFromHexString(userID),
+                        missionID: parseInt(missionID)
+                    };
+                    (function (userID, missionID) {
+                        scores.findOne(query, function (error, score) {
+                            addOrUpdateScore(scores, error, score, userID, missionID);
+                        });
+                    })(userID, missionID);
+                }
+            }
+
+            log('DB: Scoreboard refresh finish @ ' + new Date());
+        });
+    }
+
+    function jsonifySaveGame(nodeList, nodeHistory) {
+        var result = {};
+        result.nodeHistory = nodeHistory.clone();
+        var nodes = {};
+        for (var nodeID in nodeList) {
+            var node = nodeList[nodeID];
+            var gameState = node.getValue();
+            var transferLeg = gameState.getTransferLeg();
+            var id = node.getKey();
+            var parent = node.getParent();
+            var isVirtual = node.isVirtual();
+
+            var orbitingBodyID = gameState.getOrbitingBody().getID();
+            var vehicle = gameState.getVehicle();
+
+            var nodeResult = {};
+            nodeResult.id = id;
+            nodeResult.parentID = (parent ? parent.getKey() : null);
+            nodeResult.isVirtual = isVirtual;
+            nodeResult.gameState = {};
+            nodeResult.gameState.orbitingBodyID = orbitingBodyID;
+            nodeResult.gameState.transferLeg = null;
+            if (transferLeg) {
+                nodeResult.gameState.transferLeg = {};
+                nodeResult.gameState.transferLeg.chromosome = transferLeg.chromosome;
+                nodeResult.gameState.transferLeg.timeOfFlight = transferLeg.timeOfFlight;
+                nodeResult.gameState.transferLeg.problemType = transferLeg.problemType;
+                nodeResult.gameState.transferLeg.deltaV = transferLeg.deltaV;
+                nodeResult.gameState.transferLeg.performLanding = vehicle.isLanded();
+            }
+            if (nodeResult.parentID == null) {
+                nodeResult.gameState.epoch = gameState.getEpoch();
+                var isLanded = vehicle.isLanded();
+                var velocityInf = vehicle.getVelocityInf();
+                var stages = vehicle.getStages();
+
+                nodeResult.gameState.vehicle = {};
+                nodeResult.gameState.vehicle.velocityInf = velocityInf.asArray();
+                nodeResult.gameState.vehicle.isLanded = vehicle.isLanded();
+                nodeResult.gameState.vehicle.stages = [];
+                for (var i = 0; i < stages.length; i++) {
+                    var stage = stages[i];
+                    nodeResult.gameState.vehicle.stages.push({
+                        propulsionType: stage.getPropulsionType(),
+                        mass: stage.getTotalMass(),
+                        remainingMass: stage.getRemainingMass(),
+                        emptyMass: stage.getEmptyMass(),
+                        thrust: stage.getThrust(),
+                        specificImpulse: stage.getSpecificImpulse(),
+                        imageURL: stage.getImageURL()
+                    });
+                }
+
+                var mappedFaces = gameState.getMappedFaces();
+                nodeResult.gameState.mappedFaces = {};
+                for (var face in mappedFaces) {
+                    for (var i = 0; i < mappedFaces[face].length; i++) {
+                        if (nodeResult.gameState.mappedFaces[face]) {
+                            nodeResult.gameState.mappedFaces[face].push(mappedFaces[face][i].asArray());
+                        } else {
+                            nodeResult.gameState.mappedFaces[face] = [mappedFaces[face][i].asArray()];
+                        }
+                    }
+                }
+            }
+            nodes[nodeResult.id] = nodeResult;
+        }
+        result.nodes = nodes;
+        return result;
+    }
+
+    function checkAndAppendDeltaData(missionID, saveGameData, deltaData, overwrite, callback) {
+        if (missionID == null || deltaData == null) {
+            callback(null);
+            return;
+        }
+
+        if (saveGameData == null) {
+            var parser = new spacehopper.SaveGameParser(MISSION_DEFINITIONS_PATH, missionID, null, deltaData);
+            var checkedSaveGame = parser.getCheckedSaveGame();
+            saveGameData = jsonifySaveGame(checkedSaveGame.nodes, checkedSaveGame.nodeHistory);
+
+        } else {
+            var parser = null;
+            if (overwrite) {
+                parser = new spacehopper.SaveGameParser(MISSION_DEFINITIONS_PATH, missionID, null, deltaData);
+            } else {
+                parser = new spacehopper.SaveGameParser(MISSION_DEFINITIONS_PATH, missionID, saveGameData, deltaData);
+            }
+
+            var checkedSaveGame = parser.getCheckedSaveGame(true);
+            var saveGameDeltaData = jsonifySaveGame(checkedSaveGame.nodes, checkedSaveGame.nodeHistory);
+
+            if (overwrite) {
+                saveGameData.nodes = {};
+                saveGameData.nodeHistory = saveGameDeltaData.nodeHistory.clone();
+            } else {
+                saveGameData.nodeHistory.append(saveGameDeltaData.nodeHistory);
+            }
+
+            for (var id in saveGameDeltaData.nodes) {
+                saveGameData.nodes[id] = saveGameDeltaData.nodes[id];
+            }
+        }
+
+        log('DB: Checked savegame for correctness.');
+        callback(saveGameData);
+    }
+
+    var deferredSessionUpdates = {};
+
+    function updateSession(session, date) {
+
+        // Private function
+        function updateRecord(session, date) {
             var sessions = dbConnection.collection('sessions');
             var timeout = new Date(date.getTime() + SESSION_TIMEOUT * 1000);
             var query = {
@@ -198,14 +791,27 @@ var Server = {};
             };
             sessions.update(query, update, function (error) {
                 if (error) {
-                    callback(error);
+                    log('DB: Updating session with id ' + session._id + ' failed.');
                     return;
                 }
                 log('DB: Updated session entry with id ' + session._id + ' to new timeout ' + timeout);
-                callback(null);
+
+                delete deferredSessionUpdates[session._id];
             });
-        } else {
-            callback(null)
+        }
+
+
+        if (session) {
+            if (deferredSessionUpdates[session._id.toHexString()] == null) {
+                deferredSessionUpdates[session._id.toHexString()] = setTimeout(function () {
+                    updateRecord(session, date);
+                }, 1000);
+            } else {
+                clearTimeout(deferredSessionUpdates[session._id.toHexString()]);
+                deferredSessionUpdates[session._id.toHexString()] = setTimeout(function () {
+                    updateRecord(session, date);
+                }, 1000);
+            }
         }
     }
 
@@ -355,7 +961,7 @@ var Server = {};
         });
     }
 
-    function addSaveGame(user, missionID, name, deltaData, date, callback) {
+    function addSaveGame(user, missionID, missionRevision, name, deltaData, date, callback) {
         if (missionID != null && deltaData.nodes && deltaData.nodeHistory && Object.keys(deltaData.nodes).length && deltaData.nodeHistory.length) {
             var saveGames = dbConnection.collection('savegames');
             if (user && name) {
@@ -369,16 +975,43 @@ var Server = {};
                         callback(null);
                         return;
                     }
-                    record = {
-                        userID: user._id,
+                    checkAndAppendDeltaData(missionID, null, deltaData, false, function (checkedSaveGame) {
+                        record = {
+                            userID: user._id,
+                            data: {
+                                nodes: checkedSaveGame.nodes,
+                                nodeHistory: checkedSaveGame.nodeHistory
+                            },
+                            deltaIndex: checkedSaveGame.nodeHistory.length,
+                            name: name,
+                            missionID: missionID,
+                            missionRevision: missionRevision,
+                            submission: date,
+                            recomputeScore: true
+                        };
+                        saveGames.insert(record, function (error, records) {
+                            if (error) {
+                                callback(null);
+                                return;
+                            }
+                            callback(records[0]);
+                        });
+                    });
+                });
+            } else {
+                checkAndAppendDeltaData(missionID, null, deltaData, false, function (checkedSaveGame) {
+                    var record = {
+                        userID: (user ? user._id : null),
                         data: {
-                            nodes: deltaData.nodes,
-                            nodeHistory: deltaData.nodeHistory
+                            nodes: checkedSaveGame.nodes,
+                            nodeHistory: checkedSaveGame.nodeHistory
                         },
+                        deltaIndex: checkedSaveGame.nodeHistory.length,
                         name: name,
-                        submission: date,
                         missionID: missionID,
-                        deltaIndex: deltaData.nodeHistory.length
+                        missionRevision: missionRevision,
+                        submission: date,
+                        recomputeScore: user != null
                     };
                     saveGames.insert(record, function (error, records) {
                         if (error) {
@@ -388,32 +1021,40 @@ var Server = {};
                         callback(records[0]);
                     });
                 });
-            } else {
-                var record = {
-                    userID: (user ? user._id : null),
-                    data: {
-                        nodes: deltaData.nodes,
-                        nodeHistory: deltaData.nodeHistory
-                    },
-                    name: name,
-                    submission: date,
-                    missionID: missionID,
-                    deltaIndex: deltaData.nodeHistory.length
-                };
-                saveGames.insert(record, function (error, records) {
-                    if (error) {
-                        callback(null);
-                        return;
-                    }
-                    callback(records[0]);
-                });
             }
         } else {
             callback(null);
         }
     }
 
-    function updateSaveGame(gameID, user, missionID, name, deltaData, deltaIndex, date, callback) {
+    function updateSaveGame(gameID, user, missionID, missionRevision, name, deltaData, deltaIndex, date, callback) {
+
+        // Private function
+        function deleteRecordIfEmpty(saveGames, record, callback) {
+            if (record.data.nodeHistory.length) {
+                saveGames.save(record, function (error) {
+                    if (error) {
+                        callback(null);
+                        return;
+                    }
+                    log('DB: Updated savegame entry with delta data of ' + JSON.stringify(deltaData).length + ' Bytes');
+                    callback(record);
+                });
+            } else {
+                query = {
+                    _id: record._id
+                };
+                saveGames.remove(query, function (error) {
+                    if (error) {
+                        callback(null);
+                        return;
+                    }
+                    log('DB: Savegame entry was empty and therefore deleted');
+                    callback(null);
+                });
+            }
+        }
+
         if (!gameID) {
             callback(null);
             return;
@@ -432,7 +1073,7 @@ var Server = {};
                 if (user && name && record.name != name) {
                     query = {
                         name: name,
-                        missionID: missionID != null ? missionID : record.missionID,
+                        missionID: missionID,
                         userID: user._id
                     };
                     saveGames.findOne(query, function (error, existingRecord) {
@@ -440,80 +1081,55 @@ var Server = {};
                             callback(null);
                             return;
                         }
-                        if (deltaIndex == record.deltaIndex) {
-                            for (var id in deltaData.nodes) {
-                                record.data.nodes[id] = deltaData.nodes[id];
-                            }
-                            record.data.nodeHistory.push.apply(record.data.nodeHistory, deltaData.nodeHistory);
+                        if (deltaIndex == record.deltaIndex && missionRevision == record.missionRevision && missionID == record.missionID) {
+                            checkAndAppendDeltaData(missionID, record.data, deltaData, false, function (checkedSaveGame) {
+                                record.data.nodes = checkedSaveGame.nodes;
+                                record.data.nodeHistory = checkedSaveGame.nodeHistory;
+                                record.name = name != null ? name : record.name;
+                                record.deltaIndex = record.data.nodeHistory.length;
+                                record.submission = date;
+                                record.recomputeScore = true;
+
+                                deleteRecordIfEmpty(saveGames, record, callback);
+                            });
+                        } else {
+                            checkAndAppendDeltaData(missionID, record.data, deltaData, true, function (checkedSaveGame) {
+                                record.data = checkedSaveGame;
+                                record.name = name;
+                                record.deltaIndex = record.data.nodeHistory.length;
+                                record.missionID = missionID;
+                                record.missionRevision = missionRevision;
+                                record.submission = date;
+                                record.recomputeScore = true;
+
+                                deleteRecordIfEmpty(saveGames, record, callback);
+                            });
+                        }
+
+                    });
+                } else {
+                    if (deltaIndex == record.deltaIndex && missionRevision == record.missionRevision && missionID == record.missionID) {
+                        checkAndAppendDeltaData(missionID, record.data, deltaData, false, function (checkedSaveGame) {
+                            record.data.nodes = checkedSaveGame.nodes;
+                            record.data.nodeHistory = checkedSaveGame.nodeHistory;
                             record.name = name != null ? name : record.name;
                             record.deltaIndex = record.data.nodeHistory.length;
                             record.submission = date;
-                        } else {
-                            record.data = deltaData;
-                            record.name = name;
-                            record.submission = date;
-                            record.missionID = missionID != null ? missionID : record.missionID;
-                            record.deltaIndex = deltaData.nodeHistory.length;
-                        }
-                        if (record.data.nodeHistory.length) {
-                            saveGames.save(record, function (error) {
-                                if (error) {
-                                    callback(null);
-                                    return;
-                                }
-                                log('DB: Updated savegame entry with delta data of ' + JSON.stringify(deltaData).length + ' Bytes');
-                                callback(record);
-                            });
-                        } else {
-                            query = {
-                                _id: record._id
-                            };
-                            saveGames.remove(query, function (error) {
-                                if (error) {
-                                    callback(null);
-                                    return;
-                                }
-                                log('DB: Savegame entry was empty and therefore deleted');
-                                callback(null);
-                            });
-                        }
-                    });
-                } else {
-                    if (deltaIndex == record.deltaIndex) {
-                        for (var id in deltaData.nodes) {
-                            record.data.nodes[id] = deltaData.nodes[id];
-                        }
-                        record.data.nodeHistory.push.apply(record.data.nodeHistory, deltaData.nodeHistory);
-                        record.name = name != null ? name : record.name;
-                        record.deltaIndex = record.data.nodeHistory.length;
-                        record.submission = date;
-                    } else {
-                        record.data = deltaData;
-                        record.name = name;
-                        record.submission = date;
-                        record.missionID = missionID != null ? missionID : record.missionID;
-                        record.deltaIndex = deltaData.nodeHistory.length;
-                    }
-                    if (record.data.nodeHistory.length) {
-                        saveGames.save(record, function (error) {
-                            if (error) {
-                                callback(null);
-                                return;
-                            }
-                            log('DB: Updated savegame entry with delta data of ' + JSON.stringify(deltaData).length + ' Bytes');
-                            callback(record);
+                            record.recomputeScore = user != null;
+
+                            deleteRecordIfEmpty(saveGames, record, callback);
                         });
                     } else {
-                        query = {
-                            _id: record._id
-                        };
-                        saveGames.remove(query, function (error) {
-                            if (error) {
-                                callback(null);
-                                return;
-                            }
-                            log('DB: Savegame entry was empty and therefore deleted');
-                            callback(null);
+                        checkAndAppendDeltaData(missionID, record.data, deltaData, true, function (checkedSaveGame) {
+                            record.data = checkedSaveGame;
+                            record.name = name;
+                            record.deltaIndex = record.data.nodeHistory.length;
+                            record.missionID = missionID;
+                            record.missionRevision = missionRevision;
+                            record.submission = date;
+                            record.recomputeScore = user != null;
+
+                            deleteRecordIfEmpty(saveGames, record, callback);
                         });
                     }
                 }
@@ -555,103 +1171,6 @@ var Server = {};
         });
     }
 
-    function isParetoDominant(score1, score2) {
-        if (score1.score > score2.score) {
-            return true;
-        } else if (score1.score == score2.score) {
-            if (score1.totalDeltaV < score2.totalDeltaV) {
-                return true;
-            } else if (score1.totalDeltaV == score2.totalDeltaV) {
-                if (score1.passedDays < score2.passedDays) {
-                    return true;
-                } else {
-                    return false;
-                }
-            } else {
-                return false;
-            }
-        } else {
-            return false;
-        }
-    }
-
-    function addOrUpdateScore(user, saveGame, callback) {
-        if (user && saveGame) {
-            var nodes = saveGame.data.nodes;
-            if (nodes) {
-                var bestScore = null;
-                for (var id in nodes) {
-                    var node = nodes[id];
-                    var gameState = node.gameState;
-                    var score = {};
-                    score.score = gameState.score;
-                    score.totalDeltaV = gameState.totalDeltaV;
-                    score.passedDays = gameState.passedDays;
-                    if (bestScore) {
-                        if (isParetoDominant(score, bestScore)) {
-                            bestScore =  score;
-                        }
-                    } else {
-                        bestScore = score;
-                    }
-                }
-                if (bestScore) {
-                    var scores = dbConnection.collection('scores');
-                    var query = {
-                        userID: user._id,
-                        missionID: saveGame.missionID
-                    };
-                    scores.findOne(query, function (error, score) {
-                        if (error) {
-                            callback(null);
-                            return;
-                        }
-                        if (score) {
-                            if (isParetoDominant(bestScore, score)) {
-                                score.score = bestScore.score;
-                                score.totalDeltaV = bestScore.totalDeltaV;
-                                score.passedDays = bestScore.passedDays;
-
-                                scores.save(score, function (error) {
-                                    if (error) {
-                                        callback(null);
-                                        return;
-                                    }
-                                    log('DB: New state for highscore by user ' + user.name);
-                                    callback(score);
-                                });
-                            } else {
-                                callback(score);
-                            }
-                        } else {
-                            var score = {
-                                userID: user._id,
-                                score: bestScore.score,
-                                totalDeltaV: bestScore.totalDeltaV,
-                                passedDays: bestScore.passedDays,
-                                missionID: saveGame.missionID
-                            };
-                            scores.insert(score, function (error, records) {
-                                if (error) {
-                                    callback(null);
-                                    return;
-                                }
-                                log('DB: New state for highscore by user ' + user.name);
-                                callback(records[0]);
-                            });
-                        }
-                    });
-                } else {
-                    callback(null);
-                }
-            } else {
-                callback(null);
-            }
-        } else {
-            callback(null);
-        }
-    }
-
     function updateSessionCookie(session, response) {
         if (session) {
             response.cookie('sessionID', session.sessionID, {
@@ -678,15 +1197,16 @@ var Server = {};
     }
 
     function sendSuccessResponse(response) {
-        response.send(200);
-        response.end();
+        response.status(200).end()
     }
 
     function saveGameListToHTML(records) {
         var htmlText = '<ul>';
-        records.forEach(function (record) {
-            htmlText += "\n" + '<li id="' + record._id.toHexString() + '" class="savegame-entry"><div class="name text-fit">' + record.name + '</div><div class="tip text-fit"> (mission ' + record.missionID + ')</div></li>';
-        });
+        if (records) {
+            records.forEach(function (record) {
+                htmlText += "\n" + '<li id="' + record._id.toHexString() + '" class="savegame-entry"><div class="name text-fit">' + record.name + '</div><div class="tip text-fit"> (mission ' + record.missionID + ')</div></li>';
+            });
+        }
         htmlText += "\n" + '</ul>';
         return htmlText;
     }
@@ -813,30 +1333,32 @@ var Server = {};
             getUserForSession(session, function (user) {
                 var gameID = request.body.gameID;
                 var missionID = request.body.missionID;
+                var missionRevision = request.body.missionRevision;
                 var name = request.body.name;
                 var deltaData = request.body.deltaData;
                 var deltaIndex = request.body.deltaIndex;
-                if ((deltaData != null) && (deltaIndex != null) && (gameID != null)) {
+                if ((deltaData != null) && (deltaIndex != null) && (gameID != null) && (missionRevision != null) && (missionID != null)) {
                     gameID = new mongodb.ObjectID.createFromHexString(gameID);
-                    missionID = missionID != null ? parseInt(missionID) : null;
+                    missionID = parseInt(missionID);
                     name = name != null ? escape(name) : null;
                     deltaData = JSON.parse(deltaData);
                     deltaIndex = parseInt(deltaIndex);
-                    updateSaveGame(gameID, user, missionID, name, deltaData, deltaIndex, now, function (saveGame) {
+                    missionRevision = parseInt(missionRevision);
+                    updateSaveGame(gameID, user, missionID, missionRevision, name, deltaData, deltaIndex, now, function (saveGame) {
                         if (!saveGame) {
                             sendErrorResponse(response, 500);
                             return;
                         }
-                        updateSession(session, now, function () {
-                            response.setHeader('Content-Type', 'application/json');
-                            response.write(JSON.stringify({
-                                gameID: saveGame._id.toHexString(),
-                                deltaIndex: saveGame.deltaIndex
-                            }));
-                            response.end();
-                            log('HTTP: Savegame update request completed');
-                            addOrUpdateScore(user, saveGame, function (score) {});
-                        });
+                        updateSession(session, now);
+                        updateSessionCookie(session, response);
+                        response.setHeader('Content-Type', 'application/json');
+                        response.write(JSON.stringify({
+                            gameID: saveGame._id.toHexString(),
+                            missionRevision: saveGame.missionRevision,
+                            deltaIndex: saveGame.deltaIndex
+                        }));
+                        response.end();
+                        log('HTTP: Savegame update request completed');
                     });
                 } else {
                     sendErrorResponse(response, 400);
@@ -851,19 +1373,21 @@ var Server = {};
         searchSession(request, now, function (session) {
             getUserForSession(session, function (user) {
                 var missionID = request.body.missionID;
+                var missionRevision = request.body.missionRevision;
                 var name = request.body.name;
                 var deltaData = request.body.deltaData;
-                if ((deltaData != null) && (missionID != null)) {
+                if ((deltaData != null) && (missionID != null) && (missionRevision != null)) {
                     deltaData = JSON.parse(deltaData);
                     name = name != null ? escape(name) : null;
-                    addSaveGame(user, parseInt(missionID), name, deltaData, now, function (saveGame) {
+                    addSaveGame(user, parseInt(missionID), parseInt(missionRevision), name, deltaData, now, function (saveGame) {
                         if (!saveGame) {
                             sendErrorResponse(response, 500);
                             return;
                         }
                         response.setHeader('Content-Type', 'application/json');
                         response.write(JSON.stringify({
-                            gameID: saveGame._id.toHexString()
+                            gameID: saveGame._id.toHexString(),
+                            missionRevision: saveGame.missionRevision
                         }));
                         response.end();
                         log('HTTP: Autosave init request completed');
@@ -897,11 +1421,13 @@ var Server = {};
                             if (saveGame) {
                                 response.write(JSON.stringify({
                                     deltaIndex: saveGame.deltaIndex,
+                                    missionRevision: saveGame.missionRevision,
                                     name: saveGame.name
                                 }));
                             } else {
                                 response.write(JSON.stringify({
                                     deltaIndex: 0,
+                                    missionRevision: -1,
                                     name: ''
                                 }));
                             }
@@ -980,13 +1506,11 @@ var Server = {};
             getUserForSession(session, function (user) {
                 if (user) {
                     getSaveGamesForUser(user, function (records) {
-                        updateSession(session, now, function () {
-                            if (records) {
-                                response.write(saveGameListToHTML(records));
-                            }
-                            response.end();
-                            log('HTTP: Savegame list request by user ' + user.name + ' completed');
-                        });
+                        updateSession(session, now);
+                        updateSessionCookie(session, response);
+                        response.write(saveGameListToHTML(records));
+                        response.end();
+                        log('HTTP: Savegame list request by user ' + user.name + ' completed');
                     });
                 } else {
                     sendErrorResponse(response, 403);
@@ -1071,34 +1595,29 @@ var Server = {};
                     sendErrorResponse(response, 403);
                     return;
                 }
-                updateSession(session, now, function (error) {
-                    if (error) {
-                        sendErrorResponse(500);
-                        return;
+                updateSession(session, now);
+                updateSessionCookie(session, response);
+
+                var parsedUrl = url.parse(request.url);
+
+                var localPath = __dirname + parsedUrl.pathname;
+                if (fs.existsSync(localPath) && !fs.lstatSync(localPath).isDirectory()) {
+                    var mimeType = mime.lookup(localPath);
+                    switch (mimeType) {
+                    case 'text/html':
+                        response.render(localPath, templateTools);
+                        break;
+
+                    default:
+                        response.setHeader('Cache-Control', 'public, max-age=' + FILE_CACHING_TIME * 1000);
+                        response.setHeader('Content-Type', mimeType);
+                        response.write(fs.readFileSync(localPath));
+                        break;
                     }
-                    updateSessionCookie(session, response);
-
-                    var parsedUrl = url.parse(request.url);
-
-                    var localPath = __dirname + parsedUrl.pathname;
-                    if (fs.existsSync(localPath) && !fs.lstatSync(localPath).isDirectory()) {
-                        var mimeType = mime.lookup(localPath);
-                        switch (mimeType) {
-                        case 'text/html':
-                            response.render(localPath, templateTools);
-                            break;
-
-                        default:
-                            response.setHeader('Cache-Control', 'public, max-age=' + FILE_CACHING_TIME * 1000);
-                            response.setHeader('Content-Type', mimeType);
-                            response.write(fs.readFileSync(localPath));
-                            break;
-                        }
-                        response.end();
-                    } else {
-                        sendErrorResponse(response, 404);
-                    }
-                });
+                    response.end();
+                } else {
+                    sendErrorResponse(response, 404);
+                }
             });
         });
     }

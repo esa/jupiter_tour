@@ -4,7 +4,7 @@
         <br><a class="button mission" id="mission1">start mission</a>
         <img src="/img/earthlaunch.jpg" style="display:block;width:30%;height:auto;float:right;padding:30px">
     </div>
-    
+
     <div id="mission1feed">
         <p>Dou you have what it takes to get from Earth to Jupiter? In your first assignment a powerful launch helps to make things easy, but can you use this occasion to shorten your time of flight?. What planet will help you getting there? The Earth? Venus? Mars?</p>
         <div>
@@ -48,7 +48,7 @@
                     <b>Score system</b>: 100 point are assigned for each percentual point of propellant and time of flight saved
                 </li>
             </ul>
-            <img src="/img/earthlaunch_rectangle.png" style="display:block;width:100%;height:auto;">
+            <img src="/img/earthlaunchrectangle.png" style="display:block;width:100%;height:auto;">
         </div>
     </div>
     <hr>
@@ -57,7 +57,7 @@
 <div class="mission-column" id="mission2-column">
     <h3 style="display:inline-block;margin-right:5%">Lvl. 2: Grand tour</h3>
     <br><a class="button mission" id="mission2">start mission</a>
-    <img src="/img/jupitermoons.jpg" style="display:block;width:30%;height:auto;float:right;padding:30px">
+    <img src="/img/jupitermoons.jpg" style="display:block;width:100%;height:auto;padding-top:1%;">
     <div id="mission2feed">
         <p>In your second mission, you start captured in the Jupiter system with very little propellant and are requested to deliver precise maps of the Galilean moons surface within 243 days. The more the scientific interest of the mapped areas the more points you get. Your initial position is at Ganymede. Good luck!! (as if it was about luck)</p>
         <div>
@@ -98,11 +98,10 @@
                     </ul>
                 </li>
                 <li>
-                    <b>Score system</b>: Points are awarded for each face of a galilean moon visited. A moon face is considered as visited if 
-                    the periapsis of the relative fly-by hyperbola is aligned with it. You can see the exact point visited on the surface as a small dot appearing on it at each fly-by.
+                    <b>Score system</b>: Points are awarded for each face of a galilean moon visited. A moon face is considered as visited if the periapsis of the relative fly-by hyperbola is aligned with it. You can see the exact point visited on the surface as a small dot appearing on it at each fly-by.
                 </li>
             </ul>
-            <img src="/img/jupitermoons_rectangle.png" style="display:block;width:100%;height:auto;">
+            <img src="/img/jupitermoonsrectangle.png" style="display:block;width:100%;height:auto;">
         </div>
     </div>
     <hr>
@@ -152,7 +151,7 @@
                     </ul>
                 </li>
             </ul>
-            <img src="/img/spaceroomba_rectangle.png" style="display:block;width:100%;height:auto;">
+            <img src="/img/spaceroombarectangle.png" style="display:block;width:100%;height:auto;">
         </div>
 
     </div>
@@ -160,7 +159,7 @@
 </div>
 
 <script>
-    $('.button.mission').click(function() {
+    $('.button.mission').click(function () {
         var gameID = $(this).attr('id');
         replaceCookie('gameID', gameID, 1);
         window.location.href = '/game/index.html';

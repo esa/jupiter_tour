@@ -56,7 +56,8 @@ var plugin = {};
         this._gameExpiringDays = 7;
         this._isInitialized = false;
         this._missionID = null;
-        this._isSaved = true;
+        this._missionRevision = null;
+        this._isSaved = false;
         this._gameID = '';
         this._isBusy = false;
 
@@ -70,6 +71,11 @@ var plugin = {};
                     gameID: self._gameID
                 }, function (saveGameInfos) {
                     var deltaIndex = saveGameInfos.deltaIndex;
+                    var missionRevision = saveGameInfos.missionRevision;
+
+                    if (missionRevision != self._missionRevision) {
+                        deltaIndex = 0;
+                    }
 
                     var gameHistory = self._gameEngine.pluginEvent(core.GameEvents.GAME_HISTORY_REQUEST, {
                         compressed: false
@@ -89,6 +95,8 @@ var plugin = {};
                         net.sendPOSTRequest({
                             type: 'savegameupdate',
                             gameID: self._gameID,
+                            missionID: self._missionID,
+                            missionRevision: self._missionRevision,
                             deltaData: deltaGameHistory,
                             deltaIndex: deltaIndex
                         }, function (saveGameInfos) {
@@ -128,11 +136,22 @@ var plugin = {};
             this._gameID = eventData.gameID;
             break;
 
-        case core.GameEvents.GAME_PHASE_CHANGE:
-            switch (eventData.phase) {
-            case core.GameStatePhases.ORBITING_BODY_OVERVIEW:
-            case core.GameStatePhases.ORBITING_BODY_OVERVIEW_LOCKED:
-                if (!(this._isSaved || this._isInitialized || this._isBusy)) {
+        case core.GameEvents.MISSION_ID_AVAILABLE:
+            this._missionID = eventData.missionID;
+            break;
+
+        case core.GameEvents.MISSION_REVISION_AVAILABLE:
+            this._missionRevision = eventData.missionRevision;
+            break;
+
+        case core.GameEvents.MISSION_REVISION_CHANGE:
+            this._missionRevision = eventData.missionRevision;
+            break;
+
+        case core.GameEvents.GAME_HISTORY_CHANGE:
+            this._isSaved =  false;
+            if (!this._isInitialized) {
+                if (!this._isBusy) {
                     var self = this;
                     this._isBusy = true;
                     if ((this._gameID != '') && (this._missionID != null)) {
@@ -155,15 +174,21 @@ var plugin = {};
                             net.sendPOSTRequest({
                                 type: 'savegameinit',
                                 missionID: this._missionID,
+                                missionRevision: this._missionRevision,
                                 deltaData: deltaGameHistory
                             }, function (saveGameInfos) {
                                 self._gameID = saveGameInfos.gameID;
+                                self._missionRevision = saveGameInfos.missionRevision;
                                 net.replaceCookie('gameID', self._gameID, self._gameExpiringDays);
                                 self._gameEngine.pluginEvent(core.GameEvents.GAME_ID_CHANGE, {
                                     gameID: self._gameID
                                 });
+                                self._gameEngine.pluginEvent(core.GameEvents.MISSION_REVISION_CHANGE, {
+                                    missionRevision: self._missionRevision
+                                });
                                 setTimeout(self._funAutoSave, self._logInterval * 1000);
                                 console.log('Autosave running');
+                                console.log('Autosave success');
                                 self._isInitialized = true;
                                 self._isBusy = false;
                             }, function (error) {
@@ -173,22 +198,13 @@ var plugin = {};
                         } else {
                             setTimeout(self._funAutoSave, self._logInterval * 1000);
                             console.log('Autosave running');
+                            console.log('Autosave success');
                             this._isInitialized = true;
                             this._isBusy = false;
                         }
                     }
                 }
-                break;
-
-            case core.GameStatePhases.SOLVING:
-                this._isSaved = false;
-                break;
             }
-            break;
-
-
-        case core.GameEvents.MISSION_ID_AVAILABLE:
-            this._missionID = eventData.missionID;
             break;
         }
     };
@@ -332,6 +348,7 @@ var plugin = {};
         this._doRedirect = false;
         this._isSaved = true;
         this._missionID = null;
+        this._missionRevision = null;
         this._gameID = '';
         this._isLoggedIn = net.isLoggedIn();
 
@@ -344,7 +361,7 @@ var plugin = {};
         this._content.className = 'content-container text-fit';
         this._content.style.textAlign = 'center';
 
-        this._content.innerHTML = '<h3 class="unselectable">jupiter tour</h3> \
+        this._content.innerHTML = '<img class="unselectable title" src="/img/title.svg"/> \
                         <div id="dashboardbutton" class="button unselectable">dashboard</div> \
                         <div id="savebutton" class="button unselectable">save</div>';
 
@@ -379,14 +396,19 @@ var plugin = {};
                         net.sendPOSTRequest({
                             type: 'savegameinit',
                             missionID: this._missionID,
+                            missionRevision: this._missionRevision,
                             name: data.saveName,
                             deltaData: deltaGameHistory
                         }, function (saveGameInfos) {
                             self._gameID = saveGameInfos.gameID;
+                            self._missionRevision = saveGameInfos.missionRevision;
                             net.replaceCookie('gameID', self._gameID, self._gameExpiringDays);
                             self._saveWindow.close();
                             self._gameEngine.pluginEvent(core.GameEvents.GAME_ID_CHANGE, {
                                 gameID: self._gameID
+                            });
+                            self._gameEngine.pluginEvent(core.GameEvents.MISSION_REVISION_CHANGE, {
+                                missionRevision: self._missionRevision
                             });
                             self._isSaved = true;
                             if (self._doRedirect) {
@@ -403,6 +425,9 @@ var plugin = {};
                             }, function (saveGameInfos) {
                                 if (saveGameInfos.name == null || saveGameInfos.name == data.saveName) {
                                     var deltaIndex = saveGameInfos.deltaIndex;
+                                    if (saveGameInfos.missionRevision != self._missionRevision) {
+                                        deltaIndex = 0;
+                                    }
 
                                     var gameHistory = self._gameEngine.pluginEvent(core.GameEvents.GAME_HISTORY_REQUEST, {
                                         compressed: false
@@ -422,6 +447,8 @@ var plugin = {};
                                         net.sendPOSTRequest({
                                             type: 'savegameupdate',
                                             gameID: self._gameID,
+                                            missionID: self._missionID,
+                                            missionRevision: self._missionRevision,
                                             deltaData: deltaGameHistory,
                                             deltaIndex: deltaIndex,
                                             name: data.saveName
@@ -461,13 +488,18 @@ var plugin = {};
                                     net.sendPOSTRequest({
                                         type: 'savegameinit',
                                         missionID: self._missionID,
+                                        missionRevision: self._missionRevision,
                                         name: data.saveName,
                                         deltaData: deltaGameHistory
                                     }, function (saveGameInfos) {
                                         self._gameID = saveGameInfos.gameID;
+                                        self._missionRevision = saveGameInfos.missionRevision;
                                         self._saveWindow.close();
                                         self._gameEngine.pluginEvent(core.GameEvents.GAME_ID_CHANGE, {
                                             gameID: self._gameID
+                                        });
+                                        self._gameEngine.pluginEvent(core.GameEvents.MISSION_REVISION_CHANGE, {
+                                            missionRevision: self._missionRevision
                                         });
                                         self._isSaved = true;
                                         if (self._doRedirect) {
@@ -492,7 +524,7 @@ var plugin = {};
                     gameID: data.gameID
                 }, function (saveGameInfos) {
                     var deltaIndex;
-                    if (data.gameID != self._gameID) {
+                    if (data.gameID != self._gameID || saveGameInfos.missionRevision != self._missionRevision) {
                         deltaIndex = 0;
                     } else {
                         deltaIndex = saveGameInfos.deltaIndex;
@@ -515,9 +547,10 @@ var plugin = {};
                         net.sendPOSTRequest({
                             type: 'savegameupdate',
                             gameID: data.gameID,
+                            missionID: self._missionID,
+                            missionRevision: self._missionRevision,
                             deltaData: deltaGameHistory,
                             deltaIndex: deltaIndex,
-                            missionID: self._missionID,
                             name: data.saveName
                         }, function (saveGameInfos) {
                             self._gameID = saveGameInfos.gameID;
@@ -555,6 +588,18 @@ var plugin = {};
 
         case core.GameEvents.GAME_ID_CHANGE:
             this._gameID = eventData.gameID;
+            break;
+
+        case core.GameEvents.MISSION_ID_AVAILABLE:
+            this._missionID = eventData.missionID;
+            break;
+
+        case core.GameEvents.MISSION_REVISION_AVAILABLE:
+            this._missionRevision = eventData.missionRevision;
+            break;
+
+        case core.GameEvents.MISSION_REVISION_CHANGE:
+            this._missionRevision = eventData.missionRevision;
             break;
 
         case core.GameEvents.ENGINE_INITIALIZED:
@@ -611,10 +656,6 @@ var plugin = {};
                 break;
             }
             break;
-
-        case core.GameEvents.MISSION_ID_AVAILABLE:
-            this._missionID = eventData.missionID;
-            break;
         }
     };
 
@@ -639,6 +680,9 @@ var plugin = {};
                 net.sendGETRequest('/missions/' + gameID + '.json', 'json', {}, function (missionData) {
                     self._gameEngine.pluginEvent(core.GameEvents.MISSION_ID_AVAILABLE, {
                         missionID: missionData.mission.id
+                    });
+                    self._gameEngine.pluginEvent(core.GameEvents.MISSION_REVISION_AVAILABLE, {
+                        missionRevision: missionData.mission.revision
                     });
                     self._gameEngine.pluginEvent(core.GameEvents.SETUP_GAME, {
                         mission: missionData.mission,
@@ -679,33 +723,70 @@ var plugin = {};
         this._container = document.createElement('div');
         this._container.className = 'flightengineer-container';
 
+        var height = '10%';
+
         var content = document.createElement('div');
         content.className = 'content-container';
 
+        var title = document.createElement('div');
+        title.className = 'title text-fit';
+        title.textContent = 'flight engineer';
+        var container = document.createElement('div');
+        container.className = 'values-container';
+
+        content.appendChild(title);
+        content.appendChild(container);
+
         function createEntry(id, name, value, height) {
-            return '<div style="width:100%;height:' + height + ';display:inline-block;white-space:nowrap;"><div style="width:50%;height:100%;display:inline-block;vertical-align:top;" class="text-fit">' + name + '</div><div style="width:50%;height:100%;display:inline-block;vertical-align:top;" class="text-fit" id="' + id + '"></div>' + value + '</div>';
-        }
-        var entries = {
-            feEpoch: 'mission epoch',
-            fePassedDays: 'passed days',
-            feTotalDeltaV: 'total deltaV',
-            feScore: 'score',
-            feSOI: 'current sphere of influence',
-            feVInfinity: 'relative velocity at infinity',
-            feMappedArea: 'last mapped area',
-            feDeltaV: 'last leg deltaV',
-            fePerformance: 'last leg performance',
-            feTimeOfFlight: 'last leg time of flight',
-            feChromosome: 'last leg chromosome',
+            var div1 = document.createElement('div');
+            div1.style.width = '100%';
+            div1.style.height = height;
+            div1.style.display = 'inline-block';
+            div1.style.whiteSpace = 'nowrap';
+            var div2 = document.createElement('div');
+            div2.style.width = '50%';
+            div2.style.height = '100%';
+            div2.style.display = 'inline-block';
+            div2.style.verticalAlign = 'top';
+            div2.className = 'text-fit';
+            div2.textContent = name;
+            var div3 = document.createElement('div');
+            div3.style.width = '50%';
+            div3.style.height = '100%';
+            div3.style.display = 'inline-block';
+            div3.style.verticalAlign = 'top';
+            div3.className = 'text-fit';
+            div3.textContent = value;
+
+            div1.appendChild(div2);
+            div1.appendChild(div3);
+            container.appendChild(div1);
+
+            return div3;
         }
 
-        var innerHTML = '<div class="title text-fit">flight engineer</div><div class="values-container">';
-        var height = '10%';
+        var entries = {
+            epoch: 'mission epoch',
+            passedDays: 'passed days',
+            score: 'score',
+            vehicleState: 'vehicle state',
+            sphereOfInfluence: 'current sphere of influence',
+            vehicleRemainingDeltaV: 'vehicle remaining deltaV',
+            velocityInf: 'relative velocity at infinity',
+            spacecraftTotalDeltaV: 'spacecraft total used deltaV',
+            mappedArea: 'last leg mapped area',
+            deltaV: 'last leg deltaV',
+            gravityLoss: 'last leg gravity loss',
+            timeOfFlight: 'last leg time of flight',
+            chromosome: 'last leg chromosome'
+        };
+
+        this._entries = {};
+
         for (var key in entries) {
-            innerHTML += createEntry(key, entries[key], '', height);
+            this._entries[key] = createEntry(key, entries[key], '', height);
         }
-        innerHTML += '</div>';
-        content.innerHTML = innerHTML;
+
         this._container.appendChild(content);
     };
     plugin.FlightEngineer.prototype = Object.create(Plugin.prototype);
@@ -724,35 +805,43 @@ var plugin = {};
         case core.GameEvents.GAME_STATE_CHANGE:
             if (this._isInitialized) {
                 var gameState = eventData.gameState;
-                $('#feEpoch').text(utility.round(gameState.getEpoch()) + ' MJD');
-                $('#fePassedDays').text(utility.round(gameState.getPassedDays()));
-                $('#feVInfinity').text(gameState.getVelocityInf().toString(2));
-                $('#feTotalDeltaV').text(utility.round(gameState.getTotalDeltaV()) + ' m/s');
-                $('#feScore').text(gameState.getScore());
-                $('#feSOI').text(gameState.getOrbitingBody().getName());
+                var vehicle = gameState.getVehicle();
+                this._entries.epoch.textContent = utility.round(gameState.getEpoch()) + ' MJD';
+                this._entries.passedDays.textContent = utility.round(gameState.getPassedDays()) + ' days';
+                this._entries.velocityInf.textContent = vehicle.getVelocityInf().toString(2) + ' m/s';
+                this._entries.spacecraftTotalDeltaV.textContent = utility.round(gameState.getTotalDeltaV()) + ' m/s';
+                this._entries.vehicleRemainingDeltaV.textContent = utility.round(Math.max(0, gameState.getVehicle().getRemainingDeltaV())) + ' m/s';
+                this._entries.score.textContent = gameState.getScore() + ' points';
+                this._entries.sphereOfInfluence.textContent = gameState.getOrbitingBody().getName();
+                this._entries.vehicleState.textContent = vehicle.isLanded() ? 'parked on surface' : 'on flyby trajectory';
                 var transferLeg = gameState.getTransferLeg();
-                if (!transferLeg.chromosome.length) {
-                    transferLeg.chromosome = [];
-                }
-                $('#feChromosome').text(transferLeg.chromosome.map(function (value) {
-                    return Math.round(value * 100) / 100;
-                }).prettyPrint());
-                var feMappedFace = '';
-                if (transferLeg.mappedFaceID != '') {
-                    var faceInfos = transferLeg.mappedFaceID.split('_');
-                    switch (this._orbitingBodies[faceInfos[0]].getSurfaceType()) {
-                    case model.SurfaceTypes.SPHERE:
-                        feMappedFace = 'part of the surface on ' + this._orbitingBodies[faceInfos[0]].getName();
-                        break;
-                    case model.SurfaceTypes.TRUNCATED_ICOSAHEDRON:
-                        feMappedFace = 'Face ' + faceInfos[1] + ' on ' + this._orbitingBodies[faceInfos[0]].getName();
-                        break;
+                if (transferLeg == null) {
+                    this._entries.chromosome.textContent = 'No previous leg.';
+                    this._entries.mappedArea.textContent = 'No previous leg.';
+                    this._entries.deltaV.textContent = 'No previous leg.';
+                    this._entries.gravityLoss.textContent = 'No previous leg.';
+                    this._entries.timeOfFlight.textContent = 'No previous leg.';
+                } else {
+                    this._entries.chromosome.textContent = transferLeg.chromosome.map(function (value) {
+                        return Math.round(value * 100) / 100;
+                    }).prettyPrint();
+                    var mappedFace = '';
+                    if (transferLeg.mappedFaceID != '') {
+                        var faceInfos = transferLeg.mappedFaceID.split('_');
+                        switch (this._orbitingBodies[faceInfos[0]].getSurfaceType()) {
+                        case model.SurfaceTypes.SPHERE:
+                            mappedFace = 'part of the surface on ' + this._orbitingBodies[faceInfos[0]].getName();
+                            break;
+                        case model.SurfaceTypes.TRUNCATED_ICOSAHEDRON:
+                            mappedFace = 'Face ' + faceInfos[1] + ' on ' + this._orbitingBodies[faceInfos[0]].getName();
+                            break;
+                        }
                     }
+                    this._entries.deltaV.textContent = utility.round(transferLeg.deltaV) + ' m/s';
+                    this._entries.mappedArea.textContent = mappedFace;
+                    this._entries.gravityLoss.textContent = utility.round(transferLeg.gravityLoss * 100) + ' %';
+                    this._entries.timeOfFlight.textContent = utility.round(transferLeg.timeOfFlight) + ' days';
                 }
-                $('#feMappedArea').text(feMappedFace);
-                $('#feDeltaV').text(utility.round(transferLeg.deltaV) + ' m/s');
-                $('#fePerformance').text(utility.round(transferLeg.dsmRating) * 100 + ' %');
-                $('#feTimeOfFlight').text(utility.round(transferLeg.timeOfFlight));
             }
             break;
         }

@@ -28,7 +28,6 @@ core.CameraController.prototype = {
         this._radius -= delta * this._radiusScaling;
         this._radius = Math.min(Math.max(this._minRadius, this._radius), this._maxRadius);
         this._radiusScaling = this._radius / 20;
-        this._gameEngine.onViewChange(this._radius);
     },
 
     _onMouseDrag: function (event) {
@@ -46,9 +45,7 @@ core.CameraController.prototype = {
         }
     },
 
-    start: function () {
-        this._gameEngine.onViewChange(this._radius);
-    },
+    start: function () {},
 
     update: function () {
         var focusPosition = this._focus.getPosition().multiplyScalar(gui.POSITION_SCALE);
@@ -57,9 +54,10 @@ core.CameraController.prototype = {
         var theta = this._theta;
         var phi = this._phi;
 
+        var oldPosition = this._camera.position.clone();
         this._camera.position.set(focusPosition.getX() + radius * Math.sin(theta) * Math.cos(phi), focusPosition.getY() + radius * Math.sin(theta) * Math.sin(phi), focusPosition.getZ() + radius * Math.cos(theta));
 
-        this._camera.lookAt(focusPosition.asTHREE());
+        this._camera.lookAt(new THREE.Vector3(focusPosition.getX(), focusPosition.getY(), focusPosition.getZ()));
     },
 
     setFocus: function (focus) {

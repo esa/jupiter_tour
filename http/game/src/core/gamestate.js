@@ -1,30 +1,20 @@
 /* Class GameState. 
     Contains all informations about the current gamestate.
 */
-core.GameState = function (orbitingBody, epoch, passedDays, totalDeltaV, score, spacecraft, velocityInf, mappedFaces, transferLeg) {
+core.GameState = function (orbitingBody, epoch, passedDays, totalDeltaV, score, vehicle, mappedFaces, transferLeg) {
     this._orbitingBody = orbitingBody;
-    this._transferLeg = transferLeg || {
-        chromosome: [],
-        deltaV: 0,
-        timeOfFlight: 0,
-        visualization: null,
-        dsmRating: 1,
-        mappedFaceID: '',
-        problemType: null
-    };
+    this._transferLeg = transferLeg;
     this._epoch = epoch;
     this._passedDays = passedDays;
     this._score = score;
     this._totalDeltaV = totalDeltaV;
-    this._velocityInf = velocityInf.clone();
     this._mappedFaces = {};
     for (var faceID in mappedFaces) {
         this._mappedFaces[faceID] = mappedFaces[faceID].clone();
     }
-    this._isRoot = false;
     this._invalidReasonIDs = [];
     this._isWinning = false;
-    this._spacecraft = spacecraft.clone();
+    this._vehicle = vehicle.clone();
 
     if (transferLeg && transferLeg.periapsisCoords) {
         if (this._mappedFaces[this._transferLeg.mappedFaceID]) {
@@ -42,15 +32,18 @@ core.GameState.prototype = {
     },
 
     getTransferLeg: function () {
-        var leg = {
-            chromosome: this._transferLeg.chromosome.clone(),
-            timeOfFlight: this._transferLeg.timeOfFlight,
-            deltaV: this._transferLeg.deltaV,
-            visualization: this._transferLeg.visualization,
-            dsmRating: this._transferLeg.dsmRating,
-            mappedFaceID: this._transferLeg.mappedFaceID,
-            problemType: this._transferLeg.problemType
-        };
+        var leg = null;
+        if (this._transferLeg) {
+            leg = {
+                chromosome: this._transferLeg.chromosome.clone(),
+                timeOfFlight: this._transferLeg.timeOfFlight,
+                deltaV: this._transferLeg.deltaV,
+                visualization: this._transferLeg.visualization,
+                gravityLoss: this._transferLeg.gravityLoss,
+                mappedFaceID: this._transferLeg.mappedFaceID,
+                problemType: this._transferLeg.problemType
+            };
+        }
         return leg;
     },
 
@@ -68,10 +61,6 @@ core.GameState.prototype = {
 
     getTotalDeltaV: function () {
         return this._totalDeltaV;
-    },
-
-    getVelocityInf: function () {
-        return this._velocityInf.clone();
     },
 
     getMappedFaces: function () {
@@ -94,16 +83,8 @@ core.GameState.prototype = {
         return this._invalidReasonIDs.clone();
     },
 
-    isRoot: function () {
-        return this._isRoot;
-    },
-
-    getSpacecraft: function () {
-        return this._spacecraft.clone();
-    },
-
-    markRoot: function () {
-        this._isRoot = true;
+    getVehicle: function () {
+        return this._vehicle.clone();
     },
 
     markInvalid: function (invalidReasonIDs) {

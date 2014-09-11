@@ -2,7 +2,7 @@
 
 .menu-container {
     height: 80%;
-    width: 15%;
+    width: 20%;
     text-align: center;
     order: 3;
 }
@@ -12,14 +12,12 @@
     display: inline-block;
     border: solid #19A3FF;
 }
-.menu-container .content-container h3 {
+.menu-container .content-container .title {
     width: 90%;
-    white-space: nowrap;
+    height: auto;
+    margin-top: 5%;
     cursor: default;
     display: inline-block;
-    background: url(/img/logo.svg) no-repeat;
-    background-size: contain;
-    background-position: center;
 }
 .menu-container .content-container .button {
     display: inline-block;

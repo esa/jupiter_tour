@@ -266,7 +266,7 @@ gui.GameHistoryHUD.prototype = {
     },
 
     _onLeftClick: function (node) {
-        if (!this._isLocked) {
+        if (!this._isLocked && !node.isVirtual) {
             this._gameHistoryManager.goTo(node.id);
         }
     },
@@ -282,7 +282,7 @@ gui.GameHistoryHUD.prototype = {
     },
 
     _getNodeColor: function (node) {
-        var rating = node.properties.dsmRating;
+        var rating = node.properties.gravityLoss;
         var green = Math.round(255 * rating);
         var red = Math.round(255 - rating * 255);
         var textRed = red.toString(16);
@@ -472,7 +472,7 @@ gui.GameHistoryHUD.prototype = {
 
         link.enter().insert('path', 'g')
             .attr('class', 'link')
-            .attr('d', function () {
+            .attr('d', function (dLink) {
                 var point = {
                     x: sourceNode.x0,
                     y: sourceNode.y0
@@ -481,6 +481,9 @@ gui.GameHistoryHUD.prototype = {
                     source: point,
                     target: point
                 });
+            })
+            .attr('opacity', function (dLink) {
+                return (dLink.source.properties.isVehicleLanded && dLink.target.properties.isVehicleLanded) ? 0.2 : 1;
             });
 
         link.transition()
@@ -490,7 +493,7 @@ gui.GameHistoryHUD.prototype = {
 
         link.exit().transition()
             .duration(this._transitionTime)
-            .attr('d', function () {
+            .attr('d', function (dLink) {
                 var point = {
                     x: sourceNode.x,
                     y: sourceNode.y
@@ -536,13 +539,15 @@ gui.GameHistoryHUD.prototype = {
             var node = {};
             node.id = nodeID;
             node.parentID = parentID;
+            node.isVirtual = data.isVirtual;
             node.hasHiddenSiblings = false;
             node.properties = {};
             node.properties.name = data.name;
-            node.properties.dsmRating = data.dsmRating;
+            node.properties.gravityLoss = data.gravityLoss;
             node.properties.passedDays = data.passedDays;
             node.properties.totalDeltaV = data.totalDeltaV;
             node.properties.score = data.score;
+            node.properties.isVehicleLanded = data.isVehicleLanded;
             node.properties.isCurrentState = true;
             var parentNode = this._nodeTable[parentID];
             parentNode.properties.isCurrentState = false;

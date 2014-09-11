@@ -652,14 +652,11 @@ Server.prototype.connect = function(dbInstance, options, callback) {
             server._serverState = 'connected';
             server._reconnectInProgreess = false;
 
-            // If we have any buffered commands let's signal reconnect event
-            if(server._commandsStore.count() > 0) {
-              server.emit('reconnect');
-            }
-
             // Execute any buffered reads and writes
             server._commandsStore.execute_queries();
             server._commandsStore.execute_writes();
+            // Emit reconnect event
+            server.emit('reconnect');
           });
         } 
       });      
@@ -693,7 +690,8 @@ Server.prototype.connect = function(dbInstance, options, callback) {
       server.__executeAllCallbacksWithError(utils.toError(err));
       // Emit error
       server._emitAcrossAllDbInstances(server, eventReceiver, "parseError", server, null, true);
-    }
+      // Emit close event
+      if(eventReceiver.listeners("close") && eventReceiver.listeners("close").length > 0) eventReceiver.emit("close", new Error("connection closed"), server); }
   });
 
   // Boot up connection poole, pass in a locator of callbacks

@@ -5,5 +5,10 @@ var model = {
     SurfaceTypes: {
         SPHERE: 0,
         TRUNCATED_ICOSAHEDRON: 1
+    },
+
+    PropulsionTypes: {
+        ELECTRIC: 0,
+        CHEMICAL: 1
     }
 };
