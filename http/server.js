@@ -81,337 +81,345 @@ include(__dirname + '/game/src/core/gamestate.js');
 include(__dirname + '/game/src/core/historynode.js');
 
 // Convenient stuff
-String.prototype.endsWith = function (suffix) {
-    return this.indexOf(suffix, this.length - suffix.length) !== -1;
-};
+(function () {
+    String.prototype.endsWith = function (suffix) {
+        return this.indexOf(suffix, this.length - suffix.length) !== -1;
+    };
+})();
 
-utility.clone = function (obj) {
-    if (obj == null || typeof (obj) != 'object') {
-        if (typeof (obj) == 'array') {
-            return obj.clone();
-        } else {
-            return obj;
+// Extend namespace UTILITY
+(function () {
+    utility.clone = function (obj) {
+        if (obj == null || typeof (obj) != 'object') {
+            if (typeof (obj) == 'array') {
+                return obj.clone();
+            } else {
+                return obj;
+            }
         }
-    }
-    var temp = obj.constructor();
-    for (var key in obj) {
-        if (obj.hasOwnProperty(key)) {
-            temp[key] = utility.clone(obj[key]);
+        var temp = obj.constructor();
+        for (var key in obj) {
+            if (obj.hasOwnProperty(key)) {
+                temp[key] = utility.clone(obj[key]);
+            }
         }
-    }
-    return temp;
-};
+        return temp;
+    };
 
-utility.merge = function (obj1, obj2) {
-    var result = {};
-    if (obj1 != null) {
-        for (var key in obj1) {
-            result[key] = obj1[key];
+    utility.merge = function (obj1, obj2) {
+        var result = {};
+        if (obj1 != null) {
+            for (var key in obj1) {
+                result[key] = obj1[key];
+            }
         }
-    }
-    if (obj2 != null) {
-        for (var key in obj2) {
-            result[key] = obj2[key];
+        if (obj2 != null) {
+            for (var key in obj2) {
+                result[key] = obj2[key];
+            }
         }
-    }
-    return result;
-};
+        return result;
+    };
 
-utility.isParetoDominant = function (score1, score2) {
-    if (score1.score > score2.score) {
-        return true;
-    } else if (score1.score == score2.score) {
-        if (score1.totalDeltaV < score2.totalDeltaV) {
+
+    utility.isParetoDominant = function (score1, score2) {
+        if (score1.score > score2.score) {
             return true;
-        } else if (score1.totalDeltaV == score2.totalDeltaV) {
-            if (score1.passedDays < score2.passedDays) {
+        } else if (score1.score == score2.score) {
+            if (score1.totalDeltaV < score2.totalDeltaV) {
                 return true;
+            } else if (score1.totalDeltaV == score2.totalDeltaV) {
+                if (score1.passedDays < score2.passedDays) {
+                    return true;
+                } else {
+                    return false;
+                }
             } else {
                 return false;
             }
         } else {
             return false;
         }
-    } else {
-        return false;
-    }
-};
-
-// Spacehopper namespace
-var spacehopper = {};
-spacehopper.SaveGameParser = function (missionPath, missionID, saveGame, deltaSaveGame) {
-    this._missionID = missionID;
-    this._saveGameNodeHistory = (saveGame != null ? saveGame.nodeHistory.clone() : null);
-    this._deltaSaveGameNodeHistory = (deltaSaveGame != null ? deltaSaveGame.nodeHistory.clone() : null);
-    this._saveGamesSize = (saveGame != null ? saveGame.nodeHistory.length : 0);
-    this._nodes = utility.clone((saveGame != null && deltaSaveGame != null ? utility.merge(deltaSaveGame.nodes, saveGame.nodes) : (saveGame == null ? deltaSaveGame.nodes : saveGame.nodes)));
-    this._jumpTable = {};
-
-    var mission = null;
-    var localPath = missionPath + missionID + '.json';
-    if (fs.existsSync(localPath)) {
-        mission = JSON.parse(fs.readFileSync(localPath)).mission;
-    } else {
-        throw Error(localPath + ' does not exist.');
-    }
-
-    this._mission = {};
-
-    this._mission.centralBody = new astrodynamics.CentralBody(mission.centralBody.id, mission.centralBody.name, mission.centralBody.sgp, mission.centralBody.radius);
-
-    this._mission.orbitingBodies = {};
-    for (var currentBodyID in mission.orbitingBodies) {
-        var id = parseInt(currentBodyID);
-        var orbitingBodyData = mission.orbitingBodies[currentBodyID];
-        var orbitalElements = orbitingBodyData.orbitalElements;
-        var orbitalElementDerivatives = orbitingBodyData.orbitalElementDerivatives;
-
-        var orbitingBody = new astrodynamics.OrbitingBody(id, orbitingBodyData.name, this._mission.centralBody, orbitalElements, orbitalElementDerivatives, orbitingBodyData.refEpoch, orbitingBodyData.sgp, orbitingBodyData.radius, orbitingBodyData.minRadiusFactor, orbitingBodyData.maxRadiusFactor, orbitingBodyData.maxTimeOfFlight, orbitingBodyData.maxLaunchDelay, orbitingBodyData.arrivingOption, orbitingBodyData.surface);
-
-        this._mission.orbitingBodies[orbitingBody.getID()] = orbitingBody;
-    }
-
-    this._mission.funGetInvalidReasonsForState = mission.funGetInvalidReasonsForState != null ? Function('gameState', mission.funGetInvalidReasonsForState) : null;
-    this._mission.funIsWinningState = mission.funIsWinningState != null ? Function('gameState', mission.funIsWinningState) : null;
-    this._mission.funSetScoreForState = mission.funSetScoreForState != null ? Function('gameState', mission.funSetScoreForState) : null;
-    var maximumMissionDuration = mission.maximumMissionDuration;
-    this._mission.funGetTimeUsage = function (gameState) {
-        return gameState.getPassedDays() / maximumMissionDuration;
     };
-    this._mission.funGetWinningProgress = Function('gameState', mission.funGetWinningProgress);
-};
+})();
 
-spacehopper.SaveGameParser.prototype = {
-    constructor: spacehopper.SaveGameParser,
+// SPACEHOPPER namespace
+var spacehopper = {};
+(function () {
+    spacehopper.SaveGameParser = function (missionPath, missionID, saveGame, deltaSaveGame) {
+        this._missionID = missionID;
+        this._saveGameNodeHistory = (saveGame != null ? saveGame.nodeHistory.clone() : null);
+        this._deltaSaveGameNodeHistory = (deltaSaveGame != null ? deltaSaveGame.nodeHistory.clone() : null);
+        this._saveGamesSize = (saveGame != null ? saveGame.nodeHistory.length : 0);
+        this._nodes = utility.clone((saveGame != null && deltaSaveGame != null ? utility.merge(deltaSaveGame.nodes, saveGame.nodes) : (saveGame == null ? deltaSaveGame.nodes : saveGame.nodes)));
+        this._jumpTable = {};
 
-    _markAndSetScoreForGameState: function (gameState, dsmResult) {
-        var reasonIDs = [];
-        if (this._mission.funGetTimeUsage(gameState) > 1) {
-            reasonIDs.push(strings.FinalStateReasonIDs.MAX_MISSION_EPOCH);
+        var mission = null;
+        var localPath = missionPath + missionID + '.json';
+        if (fs.existsSync(localPath)) {
+            mission = JSON.parse(fs.readFileSync(localPath)).mission;
+        } else {
+            throw Error(localPath + ' does not exist.');
         }
-        if (this._mission.funGetInvalidReasonsForState) {
-            reasonIDs.append(this._mission.funGetInvalidReasonsForState(gameState));
+
+        this._mission = {};
+
+        this._mission.centralBody = new astrodynamics.CentralBody(mission.centralBody.id, mission.centralBody.name, mission.centralBody.sgp, mission.centralBody.radius);
+
+        this._mission.orbitingBodies = {};
+        for (var currentBodyID in mission.orbitingBodies) {
+            var id = parseInt(currentBodyID);
+            var orbitingBodyData = mission.orbitingBodies[currentBodyID];
+            var orbitalElements = orbitingBodyData.orbitalElements;
+            var orbitalElementDerivatives = orbitingBodyData.orbitalElementDerivatives;
+
+            var orbitingBody = new astrodynamics.OrbitingBody(id, orbitingBodyData.name, this._mission.centralBody, orbitalElements, orbitalElementDerivatives, orbitingBodyData.refEpoch, orbitingBodyData.sgp, orbitingBodyData.radius, orbitingBodyData.minRadiusFactor, orbitingBodyData.maxRadiusFactor, orbitingBodyData.maxTimeOfFlight, orbitingBodyData.maxLaunchDelay, orbitingBodyData.arrivingOption, orbitingBodyData.surface);
+
+            this._mission.orbitingBodies[orbitingBody.getID()] = orbitingBody;
         }
-        if (dsmResult) {
-            if (dsmResult.hasDeltaVLimitation) {
-                reasonIDs.push(strings.FinalStateReasonIDs.SPACECRAFT_LIMITATION);
+
+        this._mission.funGetInvalidReasonsForState = mission.funGetInvalidReasonsForState != null ? Function('gameState', mission.funGetInvalidReasonsForState) : null;
+        this._mission.funIsWinningState = mission.funIsWinningState != null ? Function('gameState', mission.funIsWinningState) : null;
+        this._mission.funSetScoreForState = mission.funSetScoreForState != null ? Function('gameState', mission.funSetScoreForState) : null;
+        var maximumMissionDuration = mission.maximumMissionDuration;
+        this._mission.funGetTimeUsage = function (gameState) {
+            return gameState.getPassedDays() / maximumMissionDuration;
+        };
+        this._mission.funGetWinningProgress = Function('gameState', mission.funGetWinningProgress);
+    };
+
+    spacehopper.SaveGameParser.prototype = {
+        constructor: spacehopper.SaveGameParser,
+
+        _markAndSetScoreForGameState: function (gameState, dsmResult) {
+            var reasonIDs = [];
+            if (this._mission.funGetTimeUsage(gameState) > 1) {
+                reasonIDs.push(strings.FinalStateReasonIDs.MAX_MISSION_EPOCH);
             }
-            if (dsmResult.isOutOfFuel) {
-                reasonIDs.push(strings.FinalStateReasonIDs.MAX_TOTAL_DELTAV);
+            if (this._mission.funGetInvalidReasonsForState) {
+                reasonIDs.append(this._mission.funGetInvalidReasonsForState(gameState));
             }
-        }
-        if (reasonIDs.length) {
-            gameState.markInvalid(reasonIDs);
-        }
-        if (this._mission.funIsWinningState) {
-            if (!gameState.isInvalid()) {
-                if (this._mission.funIsWinningState(gameState)) {
-                    gameState.markWinning();
+            if (dsmResult) {
+                if (dsmResult.hasDeltaVLimitation) {
+                    reasonIDs.push(strings.FinalStateReasonIDs.SPACECRAFT_LIMITATION);
+                }
+                if (dsmResult.isOutOfFuel) {
+                    reasonIDs.push(strings.FinalStateReasonIDs.MAX_TOTAL_DELTAV);
                 }
             }
-        }
-
-        if (gameState.isInvalid()) {
-            gameState.setScore(0);
-        } else {
-            if (this._mission.funSetScoreForState) {
-                this._mission.funSetScoreForState(gameState);
+            if (reasonIDs.length) {
+                gameState.markInvalid(reasonIDs);
             }
-        }
-    },
+            if (this._mission.funIsWinningState) {
+                if (!gameState.isInvalid()) {
+                    if (this._mission.funIsWinningState(gameState)) {
+                        gameState.markWinning();
+                    }
+                }
+            }
 
-    _createGameState: function (parentGameState, gameStateData) {
-        var gameState = null;
-        if (parentGameState != null) {
+            if (gameState.isInvalid()) {
+                gameState.setScore(0);
+            } else {
+                if (this._mission.funSetScoreForState) {
+                    this._mission.funSetScoreForState(gameState);
+                }
+            }
+        },
+
+        _createGameState: function (parentGameState, gameStateData) {
+            var gameState = null;
+            if (parentGameState != null) {
+                var currentBody = this._mission.orbitingBodies[gameStateData.orbitingBodyID];
+                var chromosome = gameStateData.transferLeg.chromosome;
+                var problemType = gameStateData.transferLeg.problemType;
+                var performLanding = gameStateData.transferLeg.performLanding;
+                var deltaV = gameStateData.transferLeg.deltaV;
+                var timeOfFlight = gameStateData.transferLeg.timeOfFlight;
+
+                var mappedFaces = parentGameState.getMappedFaces();
+
+                var parentBody = parentGameState.getOrbitingBody();
+                var parentVehicle = parentGameState.getVehicle();
+                var parentScore = parentGameState.getScore();
+                var parentEpoch = parentGameState.getEpoch();
+                var parentPassedDays = parentGameState.getPassedDays();
+                var parentTotalDeltaV = parentGameState.getTotalDeltaV();
+                var parentVelocityInf = parentVehicle.getVelocityInf();
+
+                var leg = null;
+                var flybyResult = null;
+                var faceValue = 0;
+                switch (problemType) {
+                case astrodynamics.ProblemTypes.MGA1DSM_LAUNCH:
+                    leg = new astrodynamics.LaunchLeg(chromosome, parentBody, currentBody);
+                    flybyResult = parentBody.computeFlybyFaceAndCoords(parentEpoch, parentVelocityInf, chromosome[1], chromosome[2]);
+                    faceValue = parentBody.getFaceValue(flybyResult.faceID);
+                    break;
+                case astrodynamics.ProblemTypes.MGA1DSM_FLYBY:
+                    leg = new astrodynamics.FlybyLeg(chromosome, parentBody, currentBody, parentVelocityInf, parentEpoch);
+                    flybyResult = parentBody.computeFlybyFaceAndCoords(parentEpoch, parentVelocityInf, chromosome[0], chromosome[1]);
+                    faceValue = parentBody.getFaceValue(flybyResult.faceID);
+                    break;
+                }
+
+                var numStages = parentVehicle.getStages().length;
+                if (numStages > 1 && problemType == astrodynamics.ProblemTypes.MGA1DSM_LAUNCH) {
+                    parentVehicle.jettisonStage();
+                }
+                var dsmResult = parentVehicle.performManeuver(deltaV, timeOfFlight * utility.DAY_TO_SEC);
+                var vehicle = parentVehicle.clone();
+                if (leg) {
+                    var nextVelocityInf = leg.getArrivalVelocityInf();
+                    vehicle.setVelocityInf(nextVelocityInf);
+                }
+                vehicle.setLanded(performLanding);
+
+                var score = parentScore + faceValue;
+                var epoch = parentEpoch + timeOfFlight;
+                var passedDays = parentPassedDays + timeOfFlight;
+                var totalDeltaV = parentTotalDeltaV + deltaV;
+
+                var transferLeg = {
+                    problemType: problemType,
+                    chromosome: chromosome,
+                    deltaV: deltaV,
+                    timeOfFlight: timeOfFlight,
+                    visualization: leg,
+                    gravityLoss: dsmResult ? dsmResult.gravityLoss : 1,
+                    mappedFaceID: flybyResult != null ? parentBody.getID() + '_' + flybyResult.faceID : '',
+                    periapsisCoords: flybyResult != null ? flybyResult.coords : null
+                };
+
+                gameState = new core.GameState(currentBody, epoch, passedDays, totalDeltaV, score, vehicle, mappedFaces, transferLeg);
+                this._markAndSetScoreForGameState(gameState, dsmResult);
+            }
+            return gameState;
+        },
+
+        getRootNode: function () {
+            var rootNode = null;
+            for (var id in this._nodes) {
+                var node = this._nodes[id];
+                if (node.parentID == null) {
+                    rootNode = node;
+                    break;
+                }
+            }
+
+            var gameStateData = rootNode.gameState;
             var currentBody = this._mission.orbitingBodies[gameStateData.orbitingBodyID];
-            var chromosome = gameStateData.transferLeg.chromosome;
-            var problemType = gameStateData.transferLeg.problemType;
-            var performLanding = gameStateData.transferLeg.performLanding;
-            var deltaV = gameStateData.transferLeg.deltaV;
-            var timeOfFlight = gameStateData.transferLeg.timeOfFlight;
-
-            var mappedFaces = parentGameState.getMappedFaces();
-
-            var parentBody = parentGameState.getOrbitingBody();
-            var parentVehicle = parentGameState.getVehicle();
-            var parentScore = parentGameState.getScore();
-            var parentEpoch = parentGameState.getEpoch();
-            var parentPassedDays = parentGameState.getPassedDays();
-            var parentTotalDeltaV = parentGameState.getTotalDeltaV();
-            var parentVelocityInf = parentVehicle.getVelocityInf();
-
-            var leg = null;
-            var flybyResult = null;
-            var faceValue = 0;
-            switch (problemType) {
-            case astrodynamics.ProblemTypes.MGA1DSM_LAUNCH:
-                leg = new astrodynamics.LaunchLeg(chromosome, parentBody, currentBody);
-                flybyResult = parentBody.computeFlybyFaceAndCoords(parentEpoch, parentVelocityInf, chromosome[1], chromosome[2]);
-                faceValue = parentBody.getFaceValue(flybyResult.faceID);
-                break;
-            case astrodynamics.ProblemTypes.MGA1DSM_FLYBY:
-                leg = new astrodynamics.FlybyLeg(chromosome, parentBody, currentBody, parentVelocityInf, parentEpoch);
-                flybyResult = parentBody.computeFlybyFaceAndCoords(parentEpoch, parentVelocityInf, chromosome[0], chromosome[1]);
-                faceValue = parentBody.getFaceValue(flybyResult.faceID);
-                break;
+            var chromosome = null;
+            var epoch = gameStateData.epoch;
+            var passedDays = 0;
+            var totalDeltaV = 0;
+            var velocityInf = new geometry.Vector3().fromArray(gameStateData.vehicle.velocityInf);
+            var stages = [];
+            var vehicleData = gameStateData.vehicle;
+            for (var i = 0; i < vehicleData.stages.length; i++) {
+                var stage = vehicleData.stages[i];
+                stages.push(new gui.Stage(stage.propulsionType, stage.mass, stage.emptyMass, stage.remainingMass, stage.thrust, stage.specificImpulse, stage.imageURL));
             }
+            var vehicle = new gui.Vehicle(velocityInf, stages, gameStateData.vehicle.isLanded);
+            var dsmResult = null;
+            var transferLeg = null;
+            var score = 0;
+            var mappedFaces = {};
 
-            var numStages = parentVehicle.getStages().length;
-            if (numStages > 1 && problemType == astrodynamics.ProblemTypes.MGA1DSM_LAUNCH) {
-                parentVehicle.jettisonStage();
-            }
-            var dsmResult = parentVehicle.performManeuver(deltaV, timeOfFlight * utility.DAY_TO_SEC);
-            var vehicle = parentVehicle.clone();
-            if (leg) {
-                var nextVelocityInf = leg.getArrivalVelocityInf();
-                vehicle.setVelocityInf(nextVelocityInf);
-            }
-            vehicle.setLanded(performLanding);
-
-            var score = parentScore + faceValue;
-            var epoch = parentEpoch + timeOfFlight;
-            var passedDays = parentPassedDays + timeOfFlight;
-            var totalDeltaV = parentTotalDeltaV + deltaV;
-
-            var transferLeg = {
-                problemType: problemType,
-                chromosome: chromosome,
-                deltaV: deltaV,
-                timeOfFlight: timeOfFlight,
-                visualization: leg,
-                gravityLoss: dsmResult ? dsmResult.gravityLoss : 1,
-                mappedFaceID: flybyResult != null ? parentBody.getID() + '_' + flybyResult.faceID : '',
-                periapsisCoords: flybyResult != null ? flybyResult.coords : null
-            };
-
-            gameState = new core.GameState(currentBody, epoch, passedDays, totalDeltaV, score, vehicle, mappedFaces, transferLeg);
+            var gameState = new core.GameState(currentBody, epoch, passedDays, totalDeltaV, score, vehicle, mappedFaces, transferLeg);
             this._markAndSetScoreForGameState(gameState, dsmResult);
-        }
-        return gameState;
-    },
 
-    getRootNode: function () {
-        var rootNode = null;
-        for (var id in this._nodes) {
-            var node = this._nodes[id];
-            if (node.parentID == null) {
-                rootNode = node;
-                break;
+            var rootHistoryNode = new core.HistoryNode(gameState, rootNode.id, false);
+            rootHistoryNode.setHistorySequenceNr(0);
+            var id = rootHistoryNode.getKey();
+            this._jumpTable[id] = rootHistoryNode;
+            return rootHistoryNode;
+        },
+
+        getNode: function (id) {
+            if (this._jumpTable[id]) {
+                return this._jumpTable[id];
+            } else {
+                var childNode = null;
+                var node = this._nodes[id];
+                var parentNode = this.getNode(node.parentID);
+                if (parentNode) {
+                    var parentGameState = parentNode.getValue();
+                    if (!parentGameState.isInvalid()) {
+                        var gameState = this._createGameState(parentGameState, node.gameState);
+                        childNode = parentNode.addChild(gameState, id, node.isVirtual);
+                        this._jumpTable[childNode.getKey()] = childNode;
+                    }
+                }
+                return childNode;
             }
-        }
+        },
 
-        var gameStateData = rootNode.gameState;
-        var currentBody = this._mission.orbitingBodies[gameStateData.orbitingBodyID];
-        var chromosome = null;
-        var epoch = gameStateData.epoch;
-        var passedDays = 0;
-        var totalDeltaV = 0;
-        var velocityInf = new geometry.Vector3().fromArray(gameStateData.vehicle.velocityInf);
-        var stages = [];
-        var vehicleData = gameStateData.vehicle;
-        for (var i = 0; i < vehicleData.stages.length; i++) {
-            var stage = vehicleData.stages[i];
-            stages.push(new gui.Stage(stage.propulsionType, stage.mass, stage.emptyMass, stage.remainingMass, stage.thrust, stage.specificImpulse, stage.imageURL));
-        }
-        var vehicle = new gui.Vehicle(velocityInf, stages, gameStateData.vehicle.isLanded);
-        var dsmResult = null;
-        var transferLeg = null;
-        var score = 0;
-        var mappedFaces = {};
+        getCheckedSaveGame: function (isDelta) {
+            var rootNode = this.getRootNode();
 
-        var gameState = new core.GameState(currentBody, epoch, passedDays, totalDeltaV, score, vehicle, mappedFaces, transferLeg);
-        this._markAndSetScoreForGameState(gameState, dsmResult);
+            var newNodes = {};
+            var newNodeHistory = [];
+            var newNodeHistoryLength = 0;
+            if (isDelta) {
+                newNodeHistoryLength = this._saveGamesSize;
+            } else {
+                newNodes[rootNode.getKey()] = rootNode;
+                newNodeHistory.push(rootNode.getKey());
+                newNodeHistoryLength = 1;
+            }
 
-        var rootHistoryNode = new core.HistoryNode(gameState, rootNode.id, false);
-        rootHistoryNode.setHistorySequenceNr(0);
-        var id = rootHistoryNode.getKey();
-        this._jumpTable[id] = rootHistoryNode;
-        return rootHistoryNode;
-    },
-
-    getNode: function (id) {
-        if (this._jumpTable[id]) {
-            return this._jumpTable[id];
-        } else {
-            var childNode = null;
-            var node = this._nodes[id];
-            var parentNode = this.getNode(node.parentID);
-            if (parentNode) {
-                var parentGameState = parentNode.getValue();
-                if (!parentGameState.isInvalid()) {
-                    var gameState = this._createGameState(parentGameState, node.gameState);
-                    childNode = parentNode.addChild(gameState, id, node.isVirtual);
-                    this._jumpTable[childNode.getKey()] = childNode;
+            for (var i = (isDelta == true ? 0 : 1); i < this._deltaSaveGameNodeHistory.length; i++) {
+                var id = this._deltaSaveGameNodeHistory[i];
+                var node = this.getNode(id);
+                if (node) {
+                    if (node.getKey() != id) {
+                        log('ERROR: Key mismatch.');
+                    }
+                    node.setHistorySequenceNr(newNodeHistoryLength);
+                    newNodes[node.getKey()] = node;
+                    newNodeHistory.push(node.getKey());
+                    newNodeHistoryLength++;
                 }
             }
-            return childNode;
-        }
-    },
 
-    getCheckedSaveGame: function (isDelta) {
-        var rootNode = this.getRootNode();
-
-        var newNodes = {};
-        var newNodeHistory = [];
-        var newNodeHistoryLength = 0;
-        if (isDelta) {
-            newNodeHistoryLength = this._saveGamesSize;
-        } else {
-            newNodes[rootNode.getKey()] = rootNode;
-            newNodeHistory.push(rootNode.getKey());
-            newNodeHistoryLength = 1;
-        }
-
-        for (var i = (isDelta == true ? 0 : 1); i < this._deltaSaveGameNodeHistory.length; i++) {
-            var id = this._deltaSaveGameNodeHistory[i];
-            var node = this.getNode(id);
-            if (node) {
-                if (node.getKey() != id) {
-                    log('ERROR: Key mismatch.');
-                }
-                node.setHistorySequenceNr(newNodeHistoryLength);
-                newNodes[node.getKey()] = node;
-                newNodeHistory.push(node.getKey());
-                newNodeHistoryLength++;
-            }
-        }
-
-        return {
-            nodes: newNodes,
-            nodeHistory: newNodeHistory
-        };
-    },
-
-    getMaximumScore: function () {
-        var maxScore = {
-            score: 0,
-            totalDeltaV: 0,
-            passedDays: 0
-        };
-
-        this.getRootNode();
-        for (var i = 0; i < this._saveGameNodeHistory.length; i++) {
-            var id = this._saveGameNodeHistory[i];
-            var node = this.getNode(id);
-            var gameState = node.getValue();
-            var score = gameState.getScore();
-            var totalDeltaV = gameState.getTotalDeltaV();
-            var passedDays = gameState.getPassedDays();
-            var curScore = {
-                score: score,
-                totalDeltaV: totalDeltaV,
-                passedDays: passedDays
+            return {
+                nodes: newNodes,
+                nodeHistory: newNodeHistory
             };
-            if (utility.isParetoDominant(curScore, maxScore)) {
-                maxScore = curScore;
+        },
+
+        getMaximumScore: function () {
+            var maxScore = {
+                score: 0,
+                totalDeltaV: 0,
+                passedDays: 0
+            };
+
+            this.getRootNode();
+            for (var i = 0; i < this._saveGameNodeHistory.length; i++) {
+                var id = this._saveGameNodeHistory[i];
+                var node = this.getNode(id);
+                var gameState = node.getValue();
+                var score = gameState.getScore();
+                var totalDeltaV = gameState.getTotalDeltaV();
+                var passedDays = gameState.getPassedDays();
+                var curScore = {
+                    score: score,
+                    totalDeltaV: totalDeltaV,
+                    passedDays: passedDays
+                };
+                if (utility.isParetoDominant(curScore, maxScore)) {
+                    maxScore = curScore;
+                }
             }
+            return maxScore;
         }
-        return maxScore;
-    }
-};
+    };
+})();
 
+// SERVER namespace
 var Server = {};
-
 (function () {
 
     // Server Configuration
