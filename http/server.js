@@ -1290,7 +1290,8 @@ var Server = {};
                                         sendErrorResponse(response, 500);
                                     } else {
                                         updateSessionCookie(session, response);
-                                        sendSuccessResponse(response);
+                                        response.write('OK');
+                                        response.end();
                                         log('HTTP: Register request by user ' + user.name + ' completed');
                                     }
                                 });
