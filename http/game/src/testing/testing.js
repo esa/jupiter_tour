@@ -6,7 +6,7 @@ var testing = {};
 
     // DON'T EDIT SOMETHING ABOVE HERE
 
-    function testUnit1(tGameID) {
+    function unit1(tGameID) {
         tGameID = 'mission1';
 
         function onData(missionData) {
@@ -78,16 +78,13 @@ var testing = {};
             var sun = new gui.CentralBody(1, centralBodyData.name, centralBodyData.sgp, centralBodyData.radius, centralBodyData.scale, centralBodyData.isStar, centralBodyData.meshMaterialURL);
 
             var venusData = missionData.mission.orbitingBodies['4'];
-            var venus = new gui.OrbitingBody(2, venusData.name, sun, venusData.orbitalElements, venusData.orbitalElementDerivatives, venusData.refEpoch,
-                venusData.sgp, venusData.radius, venusData.minRadiusFactor, venusData.maxRadiusFactor, venusData.maxTimeOfFlyby, venusData.scale, venusData.meshMaterialURL, venusData.surface);
+            var venus = new gui.OrbitingBody(2, venusData.name, sun, venusData.orbitalElements, venusData.orbitalElementDerivatives, venusData.refEpoch, venusData.sgp, venusData.radius, venusData.minRadiusFactor, venusData.maxRadiusFactor, venusData.maxTimeOfFlight, venusData.maxLaunchDelay, venusData.arrivingOption, venusData.scale, venusData.meshMaterialURL, venusData.surface);
 
             var earthData = missionData.mission.orbitingBodies['5'];
-            var earth = new gui.OrbitingBody(2, earthData.name, sun, earthData.orbitalElements, earthData.orbitalElementDerivatives, earthData.refEpoch,
-                earthData.sgp, earthData.radius, earthData.minRadiusFactor, earthData.maxRadiusFactor, earthData.maxTimeOfFlyby, earthData.scale, earthData.meshMaterialURL, earthData.surface);
+            var earth = new gui.OrbitingBody(2, earthData.name, sun, earthData.orbitalElements, earthData.orbitalElementDerivatives, earthData.refEpoch, earthData.sgp, earthData.radius, earthData.minRadiusFactor, earthData.maxRadiusFactor, earthData.maxTimeOfFlight, earthData.maxLaunchDelay, earthData.arrivingOption, earthData.scale, earthData.meshMaterialURL, earthData.surface);
 
             var jupiterData = missionData.mission.orbitingBodies['7'];
-            var jupiter = new gui.OrbitingBody(2, jupiterData.name, sun, jupiterData.orbitalElements, jupiterData.orbitalElementDerivatives, jupiterData.refEpoch,
-                jupiterData.sgp, jupiterData.radius, jupiterData.minRadiusFactor, jupiterData.maxRadiusFactor, jupiterData.maxTimeOfFlyby, jupiterData.scale, jupiterData.meshMaterialURL, jupiterData.surface);
+            var jupiter = new gui.OrbitingBody(2, jupiterData.name, sun, jupiterData.orbitalElements, jupiterData.orbitalElementDerivatives, jupiterData.refEpoch, jupiterData.sgp, jupiterData.radius, jupiterData.minRadiusFactor, jupiterData.maxRadiusFactor, jupiterData.maxTimeOfFlight, jupiterData.maxLaunchDelay, jupiterData.arrivingOption, jupiterData.scale, jupiterData.meshMaterialURL, jupiterData.surface);
 
             var referenceChromosome = [5694.703447279246 + 51544,
  0.5592076998636516,
@@ -111,22 +108,22 @@ var testing = {};
             console.log('Test 1: Chromosome validation');
 
             var sequence = [earth, venus, earth, earth, jupiter];
-            var firstLeg = new gui.FirstLeg(referenceChromosome.slice(0, 6), sequence[0], sequence[1])
-            var firstProb = new astrodynamics.MGA1DSM(sequence[0], sequence[1], [0, 0], [0, 0], [0, 0]);
+            var launchLeg = new gui.LaunchLeg(referenceChromosome.slice(0, 6), sequence[0], sequence[1])
+            var firstProb = new astrodynamics.MGA1DSMLaunch(sequence[0], sequence[1], [0, 0], [0, 0], [0, 0]);
             var firstIndividual = new datastructure.Individual(firstProb, referenceChromosome.slice(0, 6));
             console.log(firstIndividual.getFitness());
-            var velocityInf = firstLeg.getArrivingVelocityInf();
+            var velocityInf = launchLeg.getArrivalVelocityInf();
             var epoch = referenceChromosome[0]
             console.log(velocityInf.clone().add(sequence[1].orbitalStateVectorsAtEpoch(epoch + referenceChromosome[5]).velocity).toString());
             epoch += referenceChromosome[5];
             for (var i = 0; i < 3; i++) {
                 var currentChromosome = referenceChromosome.slice(i * 4 + 6, 6 + i * 4 + 4);
-                var leg = new gui.Leg(currentChromosome, sequence[i + 1], sequence[i + 2], velocityInf, epoch);
-                var problem = new astrodynamics.MGAPart(sequence[i + 1], sequence[i + 2], epoch, velocityInf, [0, 0], [0, 0], [0, 0]);
+                var leg = new gui.FlybyLeg(currentChromosome, sequence[i + 1], sequence[i + 2], velocityInf, epoch);
+                var problem = new astrodynamics.MGA1DSMFlyby(sequence[i + 1], sequence[i + 2], epoch, velocityInf, [0, 0], [0, 0], [0, 0]);
                 var individual = new datastructure.Individual(problem, currentChromosome);
                 var deltaV = individual.getFitness();
 
-                velocityInf = leg.getArrivingVelocityInf();
+                velocityInf = leg.getArrivalVelocityInf();
                 console.log(deltaV);
                 console.log(velocityInf.clone().add(sequence[i + 2].orbitalStateVectorsAtEpoch(epoch + currentChromosome[3]).velocity).toString());
                 epoch += currentChromosome[3];
@@ -173,7 +170,7 @@ var testing = {};
             for (var i = 0; i < sequence.length - 1; i++) {
                 var currentBounds = bounds[i];
                 if (i == 0) {
-                    var problem = new astrodynamics.MGA1DSM(sequence[i], sequence[i + 1], currentBounds[0], currentBounds[3], currentBounds[5]);
+                    var problem = new astrodynamics.MGA1DSMLaunch(sequence[i], sequence[i + 1], currentBounds[0], currentBounds[3], currentBounds[5]);
                     var solver = new algorithm.JDE(problem, 50);
                     while (!solver.isFinished()) {
                         solver.evolve();
@@ -186,11 +183,11 @@ var testing = {};
                     console.log('ToF: ' + currentChromosome[5]);
                     totalDeltaV += deltaV;
                     epoch = currentChromosome[0] + currentChromosome[5];
-                    var leg = new gui.FirstLeg(currentChromosome, sequence[i], sequence[i + 1]);
-                    velocityInf = leg.getArrivingVelocityInf();
+                    var leg = new gui.LaunchLeg(currentChromosome, sequence[i], sequence[i + 1]);
+                    velocityInf = leg.getArrivalVelocityInf();
                     testChromosome.push.apply(testChromosome, currentChromosome);
                 } else {
-                    var problem = new astrodynamics.MGAPart(sequence[i], sequence[i + 1], epoch, velocityInf, currentBounds[3], currentBounds[1], currentBounds[0]);
+                    var problem = new astrodynamics.MGA1DSMFlyby(sequence[i], sequence[i + 1], epoch, velocityInf, currentBounds[3], currentBounds[1], currentBounds[0]);
                     var solver = new algorithm.JDE(problem, 50);
                     while (!solver.isFinished()) {
                         solver.evolve();
@@ -203,9 +200,9 @@ var testing = {};
                     console.log('ToF: ' + currentChromosome[3]);
                     totalDeltaV += deltaV;
                     var currentChromosome = individual.getChromosome();
-                    var leg = new gui.Leg(currentChromosome, sequence[i], sequence[i + 1], velocityInf, epoch);
+                    var leg = new gui.FlybyLeg(currentChromosome, sequence[i], sequence[i + 1], velocityInf, epoch);
                     epoch += currentChromosome[3];
-                    velocityInf = leg.getArrivingVelocityInf();
+                    velocityInf = leg.getArrivalVelocityInf();
                     testChromosome.push.apply(testChromosome, currentChromosome);
                 }
             }
@@ -227,7 +224,7 @@ var testing = {};
         });
     }
 
-    function testUnit2() {
+    function unit2() {
         var div = document.createElement('div');
         div.style.width = '50%';
         div.style.height = '50%';
@@ -250,7 +247,7 @@ var testing = {};
         mouseDriver.registerRightDblClick(function () {
             console.log('Right Double Click');
         });
-        mouseDriver.registerMouseWheel(function () {
+        mouseDriver.registerWheel(function () {
             console.log('Mouse Wheel');
         });
         mouseDriver.registerLeftDrag(function () {
@@ -262,8 +259,45 @@ var testing = {};
     }
 
 
+    function unit3() {
+        function onData(missionData) {
+            var centralBodyData = missionData.mission.centralBody;
+            var sun = new gui.CentralBody(1, centralBodyData.name, centralBodyData.sgp, centralBodyData.radius, centralBodyData.scale, centralBodyData.isStar, centralBodyData.meshMaterialURL);
+
+            var venusData = missionData.mission.orbitingBodies['4'];
+
+            var venus = new gui.OrbitingBody(2, venusData.name, sun, venusData.orbitalElements, venusData.orbitalElementDerivatives, venusData.refEpoch, venusData.sgp, venusData.radius, venusData.minRadiusFactor, venusData.maxRadiusFactor, venusData.maxTimeOfFlight, venusData.maxLaunchDelay, venusData.arrivingOption, venusData.scale, venusData.meshMaterialURL, venusData.surface);
+
+            var gameStateData = missionData.saveGame.nodes['1'].gameState;
+            var vehicleData = gameStateData.vehicle;
+            var stages = [];
+            for (var i = 0; i < vehicleData.stages.length; i++) {
+                var stage = vehicleData.stages[i];
+                stages.push(new gui.Stage(stage.propulsionType, stage.mass, stage.emptyMass, stage.remainingMass, stage.thrust, stage.specificImpulse, stage.imageURL));
+            }
+            var velocityInf = new geometry.Vector3().fromArray(gameStateData.vehicle.velocityInf);
+            var vehicle = new gui.Vehicle(velocityInf, stages, gameStateData.vehicle.isLanded);
+
+            venus.onConfigurationModeChange(core.TransferLegConfigurationModes.DEPARTURE);
+            venus.onMouseOver();
+
+            venus.onActivated(venus.getReferenceEpoch(), vehicle);
+            setInterval(function () {
+                venus.update(new geometry.Vector2(innerWidth / 2, innerHeight / 2), 0);
+            }, 100 / 3);
+
+
+        }
+
+        $.ajax({
+            type: 'GET',
+            url: '/missions/mission1.json',
+            dataType: 'json',
+            success: onData
+        });
+    }
     //DON'T EDIT SOMETHING BELOW HERE
 
     // Exposed interface
-    testing.testUnit = testUnit2;
+    testing.unit = unit3;
 })();

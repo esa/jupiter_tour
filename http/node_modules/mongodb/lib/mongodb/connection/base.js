@@ -320,7 +320,7 @@ var _apply_auths_serially = function(self, db, auths, callback) {
   } else if(auth.authMechanism == 'PLAIN') {
     mongodb_plain_authenticate(db, auth.username, auth.password, auth.authdb, options, callback);
   } else if(auth.authMechanism == 'MONGODB-X509') {
-    mongodb_x509_authenticate(db, auth.username, auth.password, auth.authdb, options, callback);
+    mongodb_x509_authenticate(db, auth.username, auth.password, options, callback);
   }
 }
 
@@ -356,7 +356,7 @@ Base.prototype.__executeAllServerSpecificErrorCallbacks = function(host, port, e
   for(var j = 0; j < keys.length; j++) {
     var info = this._callBackStore._notReplied[keys[j]];
 
-    if(info.connection) {
+    if(info && info.connection) {
       // Unpack the connection settings
       var _host = info.connection.socketOptions.host;
       var _port = info.connection.socketOptions.port;

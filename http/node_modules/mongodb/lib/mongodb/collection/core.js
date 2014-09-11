@@ -114,6 +114,8 @@ var insertWithWriteCommands = function(self, docs, options, callback) {
           var error = utils.toError(result.writeErrors[0].errmsg);
           error.code = result.writeErrors[0].code;
           error.err = result.writeErrors[0].errmsg;
+          
+          if (fullResult) return callback(error, result.getRawResponse());
           // Return the error
           return callback(error, null);
         }
@@ -141,6 +143,8 @@ var insertWithWriteCommands = function(self, docs, options, callback) {
           var error = result.getWriteErrors()[0];
           error.code = result.getWriteErrors()[0].code;
           error.err = result.getWriteErrors()[0].errmsg;        
+          
+          if (fullResult) return callback(error, result.getRawResponse());
           // Return the error
           return callback(error, null);
         }
@@ -456,6 +460,7 @@ var save = function save(doc, options, callback) {
   var id = doc['_id'];
   var commandOptions = shared._getWriteConcern(this, options);
   if(options.connection) commandOptions.connection = options.connection;
+  if(typeof options.fullResult == 'boolean') commandOptions.fullResult = options.fullResult;
 
   if(id != null) {
     commandOptions.upsert = true;
