@@ -1257,7 +1257,7 @@ var Server = {};
                         return;
                     }
                     deleteSessionCookie(session, response);
-                    response.redirect('/dashboard/index.html');
+                    response.redirect('/dashboard/index.html?tab=signin');
                     response.end();
                     log('HTTP: Logout request completed');
                 });

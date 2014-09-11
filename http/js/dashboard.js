@@ -9,6 +9,20 @@ function getUrlParameter(param) {
     }
 }
 
+function setCookie(name, value, expDays) {
+    var now = new Date();
+    now.setTime(now.getTime() + (expDays * 24 * 60 * 60 * 1000));
+    var expires = 'expires=' + now.toGMTString();
+    document.cookie = name + '=' + value + '; ' + expires + '; path=/';
+}
+
+function replaceCookie(name, value, expDays) {
+    var now = new Date();
+    var expires = 'expires=' + now.toGMTString();
+    document.cookie = name + '=; ' + expires + '; path=/';
+    setCookie(name, value, expDays);
+}
+
 $(document).ready(function () {
     $('.tab-links .tab-link').on('click', function (event) {
         event.preventDefault();
@@ -29,20 +43,6 @@ $(document).ready(function () {
         $('.tab-links .tab-link.active').trigger('click');
     }
 });
-
-function setCookie(name, value, expDays) {
-    var now = new Date();
-    now.setTime(now.getTime() + (expDays * 24 * 60 * 60 * 1000));
-    var expires = 'expires=' + now.toGMTString();
-    document.cookie = name + '=' + value + '; ' + expires + '; path=/';
-}
-
-function replaceCookie(name, value, expDays) {
-    var now = new Date();
-    var expires = 'expires=' + now.toGMTString();
-    document.cookie = name + '=; ' + expires + '; path=/';
-    setCookie(name, value, expDays);
-}
 
 function login() {
     $('#loginerror').html('');
