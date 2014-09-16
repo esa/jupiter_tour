@@ -40,6 +40,7 @@
                 "maxTimeOfFlight": 30,
                 "maxLaunchDelay": 0,
                 "arrivingOption": 0,
+                "interactionOption": 0,
                 "scale": 0.000005,
                 "meshMaterialURL": "res/img/iosurface.jpg",
                 "surface": {
@@ -98,6 +99,7 @@
                 "maxTimeOfFlight": 30,
                 "maxLaunchDelay": 0,
                 "arrivingOption": 0,
+                "interactionOption": 0,
                 "scale": 0.000005,
                 "meshMaterialURL": "res/img/europasurface.jpg",
                 "surface": {
@@ -156,6 +158,7 @@
                 "maxTimeOfFlight": 30,
                 "maxLaunchDelay": 0,
                 "arrivingOption": 0,
+                "interactionOption": 0,
                 "scale": 0.000005,
                 "meshMaterialURL": "res/img/ganymedesurface.jpg",
                 "surface": {
@@ -214,6 +217,7 @@
                 "maxTimeOfFlight": 30,
                 "maxLaunchDelay": 0,
                 "arrivingOption": 0,
+                "interactionOption": 0,
                 "scale": 0.000005,
                 "meshMaterialURL": "res/img/callistosurface.jpg",
                 "surface": {

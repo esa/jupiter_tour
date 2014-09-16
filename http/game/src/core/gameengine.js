@@ -360,10 +360,10 @@ core.GameEngine.prototype = {
 
         var epoch = this._gameState.getEpoch();
 
-        var currentBodies = this._gameState.getOrbitingBodies();
-        this._orbitingBodies = currentBodies;
-        for (var id in currentBodies) {
-            var orbBody = currentBodies[id];
+        var orbitingBodies = this._gameState.getOrbitingBodies();
+        this._orbitingBodies = orbitingBodies;
+        for (var id in this._orbitingBodies) {
+            var orbBody = this._orbitingBodies[id];
             this._scene.add(orbBody.getBodyMesh());
             this._scene.add(orbBody.getOrbitMesh());
             this._orbitingBodyMeshs.push(orbBody.getBodyMesh());
@@ -380,7 +380,7 @@ core.GameEngine.prototype = {
 
         for (var face in mappedFaces) {
             var infos = face.split('_');
-            currentBodies[infos[0]].setFlybyCoords(infos[1], mappedFaces[face], transferLeg.mappedFaceID == face);
+            this._orbitingBodies[infos[0]].setFlybyCoords(infos[1], mappedFaces[face], transferLeg.mappedFaceID == face);
         }
 
         this._gameState.getOrbitingBody().onActivated(epoch, this._gameState.getVehicle());
@@ -419,6 +419,7 @@ core.GameEngine.prototype = {
         var chromosome = solution.getChromosome();
         var deltaV = solution.getFitness();
         var currentBody = currentGameState.getOrbitingBody();
+        var currentBodies = currentGameState.getOrbitingBodies();
         var vehicle = currentGameState.getVehicle();
         var velocityInf = vehicle.getVelocityInf();
         var score = currentGameState.getScore();
@@ -432,6 +433,7 @@ core.GameEngine.prototype = {
         var flybyResult = null;
         var faceValue = null;
         var dsmResult = null;
+        var interactionOption = null;
 
         switch (userAction.nextLeg.problemType) {
         case astrodynamics.ProblemTypes.MGA1DSM_LAUNCH:
@@ -448,7 +450,7 @@ core.GameEngine.prototype = {
                 mappedFaceID: ''
             };
 
-            var newGameState1 = new core.GameState(currentBody, epoch, passedDays, totalDeltaV, score, vehicle, currentGameState.getMappedFaces(), transferLeg);
+            var newGameState1 = new core.GameState(currentBodies, currentBody, epoch, passedDays, totalDeltaV, score, vehicle, currentGameState.getMappedFaces(), transferLeg);
             this._markAndSetScoreForGameState(newGameState1);
 
             flybyResult = currentBody.computeFlybyFaceAndCoords(epoch, velocityInf, chromosome[1], chromosome[2]);
@@ -483,7 +485,13 @@ core.GameEngine.prototype = {
                 periapsisCoords: flybyResult.coords
             };
 
-            var newGameState2 = new core.GameState(nextBody, epoch, passedDays, totalDeltaV, score, vehicle, currentGameState.getMappedFaces(), transferLeg);
+            currentBodies = currentGameState.getOrbitingBodies()
+            interactionOption = currentBody.getInteractionOption();
+            if (interactionOption == core.BodyInteractionOptions.REMOVE_ON_LAUNCH) {
+                delete currentBodies[currentBody.getID()];
+            }
+
+            var newGameState2 = new core.GameState(currentBodies, nextBody, epoch, passedDays, totalDeltaV, score, vehicle, currentGameState.getMappedFaces(), transferLeg);
             this._markAndSetScoreForGameState(newGameState2, dsmResult);
 
             this._gameHistoryManager.unlock();
@@ -522,7 +530,7 @@ core.GameEngine.prototype = {
             nextVelocityInf = leg.getArrivalVelocityInf();
             vehicle.setVelocityInf(nextVelocityInf);
 
-            var transferLeg = {
+            transferLeg = {
                 problemType: astrodynamics.ProblemTypes.MGA1DSM_FLYBY,
                 chromosome: chromosome,
                 deltaV: deltaV,
@@ -533,7 +541,12 @@ core.GameEngine.prototype = {
                 periapsisCoords: flybyResult.coords
             };
 
-            var newGameState = new core.GameState(nextBody, epoch, passedDays, totalDeltaV, score, vehicle, currentGameState.getMappedFaces(), transferLeg);
+            interactionOption = currentBody.getInteractionOption();
+            if (interactionOption == core.BodyInteractionOptions.REMOVE_ON_FLYBY) {
+                delete currentBodies[currentBody.getID()];
+            }
+
+            var newGameState = new core.GameState(currentBodies, nextBody, epoch, passedDays, totalDeltaV, score, vehicle, currentGameState.getMappedFaces(), transferLeg);
             this._markAndSetScoreForGameState(newGameState, dsmResult);
 
             this._gameHistoryManager.unlock();
@@ -701,11 +714,6 @@ core.GameEngine.prototype = {
 
         var gameStateData = rootNode.gameState;
         var currentBody = orbitingBodies[gameStateData.orbitingBodyID];
-        var currentBodyIDs = gameStateData.orbitingBodyIDs;
-        var currentBodies = {};
-        for (var id in currentBodyIDs) {
-            currentBodies[id] = orbitingBodies[id];
-        }
         var chromosome = null;
         var epoch = gameStateData.epoch;
         var passedDays = 0;
@@ -723,7 +731,7 @@ core.GameEngine.prototype = {
         var score = 0;
         var mappedFaces = {};
 
-        var gameState = new core.GameState(currentBodies, currentBody, epoch, passedDays, totalDeltaV, score, vehicle, mappedFaces, transferLeg);
+        var gameState = new core.GameState(orbitingBodies, currentBody, epoch, passedDays, totalDeltaV, score, vehicle, mappedFaces, transferLeg);
         this._markAndSetScoreForGameState(gameState, dsmResult);
         gameStates[rootNode.id] = gameState;
 
@@ -742,23 +750,24 @@ core.GameEngine.prototype = {
         var interactionOption = null;
         var performLanding = false;
         var vehicle = null;
-        var bodies = null;
         var leg = null;
+        var orbitingBodies = null;
+
         for (var id in rootLessNodes) {
             parentGameState = gameStates[parents[id]];
 
             if (parentGameState != null && !parentGameState.isInvalid()) {
                 parentBodies = parentGameState.getOrbitingBodies();
+                node = rootLessNodes[id];
+                gameStateData = node.gameState;
                 currentBody = parentBodies[gameStateData.orbitingBodyID];
                 if (currentBody != null) {
-                    node = rootLessNodes[id];
-                    gameStateData = node.gameState;
+                    orbitingBodies = parentGameState.getOrbitingBodies();
                     chromosome = gameStateData.transferLeg.chromosome;
                     problemType = gameStateData.transferLeg.problemType;
                     performLanding = gameStateData.transferLeg.performLanding;
                     deltaV = gameStateData.transferLeg.deltaV;
                     timeOfFlight = gameStateData.transferLeg.timeOfFlight;
-
                     mappedFaces = parentGameState.getMappedFaces();
 
                     parentBody = parentGameState.getOrbitingBody();
@@ -768,6 +777,7 @@ core.GameEngine.prototype = {
                     parentPassedDays = parentGameState.getPassedDays();
                     parentTotalDeltaV = parentGameState.getTotalDeltaV();
                     parentVelocityInf = parentVehicle.getVelocityInf();
+                    interactionOption = parentBody.getInteractionOption();
 
                     leg = null;
                     flybyResult = null;
@@ -777,11 +787,17 @@ core.GameEngine.prototype = {
                         leg = new gui.LaunchLeg(chromosome, parentBody, currentBody);
                         flybyResult = parentBody.computeFlybyFaceAndCoords(parentEpoch, parentVelocityInf, chromosome[1], chromosome[2]);
                         faceValue = parentBody.getFaceValue(flybyResult.faceID);
+                        if (interactionOption == core.BodyInteractionOptions.REMOVE_ON_LAUNCH) {
+                            delete orbitingBodies[parentBody.getID()];
+                        }
                         break;
                     case astrodynamics.ProblemTypes.MGA1DSM_FLYBY:
                         leg = new gui.FlybyLeg(chromosome, parentBody, currentBody, parentVelocityInf, parentEpoch);
                         flybyResult = parentBody.computeFlybyFaceAndCoords(parentEpoch, parentVelocityInf, chromosome[0], chromosome[1]);
                         faceValue = parentBody.getFaceValue(flybyResult.faceID);
+                        if (interactionOption == core.BodyInteractionOptions.REMOVE_ON_FLYBY) {
+                            delete orbitingBodies[parentBody.getID()];
+                        }
                         break;
                     }
 
@@ -814,23 +830,7 @@ core.GameEngine.prototype = {
                         periapsisCoords: flybyResult != null ? flybyResult.coords : null
                     };
 
-                    interactionOption = parentBody.getInteractionOption();
-                    switch (interactionOption) {
-                    case core.BodyInteractionOptions.REMOVE_ON_FLYBY:
-                        if (!parentVehicle.isLanded()) {
-                            delete bodies[parentBody.getID()];
-                        }
-                        break;
-                    case core.BodyInteractionOptions.REMOVE_ON_LAUNCH:
-                        if (parentVehicle.isLanded()) {
-                            delete bodies[parentBody.getID()];
-                        }
-                        break;
-                    case core.BodyInteractionOptions.NO_ACTION:
-                        break;
-                    }
-
-                    gameState = new core.GameState(bodies, currentBody, epoch, passedDays, totalDeltaV, score, vehicle, mappedFaces, transferLeg);
+                    gameState = new core.GameState(orbitingBodies, currentBody, epoch, passedDays, totalDeltaV, score, vehicle, mappedFaces, transferLeg);
                     this._markAndSetScoreForGameState(gameState, dsmResult);
                     gameStates[node.id] = gameState;
                 }
@@ -923,7 +923,7 @@ core.GameEngine.prototype = {
             break;
 
         case core.GameEvents.ORBITING_BODIES_MAPPING_REQUEST:
-            return this._orbitingBodies;
+            return this._gameHistoryManager.getRootGameState().getOrbitingBodies();
         }
     },
 

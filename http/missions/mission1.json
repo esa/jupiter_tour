@@ -344,8 +344,7 @@
                                 "specificImpulse": 430,
                                 "imageURL": "res/img/ariane5.jpg"
                         }]
-                    },
-                    "orbitingBodyIDs": [3, 4, 5, 6, 7, 8, 9, 10]
+                    }
                 }
             }
         }

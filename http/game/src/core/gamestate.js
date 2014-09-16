@@ -2,7 +2,10 @@
     Contains all informations about the current gamestate.
 */
 core.GameState = function (orbitingBodies, orbitingBody, epoch, passedDays, totalDeltaV, score, vehicle, mappedFaces, transferLeg) {
-    this._orbitingBodies = orbitingBodies;
+    this._orbitingBodies = {};
+    for (var id in orbitingBodies) {
+        this._orbitingBodies[id] = orbitingBodies[id];
+    }
     this._orbitingBody = orbitingBody;
     this._transferLeg = transferLeg;
     this._epoch = epoch;
@@ -29,7 +32,11 @@ core.GameState.prototype = {
     constructor: core.GameState,
 
     getOrbitingBodies: function () {
-        return this._orbitingBodies;
+        var result = {};
+        for (var id in this._orbitingBodies) {
+            result[id] = this._orbitingBodies[id];
+        }
+        return result;
     },
 
     getOrbitingBody: function () {
