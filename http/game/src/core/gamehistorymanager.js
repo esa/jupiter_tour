@@ -183,6 +183,13 @@ core.GameHistoryManager.prototype = {
                 var isVirtual = node.isVirtual();
 
                 var orbitingBodyID = gameState.getOrbitingBody().getID();
+
+                var orbitingBodies = gameState.getOrbitingBodies();
+                var orbitingBodyIDs = [];
+                for (var orbBody in orbitingBodies) {
+                    orbitingBodyIDs.push(orbBody.getID());
+                }
+
                 var vehicle = gameState.getVehicle();
 
                 var nodeResult = {};
@@ -191,6 +198,7 @@ core.GameHistoryManager.prototype = {
                 nodeResult.isVirtual = isVirtual;
                 nodeResult.gameState = {};
                 nodeResult.gameState.orbitingBodyID = orbitingBodyID;
+                nodeResult.gameState.orbitingBodyIDs = orbitingBodyIDs;
                 nodeResult.gameState.transferLeg = null;
                 if (transferLeg) {
                     nodeResult.gameState.transferLeg = {};

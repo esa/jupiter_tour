@@ -1,7 +1,8 @@
 /* Class GameState. 
     Contains all informations about the current gamestate.
 */
-core.GameState = function (orbitingBody, epoch, passedDays, totalDeltaV, score, vehicle, mappedFaces, transferLeg) {
+core.GameState = function (orbitingBodies, orbitingBody, epoch, passedDays, totalDeltaV, score, vehicle, mappedFaces, transferLeg) {
+    this._orbitingBodies = orbitingBodies;
     this._orbitingBody = orbitingBody;
     this._transferLeg = transferLeg;
     this._epoch = epoch;
@@ -26,6 +27,10 @@ core.GameState = function (orbitingBody, epoch, passedDays, totalDeltaV, score, 
 };
 core.GameState.prototype = {
     constructor: core.GameState,
+
+    getOrbitingBodies: function () {
+        return this._orbitingBodies;
+    },
 
     getOrbitingBody: function () {
         return this._orbitingBody;

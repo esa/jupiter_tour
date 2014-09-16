@@ -15,7 +15,7 @@ gui.TransferLegFaceSelector = function (orbitingBody) {
     this._containerMarginFactorT = 0.23;
     this._containerWidthFactor = 0.85;
 
-    this._arrivingOption = this._orbitingBody.getArrivingOption();
+    this._arrivalOption = this._orbitingBody.getArrivalOption();
 
     this._currentMapViewID = 0;
     this._jupiterRadius = 10;
@@ -327,21 +327,21 @@ gui.TransferLegFaceSelector.prototype._confirmAndClose = function () {
 };
 
 gui.TransferLegFaceSelector.prototype._resetSelection = function () {
-    switch (this._arrivingOption) {
-    case core.ArrivingOptions.PERFORM_FLYBY:
-    case core.ArrivingOptions.DEFAULT_IS_FLYBY:
+    switch (this._arrivalOption) {
+    case core.VehicleArrivalOptions.PERFORM_FLYBY:
+    case core.VehicleArrivalOptions.DEFAULT_IS_FLYBY:
         this._userAction.nextLeg.performLanding = false;
         break;
 
-    case core.ArrivingOptions.PERFORM_LANDING:
-    case core.ArrivingOptions.DEFAULT_IS_LANDING:
+    case core.VehicleArrivalOptions.PERFORM_LANDING:
+    case core.VehicleArrivalOptions.DEFAULT_IS_LANDING:
         this._userAction.nextLeg.performLanding = true;
         break;
     }
 };
 
 gui.TransferLegFaceSelector.prototype._update = function () {
-    if (this._isEditable && (this._arrivingOption == core.ArrivingOptions.PERFORM_LANDING || this._arrivingOption == core.ArrivingOptions.PERFORM_FLYBY)) {
+    if (this._isEditable && (this._arrivalOption == core.VehicleArrivalOptions.PERFORM_LANDING || this._arrivalOption == core.VehicleArrivalOptions.PERFORM_FLYBY)) {
         this._resetSelection();
         this._confirmAndClose();
     }

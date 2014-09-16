@@ -2,8 +2,8 @@
     Graphical interface class 
     Inherits astrodynamics.OrbitingBody
 */
-gui.OrbitingBody = function (id, name, centralBody, orbitalElements, orbitalElementDerivatives, refEpoch, sgp, radius, minRadiusFactor, maxRadiusFactor, maxTimeOfFlight, maxLaunchDelay, arrivingOption, scale, meshMaterialURL, surface) {
-    astrodynamics.OrbitingBody.call(this, id, name, centralBody, orbitalElements, orbitalElementDerivatives, refEpoch, sgp, radius, minRadiusFactor, maxRadiusFactor, maxTimeOfFlight, maxLaunchDelay, arrivingOption, surface);
+gui.OrbitingBody = function (id, name, centralBody, orbitalElements, orbitalElementDerivatives, refEpoch, sgp, radius, minRadiusFactor, maxRadiusFactor, maxTimeOfFlight, maxLaunchDelay, arrivalOption, interactionOption, scale, meshMaterialURL, surface) {
+    astrodynamics.OrbitingBody.call(this, id, name, centralBody, orbitalElements, orbitalElementDerivatives, refEpoch, sgp, radius, minRadiusFactor, maxRadiusFactor, maxTimeOfFlight, maxLaunchDelay, arrivalOption, interactionOption, surface);
 
     this._isMouseOver = false;
     this._isActivated = false;

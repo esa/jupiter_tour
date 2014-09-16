@@ -2,14 +2,14 @@
     MGA-1DSM for solving for launching.
     Inherits JDEProblem
 */
-astrodynamics.MGA1DSMLaunch = function (currentbody, nextBody, launchEpochBounds, velocityBounds, timeOfFlightBounds, addArrivingVelocity, populationSize) {
+astrodynamics.MGA1DSMLaunch = function (currentbody, nextBody, launchEpochBounds, velocityBounds, timeOfFlightBounds, addArrivalVelocity, populationSize) {
     datastructure.JDEProblem.call(this);
     this._orbitingBodies = [currentbody, nextBody];
     this._dimension = 6;
     this._bounds = [];
     this._population = [];
     this._populationSize = populationSize || 30;
-    this._addArrivingVelocity = addArrivingVelocity;
+    this._addArrivalVelocity = addArrivalVelocity;
 
     this._bounds[0] = launchEpochBounds.clone();
     this._bounds[1] = [0, 1];
@@ -58,7 +58,7 @@ astrodynamics.MGA1DSMLaunch.prototype.objectiveFunction = function (individual) 
     var velocityEndLeg = lambertProb.velocity2;
 
     var result = velocityBeginLeg.sub(propLagr.velocity).normEuclid();
-    if (this._addArrivingVelocity) {
+    if (this._addArrivalVelocity) {
         result += velocityEndLeg.sub(ephNBody.velocity).normEuclid();
     }
     return result;
