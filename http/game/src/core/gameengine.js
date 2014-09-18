@@ -44,6 +44,7 @@ core.GameEngine = function () {
 
     this._centralBody = null;
     this._orbitingBodies = {};
+    this._initialOrbitingBodies = {};
     this._orbitingBodyMeshs = [];
 
 
@@ -243,13 +244,13 @@ core.GameEngine.prototype = {
                 switch (transferLeg.problemType) {
                 case astrodynamics.ProblemTypes.MGA1DSM_LAUNCH:
                     var infos = transferLeg.mappedFaceID.split('_');
-                    var currentBody = this._orbitingBodies[infos[0]];
+                    var currentBody = this._initialOrbitingBodies[infos[0]];
                     this._notificationManager.dispatchLaunchMsg(strings.toText(strings.GameInfos.SPACECRAFT_LAUNCH, [currentBody.getName()]), true);
                     break;
 
                 case astrodynamics.ProblemTypes.MGA1DSM_FLYBY:
                     var infos = transferLeg.mappedFaceID.split('_');
-                    var currentBody = this._orbitingBodies[infos[0]];
+                    var currentBody = this._initialOrbitingBodies[infos[0]];
                     var surfaceType = currentBody.getSurfaceType();
                     switch (surfaceType) {
                     case model.SurfaceTypes.SPHERE:
@@ -380,7 +381,7 @@ core.GameEngine.prototype = {
 
         for (var face in mappedFaces) {
             var infos = face.split('_');
-            this._orbitingBodies[infos[0]].setFlybyCoords(infos[1], mappedFaces[face], transferLeg.mappedFaceID == face);
+            this._initialOrbitingBodies[infos[0]].setFlybyCoords(infos[1], mappedFaces[face], transferLeg.mappedFaceID == face);
         }
 
         this._gameState.getOrbitingBody().onActivated(epoch, this._gameState.getVehicle());
@@ -668,7 +669,7 @@ core.GameEngine.prototype = {
 
         this._scene.add(this._centralBody.getBodyMesh());
 
-        var orbitingBodies = {};
+        this._initialOrbitingBodies = {};
         for (var currentBodyID in mission.orbitingBodies) {
             var id = parseInt(currentBodyID);
             maxObjectID = Math.max(maxObjectID, id);
@@ -678,7 +679,7 @@ core.GameEngine.prototype = {
 
             var orbitingBody = new gui.OrbitingBody(id, orbitingBodyData.name, this._centralBody, orbitalElements, orbitalElementDerivatives, orbitingBodyData.refEpoch, orbitingBodyData.sgp, orbitingBodyData.radius, orbitingBodyData.minRadiusFactor, orbitingBodyData.maxRadiusFactor, orbitingBodyData.maxTimeOfFlight, orbitingBodyData.maxLaunchDelay, orbitingBodyData.arrivalOption, orbitingBodyData.interactionOption, orbitingBodyData.scale, orbitingBodyData.meshMaterialURL, orbitingBodyData.surface);
 
-            orbitingBodies[orbitingBody.getID()] = orbitingBody;
+            this._initialOrbitingBodies[orbitingBody.getID()] = orbitingBody;
         }
 
         gui.updateIDSeed(maxObjectID + 1);
@@ -719,7 +720,7 @@ core.GameEngine.prototype = {
         }
 
         var gameStateData = rootNode.gameState;
-        var currentBody = orbitingBodies[gameStateData.orbitingBodyID];
+        var currentBody = this._initialOrbitingBodies[gameStateData.orbitingBodyID];
         var chromosome = null;
         var epoch = gameStateData.epoch;
         var passedDays = 0;
@@ -737,7 +738,7 @@ core.GameEngine.prototype = {
         var score = 0;
         var mappedFaces = {};
 
-        var gameState = new core.GameState(orbitingBodies, currentBody, epoch, passedDays, totalDeltaV, score, vehicle, mappedFaces, transferLeg);
+        var gameState = new core.GameState(this._initialOrbitingBodies, currentBody, epoch, passedDays, totalDeltaV, score, vehicle, mappedFaces, transferLeg);
         this._markAndSetScoreForGameState(gameState, dsmResult);
         gameStates[rootNode.id] = gameState;
 
@@ -929,7 +930,11 @@ core.GameEngine.prototype = {
             break;
 
         case core.GameEvents.ORBITING_BODIES_MAPPING_REQUEST:
-            return this._gameHistoryManager.getRootGameState().getOrbitingBodies();
+            var result = {};
+            for (var id in this._initialOrbitingBodies) {
+                result[id] = this._initialOrbitingBodies[id];
+            }
+            return result;
         }
     },
 

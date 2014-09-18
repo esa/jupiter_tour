@@ -30,7 +30,11 @@ gui.OrbitingBody = function (id, name, centralBody, orbitalElements, orbitalElem
         break;
     case model.SurfaceTypes.SPHERE:
         this._surface = new model.SphericalSurface(this, surface.values);
-        this._departureSelector = new gui.SimpleSelector(this);
+        if (this._sgp) {
+            this._departureSelector = new gui.SimpleSelector(this);
+        } else {
+            this._departureSelector = new gui.TimeOfFlightSelector(this);
+        }
         this._arrivalSelector = new gui.TransferLegSimpleSelector(this);
         break;
     }
@@ -214,8 +218,12 @@ gui.OrbitingBody.prototype.update = function (screenPosition, screenRadius) {
         }
     } else {
         if (!(this._configurationStatus == core.ConfigurationStatus.PENDING) && !this._configurationWindowHover) {
-            this._arrivalSelector.hide();
-            this._departureSelector.hide();
+            if (this._arrivalSelector.isVisible()) {
+                this._arrivalSelector.hide();
+            }
+            if (this._departureSelector.isVisible()) {
+                this._departureSelector.hide();
+            }
             if (!this._isSelected) {
                 if (size > 3) {
                     this._bodyMesh.scale.multiplyScalar(1 - this._scaleSpeed);

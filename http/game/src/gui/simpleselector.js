@@ -312,7 +312,9 @@ gui.SimpleSelector.prototype._resetSelection = function () {
 gui.SimpleSelector.prototype._onMove = function () {
     this._timeOfFlightRangeSlider.onMove();
     this._launchEpochRangeSlider.onMove();
+    this._velocityRangeSlider.onMove();
     this._radiusRangeSlider.onMove();
+    this._betaRangeSlider.onMove();
 };
 
 gui.SimpleSelector.prototype._onResize = function () {
@@ -320,6 +322,7 @@ gui.SimpleSelector.prototype._onResize = function () {
     this._launchEpochRangeSlider.onResize();
     this._velocityRangeSlider.onResize();
     this._radiusRangeSlider.onResize();
+    this._betaRangeSlider.onResize();
 };
 
 gui.SimpleSelector.prototype._confirmAndClose = function () {
