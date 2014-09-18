@@ -12,6 +12,13 @@ core.CameraController = function (gameEngine) {
     this._minRadius = 0;
     this._maxRadius = 0;
     this._radiusScaling = 0;
+
+    //TODO
+    this._dampingFactor = 0.1;
+    this._xBuffer = 0;
+    this._yBuffer = 0;
+    this._scrollBuffer = 0;
+
     var mouseDriver = new utility.MouseDriver(this._domElement);
     mouseDriver.registerRightDrag(function (event) {
         self._onMouseDrag(event);

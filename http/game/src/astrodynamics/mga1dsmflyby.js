@@ -2,7 +2,7 @@
     MGA-1DSM for solving for flyby.
     Inherits JDEProblem
 */
-astrodynamics.MGA1DSMFlyby = function (currentBody, nextBody, epoch, velocityInf, timeOfFlightBounds, radiusBounds, betaBounds, addArrivingVelocity, populationSize) {
+astrodynamics.MGA1DSMFlyby = function (currentBody, nextBody, epoch, velocityInf, timeOfFlightBounds, radiusBounds, betaBounds, addArrivalVelocity, populationSize) {
     this._orbitingBodies = [currentBody, nextBody];
     this._epoch = epoch;
     this._velocityInf = velocityInf.clone();
@@ -10,7 +10,7 @@ astrodynamics.MGA1DSMFlyby = function (currentBody, nextBody, epoch, velocityInf
     this._bounds = [];
     this._population = [];
     this._populationSize = populationSize || 30;
-    this._addArrivingVelocity = addArrivingVelocity;
+    this._addArrivalVelocity = addArrivalVelocity;
 
     this._bounds[0] = betaBounds.clone();
     this._bounds[1] = radiusBounds.clone();
@@ -62,7 +62,7 @@ astrodynamics.MGA1DSMFlyby.prototype.objectiveFunction = function (individual) {
     var velocityEndLeg = lambertProb.velocity2;
 
     var result = velocityBeginLeg.sub(propLagr.velocity).normEuclid();
-    if (this._addArrivingVelocity) {
+    if (this._addArrivalVelocity) {
         result += velocityEndLeg.sub(ephNBody.velocity).normEuclid();
     }
     return result;

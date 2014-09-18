@@ -38,7 +38,8 @@
                 "maxRadiusFactor": 100,
                 "maxTimeOfFlight": 1,
                 "maxLaunchDelay": 1,
-                "arrivingOption": 0,
+                "arrivalOption": 0,
+                "interactionOption": 0,
                 "scale": 0.0000015,
                 "meshMaterialURL": "res/img/isssurface.jpg",
                 "surface": {
@@ -65,7 +66,8 @@
                 "maxRadiusFactor": 100,
                 "maxTimeOfFlight": 2,
                 "maxLaunchDelay": 1,
-                "arrivingOption": 0,
+                "arrivalOption": 0,
+                "interactionOption": 1,
                 "scale": 4,
                 "meshMaterialURL": "res/img/debrissurface.jpg",
                 "surface": {
@@ -92,7 +94,8 @@
                 "maxRadiusFactor": 100,
                 "maxTimeOfFlight": 2,
                 "maxLaunchDelay": 1,
-                "arrivingOption": 0,
+                "arrivalOption": 0,
+                "interactionOption": 1,
                 "scale": 4,
                 "meshMaterialURL": "res/img/debrissurface.jpg",
                 "surface": {
@@ -119,7 +122,8 @@
                 "maxRadiusFactor": 100,
                 "maxTimeOfFlight": 2,
                 "maxLaunchDelay": 1,
-                "arrivingOption": 0,
+                "arrivalOption": 0,
+                "interactionOption": 1,
                 "scale": 4,
                 "meshMaterialURL": "res/img/debrissurface.jpg",
                 "surface": {
@@ -146,7 +150,8 @@
                 "maxRadiusFactor": 100,
                 "maxTimeOfFlight": 2,
                 "maxLaunchDelay": 1,
-                "arrivingOption": 0,
+                "arrivalOption": 0,
+                "interactionOption": 1,
                 "scale": 4,
                 "meshMaterialURL": "res/img/debrissurface.jpg",
                 "surface": {
@@ -173,7 +178,8 @@
                 "maxRadiusFactor": 100,
                 "maxTimeOfFlight": 2,
                 "maxLaunchDelay": 1,
-                "arrivingOption": 0,
+                "arrivalOption": 0,
+                "interactionOption": 1,
                 "scale": 4,
                 "meshMaterialURL": "res/img/debrissurface.jpg",
                 "surface": {
@@ -200,7 +206,8 @@
                 "maxRadiusFactor": 100,
                 "maxTimeOfFlight": 2,
                 "maxLaunchDelay": 1,
-                "arrivingOption": 0,
+                "arrivalOption": 0,
+                "interactionOption": 1,
                 "scale": 4,
                 "meshMaterialURL": "res/img/debrissurface.jpg",
                 "surface": {
@@ -227,7 +234,8 @@
                 "maxRadiusFactor": 100,
                 "maxTimeOfFlight": 2,
                 "maxLaunchDelay": 1,
-                "arrivingOption": 0,
+                "arrivalOption": 0,
+                "interactionOption": 1,
                 "scale": 4,
                 "meshMaterialURL": "res/img/debrissurface.jpg",
                 "surface": {
@@ -254,7 +262,8 @@
                 "maxRadiusFactor": 100,
                 "maxTimeOfFlight": 2,
                 "maxLaunchDelay": 1,
-                "arrivingOption": 0,
+                "arrivalOption": 0,
+                "interactionOption": 1,
                 "scale": 4,
                 "meshMaterialURL": "res/img/debrissurface.jpg",
                 "surface": {
