@@ -81,6 +81,10 @@ core.GameHistoryManager.prototype = {
         }
     },
 
+    getRootGameState: function () {
+        return this._rootNode.getValue();
+    },
+
     getCurrentGameState: function () {
         return this._currentNode.getValue();
     },

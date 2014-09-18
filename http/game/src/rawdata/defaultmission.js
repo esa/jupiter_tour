@@ -39,7 +39,8 @@ rawdata.defaultMission = {
                 maxRadiusFactor: 2.09499041883,
                 maxTimeOfFlight: 30,
                 maxLaunchDelay: 0,
-                arrivingOption: 0,
+                arrivalOption: 0,
+                interactionOption: 0,
                 scale: 0.000005,
                 meshMaterialURL: 'res/img/iosurface.jpg',
                 surface: {
@@ -97,7 +98,8 @@ rawdata.defaultMission = {
                 maxRadiusFactor: 2.28122998078,
                 maxTimeOfFlight: 30,
                 maxLaunchDelay: 0,
-                arrivingOption: 0,
+                arrivalOption: 0,
+                interactionOption: 0,
                 scale: 0.000005,
                 meshMaterialURL: 'res/img/europasurface.jpg',
                 surface: {
@@ -155,7 +157,8 @@ rawdata.defaultMission = {
                 maxRadiusFactor: 1.759301442678,
                 maxTimeOfFlight: 30,
                 maxLaunchDelay: 0,
-                arrivingOption: 0,
+                arrivalOption: 0,
+                interactionOption: 0,
                 scale: 0.000005,
                 meshMaterialURL: 'res/img/ganymedesurface.jpg',
                 surface: {
@@ -213,7 +216,8 @@ rawdata.defaultMission = {
                 maxRadiusFactor: 1.83056478405,
                 maxTimeOfFlight: 30,
                 maxLaunchDelay: 0,
-                arrivingOption: 0,
+                arrivalOption: 0,
+                interactionOption: 0,
                 scale: 0.000005,
                 meshMaterialURL: 'res/img/callistosurface.jpg',
                 surface: {

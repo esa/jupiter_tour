@@ -42,11 +42,17 @@ var core = {};
         DELIVERED: 3
     };
 
-    var ArrivingOptions = {
+    var VehicleArrivalOptions = {
         PERFORM_FLYBY: 0,
         PERFORM_LANDING: 1,
         DEFAULT_IS_FLYBY: 2,
         DEFAULT_IS_LANDING: 3
+    };
+
+    var BodyInteractionOptions = {
+        NO_ACTION: 0,
+        REMOVE_ON_FLYBY: 1,
+        REMOVE_ON_LAUNCH: 2
     };
 
     //Exposed Interface
@@ -54,5 +60,6 @@ var core = {};
     core.GameEvents = GameEvents;
     core.TransferLegConfigurationModes = TransferLegConfigurationModes;
     core.ConfigurationStatus = ConfigurationStatus;
-    core.ArrivingOptions = ArrivingOptions;
+    core.VehicleArrivalOptions = VehicleArrivalOptions;
+    core.BodyInteractionOptions = BodyInteractionOptions;
 })();

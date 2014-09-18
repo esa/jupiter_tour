@@ -15,7 +15,7 @@ gui.TransferLegSimpleSelector = function (orbitingBody) {
     this._containerMarginFactorL = 0.08;
     this._containerMarginFactorT = 0.24;
 
-    this._arrivingOption = this._orbitingBody.getArrivingOption();
+    this._arrivalOption = this._orbitingBody.getArrivalOption();
 
     var backgroundHeight = Math.round(window.innerHeight * this._backgroundHeightFactorUD);
     var backgroundWidth = Math.round(backgroundHeight * this._backgroundWidthFactorUD);
@@ -93,21 +93,21 @@ gui.TransferLegSimpleSelector.prototype._confirmAndClose = function () {
 };
 
 gui.TransferLegSimpleSelector.prototype._resetSelection = function () {
-    switch (this._arrivingOption) {
-    case core.ArrivingOptions.PERFORM_FLYBY:
-    case core.ArrivingOptions.DEFAULT_IS_FLYBY:
+    switch (this._arrivalOption) {
+    case core.VehicleArrivalOptions.PERFORM_FLYBY:
+    case core.VehicleArrivalOptions.DEFAULT_IS_FLYBY:
         this._userAction.nextLeg.performLanding = false;
         break;
 
-    case core.ArrivingOptions.PERFORM_LANDING:
-    case core.ArrivingOptions.DEFAULT_IS_LANDING:
+    case core.VehicleArrivalOptions.PERFORM_LANDING:
+    case core.VehicleArrivalOptions.DEFAULT_IS_LANDING:
         this._userAction.nextLeg.performLanding = true;
         break;
     }
 };
 
 gui.TransferLegSimpleSelector.prototype._update = function () {
-    if (this._isEditable && (this._arrivingOption == core.ArrivingOptions.PERFORM_LANDING || this._arrivingOption == core.ArrivingOptions.PERFORM_FLYBY)) {
+    if (this._isEditable && (this._arrivalOption == core.VehicleArrivalOptions.PERFORM_LANDING || this._arrivalOption == core.VehicleArrivalOptions.PERFORM_FLYBY)) {
         this._resetSelection();
         this._confirmAndClose();
     }

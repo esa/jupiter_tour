@@ -520,7 +520,9 @@ gui.FaceSelector.prototype.show = function (userAction) {
     this._userAction = userAction;
     this._isEditable = this._userAction != null;
 
-    this._infoBar.textContent = 'configure flyby at ' + this._orbitingBody.getName() + ' heading to ' + this._userAction.nextOrbitingBody.getName() + ' for ' + (this._userAction.nextLeg.performLanding ? 'landing' : 'flyby');
+    if (this._userAction) {
+        this._infoBar.textContent = 'configure flyby at ' + this._orbitingBody.getName() + ' heading to ' + this._userAction.nextOrbitingBody.getName() + ' for ' + (this._userAction.nextLeg.performLanding ? 'landing' : 'flyby');
+    }
     this._updateMap();
     this._confirmElement.style.display = 'none';
     this._backgroundElement.style.display = 'block';

@@ -29,14 +29,23 @@ $(document).ready(function () {
         var div = $(this).children(':first').attr('href');
         $('.tab-contents ' + div).show().siblings().hide();
         $(this).addClass('active').siblings().removeClass('active');
-        $(div).load(div.substr(1) + '.html', function (responseText, textStatus, XmlHttpRequest) {
+        var page = div.substr(1);
+        $(div).load(page + '.html', function (responseText, textStatus, XmlHttpRequest) {
             if (textStatus != 'success') {
-                document.location.href = '/dashboard/index.html';
+                window.location.href = '/dashboard/index.html';
+                window.location.reload();
             }
+            window.location = '/dashboard/index.html#' + page.slice(0, -3);
+            //window.history.pushState('', 'space hopper | dashboard', '/dashboard/index.html#' + page.slice(0, -3));
         });
     });
 
-    var tab = getUrlParameter('tab');
+    $(window).trigger('hashchange');
+});
+
+$(window).on('hashchange', function () {
+    var hash = window.location.hash;
+    var tab = hash.substr(1);
     if (tab) {
         $('#' + tab + 'tabbutton').trigger('click');
     } else {
@@ -58,7 +67,8 @@ function login() {
                 password: password
             },
             success: function (response) {
-                document.location = '/dashboard/index.html?tab=profile';
+                window.location = '/dashboard/index.html#profile';
+                window.location.reload();
             },
             error: function (error) {
                 switch (error.status) {
@@ -97,7 +107,8 @@ function register() {
                 },
                 success: function (response) {
                     if (response == 'OK') {
-                        document.location = '/dashboard/index.html?tab=profile';
+                        window.location = '/dashboard/index.html#profile';
+                        window.location.reload();
                     } else {
                         $('#registererror').html(response);
                     }

@@ -2,7 +2,7 @@
     Represents an orbiting body around the fixed central body.
     Inherits Satellite
 */
-astrodynamics.OrbitingBody = function (id, name, centralBody, orbitalElements, orbitalElementDerivatives, refEpoch, sgp, radius, minRadiusFactor, maxRadiusFactor, maxTimeOfFlight, maxLaunchDelay, arrivingOption, surface) {
+astrodynamics.OrbitingBody = function (id, name, centralBody, orbitalElements, orbitalElementDerivatives, refEpoch, sgp, radius, minRadiusFactor, maxRadiusFactor, maxTimeOfFlight, maxLaunchDelay, arrivalOption, interactionOption, surface) {
     astrodynamics.Satellite.call(this, centralBody, orbitalElements, orbitalElementDerivatives, refEpoch, sgp);
     this._id = id;
     this._name = name;
@@ -11,7 +11,8 @@ astrodynamics.OrbitingBody = function (id, name, centralBody, orbitalElements, o
     this._maxRadius = radius * maxRadiusFactor;
     this._maxTimeOfFlight = maxTimeOfFlight * utility.DAY_TO_SEC;
     this._maxLaunchDelay = maxLaunchDelay != null ? maxLaunchDelay * utility.DAY_TO_SEC : 0;
-    this._arrivingOption = arrivingOption;
+    this._arrivalOption = arrivalOption;
+    this._interactionOption = interactionOption;
     this._surfaceType = surface.type;
 
     this._vehicle = null;
@@ -64,8 +65,12 @@ astrodynamics.OrbitingBody.prototype.getMaxLaunchDelay = function () {
     return this._maxLaunchDelay;
 };
 
-astrodynamics.OrbitingBody.prototype.getArrivingOption = function () {
-    return this._arrivingOption;
+astrodynamics.OrbitingBody.prototype.getArrivalOption = function () {
+    return this._arrivalOption;
+};
+
+astrodynamics.OrbitingBody.prototype.getInteractionOption = function () {
+    return this._interactionOption;
 };
 
 astrodynamics.OrbitingBody.prototype.computeFlybyFaceAndCoords = function (epoch, velocityInf, beta, radius) {

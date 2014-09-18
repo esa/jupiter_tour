@@ -1,8 +1,8 @@
-/* Class SimpleSelector 
-    Provides the flyby configuration graphical user interface. 
+/* Class TimeOfFlightSelector 
+    Provides the time of flight configuration graphical user interface. 
     Inherits OrbitingBodyHUD
 */
-gui.SimpleSelector = function (orbitingBody) {
+gui.TimeOfFlightSelector = function (orbitingBody) {
     gui.OrbitingBodyHUD.call(this, orbitingBody);
     var self = this;
 
@@ -26,7 +26,7 @@ gui.SimpleSelector = function (orbitingBody) {
     var backgroundWidth = Math.round(backgroundHeight * this._backgroundWidthFactorUD);
 
     this._backgroundElement = document.createElement('div');
-    this._backgroundElement.className = 'simple-selector unselectable';
+    this._backgroundElement.className = 'timeofflight-selector unselectable';
     this._backgroundElement.style.width = utility.toPixelString(backgroundWidth);
     this._backgroundElement.style.height = utility.toPixelString(backgroundHeight);
     this._backgroundElement.style.backgroundImage = 'url(res/svg/' + this._backgroundName + 'viewup.svg)';
@@ -119,54 +119,6 @@ gui.SimpleSelector = function (orbitingBody) {
     this._velocityRow.appendChild(col);
     toolBoxCol.appendChild(this._velocityRow);
 
-    this._radiusRow = document.createElement('div');
-    this._radiusRow.className = 'row1';
-
-    col = document.createElement('div');
-    col.className = 'col1';
-    img = document.createElement('img');
-    img.src = 'res/svg/radiusicon.svg';
-    img.className = 'icon center-horizontally center-vertically';
-    col.appendChild(img);
-    this._radiusRow.appendChild(col);
-
-    col = document.createElement('div');
-    col.className = 'col2';
-    wrapper = document.createElement('div');
-    wrapper.title = 'configure relative flyby distance range';
-    wrapper.className = 'rangeslider-wrapper center-vertically center-horizontally';
-    wrapper.style.height = '60%';
-    wrapper.style.width = '90%';
-
-    this._radiusRangeSlider = new gui.RangeSlider(wrapper);
-    col.appendChild(wrapper);
-    this._radiusRow.appendChild(col);
-    toolBoxCol.appendChild(this._radiusRow);
-
-    this._angleRow = document.createElement('div');
-    this._angleRow.className = 'row2';
-
-    col = document.createElement('div');
-    col.className = 'col1';
-    img = document.createElement('img');
-    img.src = 'res/svg/angleicon.svg';
-    img.className = 'icon center-horizontally center-vertically';
-    col.appendChild(img);
-    this._angleRow.appendChild(col);
-
-    col = document.createElement('div');
-    col.className = 'col2';
-    wrapper = document.createElement('div');
-    wrapper.title = 'configure flyby angle range';
-    wrapper.className = 'rangeslider-wrapper center-vertically center-horizontally';
-    wrapper.style.height = '60%';
-    wrapper.style.width = '90%';
-
-    this._betaRangeSlider = new gui.RangeSlider(wrapper);
-    col.appendChild(wrapper);
-    this._angleRow.appendChild(col);
-    toolBoxCol.appendChild(this._angleRow);
-
     var row = document.createElement('div');
     row.className = 'row3';
 
@@ -242,21 +194,17 @@ gui.SimpleSelector = function (orbitingBody) {
 
     this._hideConfiguration();
 };
-gui.SimpleSelector.prototype = Object.create(gui.OrbitingBodyHUD.prototype);
-gui.SimpleSelector.prototype.constructor = gui.SimpleSelector;
+gui.TimeOfFlightSelector.prototype = Object.create(gui.OrbitingBodyHUD.prototype);
+gui.TimeOfFlightSelector.prototype.constructor = gui.TimeOfFlightSelector;
 
-gui.SimpleSelector.prototype._showFlybyConfiguration = function () {
+gui.TimeOfFlightSelector.prototype._showFlybyConfiguration = function () {
     this._toolBoxWrapper.style.display = 'block';
-    this._radiusRow.style.display = 'block';
-    this._angleRow.style.display = 'block';
-    this._radiusRangeSlider.show();
-    this._betaRangeSlider.show();
     this._timeOfFlightRangeSlider.show();
     this._resetSelection();
     this._infoBar.textContent = 'configure flyby at ' + this._orbitingBody.getName() + ' heading to ' + this._userAction.nextOrbitingBody.getName() + ' for ' + (this._userAction.nextLeg.performLanding ? 'landing' : 'flyby');
 };
 
-gui.SimpleSelector.prototype._showLaunchConfiguration = function () {
+gui.TimeOfFlightSelector.prototype._showLaunchConfiguration = function () {
     this._toolBoxWrapper.style.display = 'block';
     this._launchEpochRow.style.display =  'block';
     this._velocityRow.style.display =  'block';
@@ -267,31 +215,24 @@ gui.SimpleSelector.prototype._showLaunchConfiguration = function () {
     this._infoBar.textContent = 'configure launch from ' + this._orbitingBody.getName() + ' to ' + this._userAction.nextOrbitingBody.getName() + ' for ' + (this._userAction.nextLeg.performLanding ? 'landing' : 'flyby');
 };
 
-gui.SimpleSelector.prototype._hideConfiguration = function () {
+gui.TimeOfFlightSelector.prototype._hideConfiguration = function () {
     this._launchEpochRangeSlider.hide();
-    this._radiusRangeSlider.hide();
-    this._betaRangeSlider.hide();
     this._timeOfFlightRangeSlider.hide();
     this._velocityRangeSlider.hide();
     this._toolBoxWrapper.style.display = 'none';
     this._launchEpochRow.style.display = 'none';
-    this._radiusRow.style.display = 'none';
-    this._angleRow.style.display = 'none';
     this._velocityRow.style.display = 'none';
 };
 
-gui.SimpleSelector.prototype._updateSliders = function () {
+gui.TimeOfFlightSelector.prototype._updateSliders = function () {
     if (this._vehicle.isLanded()) {
         this._launchEpochRangeSlider.range(this._userAction.nextLeg.launchEpochBounds);
         this._velocityRangeSlider.range(this._userAction.nextLeg.velocityBounds);
-    } else {
-        this._radiusRangeSlider.range(this._userAction.nextLeg.radiusBounds);
-        this._betaRangeSlider.range(this._userAction.nextLeg.betaBounds);
     }
     this._timeOfFlightRangeSlider.range(this._userAction.nextLeg.timeOfFlightBounds);
 };
 
-gui.SimpleSelector.prototype._resetSelection = function () {
+gui.TimeOfFlightSelector.prototype._resetSelection = function () {
     if (this._vehicle.isLanded()) {
         delete this._userAction.nextLeg.radiusBounds;
         delete this._userAction.nextLeg.betaBounds;
@@ -309,50 +250,44 @@ gui.SimpleSelector.prototype._resetSelection = function () {
     this._updateSliders();
 };
 
-gui.SimpleSelector.prototype._onMove = function () {
+gui.TimeOfFlightSelector.prototype._onMove = function () {
     this._timeOfFlightRangeSlider.onMove();
     this._launchEpochRangeSlider.onMove();
     this._velocityRangeSlider.onMove();
-    this._radiusRangeSlider.onMove();
-    this._betaRangeSlider.onMove();
 };
 
-gui.SimpleSelector.prototype._onResize = function () {
+gui.TimeOfFlightSelector.prototype._onResize = function () {
     this._timeOfFlightRangeSlider.onResize();
     this._launchEpochRangeSlider.onResize();
     this._velocityRangeSlider.onResize();
-    this._radiusRangeSlider.onResize();
-    this._betaRangeSlider.onResize();
 };
 
-gui.SimpleSelector.prototype._confirmAndClose = function () {
+gui.TimeOfFlightSelector.prototype._confirmAndClose = function () {
     if (this._vehicle.isLanded()) {
         this._userAction.nextLeg.launchEpochBounds = [this._launchEpochRangeSlider.min(), this._launchEpochRangeSlider.max()];
         this._userAction.nextLeg.velocityBounds = [this._velocityRangeSlider.min(), this._velocityRangeSlider.max()];
-    } else {
-        this._userAction.nextLeg.radiusBounds = [this._radiusRangeSlider.min(), this._radiusRangeSlider.max()];
-        this._userAction.nextLeg.betaBounds = [this._betaRangeSlider.min(), this._betaRangeSlider.max()];
     }
+
     this._userAction.nextLeg.timeOfFlightBounds = [this._timeOfFlightRangeSlider.min(), this._timeOfFlightRangeSlider.max()];
     this._orbitingBody.onConfigurationDone(true);
     this.hide();
 };
 
-gui.SimpleSelector.prototype.onActivated = function (epoch, vehicle) {
+gui.TimeOfFlightSelector.prototype.onActivated = function (epoch, vehicle) {
     this._epoch = epoch;
     this._vehicle = vehicle.clone();
     this._imageElement.src = this._vehicle.getStageImageURL();
     this._isActivated = true;
 };
 
-gui.SimpleSelector.prototype.onDeactivated = function () {
+gui.TimeOfFlightSelector.prototype.onDeactivated = function () {
     this._epoch = 0;
     this._vehicle = null;
     this._imageElement.src = '';
     this._isActivated = false;
 };
 
-gui.SimpleSelector.prototype.show = function (userAction) {
+gui.TimeOfFlightSelector.prototype.show = function (userAction) {
     this._userAction = userAction;
     this._isEditable = this._userAction != null;
 
@@ -372,7 +307,7 @@ gui.SimpleSelector.prototype.show = function (userAction) {
     utility.fitText();
 };
 
-gui.SimpleSelector.prototype.hide = function () {
+gui.TimeOfFlightSelector.prototype.hide = function () {
     this._orbitingBody.onConfigurationWindowOut();
     this._backgroundElement.style.display = 'none';
     this._hideConfiguration();

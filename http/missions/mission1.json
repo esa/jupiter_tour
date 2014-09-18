@@ -46,7 +46,8 @@
                 "maxRadiusFactor": 50,
                 "maxTimeOfFlight": 1000,
                 "maxLaunchDelay": 0,
-                "arrivingOption": 0,
+                "arrivalOption": 0,
+                "interactionOption": 0,
                 "scale": 0.0000002,
                 "meshMaterialURL": "res/img/mercurysurface.jpg",
                 "surface": {
@@ -81,7 +82,8 @@
                 "maxRadiusFactor": 50,
                 "maxTimeOfFlight": 1000,
                 "maxLaunchDelay": 0,
-                "arrivingOption": 0,
+                "arrivalOption": 0,
+                "interactionOption": 0,
                 "scale": 0.0000001,
                 "meshMaterialURL": "res/img/venussurface.jpg",
                 "surface": {
@@ -116,7 +118,8 @@
                 "maxRadiusFactor": 50,
                 "maxTimeOfFlight": 2500,
                 "maxLaunchDelay": 2000,
-                "arrivingOption": 0,
+                "arrivalOption": 0,
+                "interactionOption": 0,
                 "scale": 0.0000001,
                 "meshMaterialURL": "res/img/earthsurface.jpg",
                 "surface": {
@@ -151,7 +154,8 @@
                 "maxRadiusFactor": 50,
                 "maxTimeOfFlight": 3650,
                 "maxLaunchDelay": 0,
-                "arrivingOption": 0,
+                "arrivalOption": 0,
+                "interactionOption": 0,
                 "scale": 0.0000002,
                 "meshMaterialURL": "res/img/marssurface.jpg",
                 "surface": {
@@ -186,7 +190,8 @@
                 "maxRadiusFactor": 50,
                 "maxTimeOfFlight": 3650,
                 "maxLaunchDelay": 0,
-                "arrivingOption": 0,
+                "arrivalOption": 0,
+                "interactionOption": 0,
                 "scale": 0.00000005,
                 "meshMaterialURL": "res/img/jupitersurface.jpg",
                 "surface": {
@@ -221,7 +226,8 @@
                 "maxRadiusFactor": 50,
                 "maxTimeOfFlight": 3650,
                 "maxLaunchDelay": 0,
-                "arrivingOption": 0,
+                "arrivalOption": 0,
+                "interactionOption": 0,
                 "scale": 0.00000005,
                 "meshMaterialURL": "res/img/saturnsurface.jpg",
                 "surface": {
@@ -256,7 +262,8 @@
                 "maxRadiusFactor": 50,
                 "maxTimeOfFlight": 3650,
                 "maxLaunchDelay": 0,
-                "arrivingOption": 0,
+                "arrivalOption": 0,
+                "interactionOption": 0,
                 "scale": 0.0000002,
                 "meshMaterialURL": "res/img/uranussurface.jpg",
                 "surface": {
@@ -291,7 +298,8 @@
                 "maxRadiusFactor": 50,
                 "maxTimeOfFlight": 3650,
                 "maxLaunchDelay": 0,
-                "arrivingOption": 0,
+                "arrivalOption": 0,
+                "interactionOption": 0,
                 "scale": 0.0000002,
                 "meshMaterialURL": "res/img/neptunesurface.jpg",
                 "surface": {
