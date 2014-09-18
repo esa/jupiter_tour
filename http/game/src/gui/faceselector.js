@@ -18,6 +18,8 @@ gui.FaceSelector = function (orbitingBody) {
 
     this._numOrbits = 5;
     this._maxTimeOfFlight = this._orbitingBody.getMaxTimeOfFlight() * utility.SEC_TO_DAY;
+    this._epoch = 0;
+    this._vehicle = null;
 
     this._betaRadiusBoundsEnabled = false;
     this._currentMapViewID = 0;
