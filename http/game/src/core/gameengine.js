@@ -586,7 +586,6 @@ core.GameEngine.prototype = {
     },
 
     _onClick: function (event) {
-        var currentBody = this._gameState.getOrbitingBody();
 
         switch (this._gameStatePhase) {
         case core.GameStatePhases.ORBITING_BODY_OVERVIEW_LOCKED:
@@ -595,10 +594,15 @@ core.GameEngine.prototype = {
         case core.GameStatePhases.ORBITING_BODY_OVERVIEW:
             var id = this._checkForOrbitingBodyHover();
             if (id != gui.NULL_ID) {
+                var currentBody = this._gameState.getOrbitingBody();
                 var nextBody = this._orbitingBodies[id];
-                nextBody.onSelected();
+                if ((currentBody.getInteractionOption() != core.BodyInteractionOptions.NO_ACTION) && (nextBody.getID() == currentBody.getID())) {
+                    this._notificationManager.dispatchInfoMsg(strings.toText(strings.GameInfos.SAME_BODY_FORBIDDEN));
+                    return;
+                }
                 this._userAction.nextOrbitingBody = nextBody;
                 this._gameHistoryManager.lock();
+                nextBody.onSelected();
                 nextBody.openConfiguration(this._userAction);
                 this._setGameStatePhase(core.GameStatePhases.TRANSFER_CONFIGURATION_NEXT_BODY);
             }
@@ -614,14 +618,16 @@ core.GameEngine.prototype = {
         case core.GameStatePhases.ORBITING_BODY_OVERVIEW:
             var id = this._checkForOrbitingBodyHover();
             if (id != gui.NULL_ID) {
-                var nextBody = this._orbitingBodies[id];
-                nextBody.onSelected();
                 var currentBody = this._gameState.getOrbitingBody();
-                this._gameHistoryManager.lock();
-
+                var nextBody = this._orbitingBodies[id];
+                if ((currentBody.getInteractionOption() != core.BodyInteractionOptions.NO_ACTION) && (nextBody.getID() == currentBody.getID())) {
+                    this._notificationManager.dispatchInfoMsg(strings.toText(strings.GameInfos.SAME_BODY_FORBIDDEN));
+                    return;
+                }
                 this._userAction.nextOrbitingBody = nextBody;
+                this._gameHistoryManager.lock();
+                nextBody.onSelected();
                 nextBody.getDefaultConfiguration(this._userAction);
-
                 this._changeConfigurationMode(core.TransferLegConfigurationModes.DEPARTURE);
                 this._gameState.getOrbitingBody().getDefaultConfiguration(this._userAction);
                 this._setGameStatePhase(core.GameStatePhases.PROBLEM_PREPARATION);
