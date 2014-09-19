@@ -79,7 +79,7 @@ model.Vehicle.prototype = {
 
     getRemainingDeltaVForStage: function (numStage) {
         var mass = 0;
-        var upToStage = numStage != null ? Math.min(numStage, this._stages.length) : this._stages.length - 1;
+        var upToStage = numStage != null ? Math.min(numStage, this._stages.length - 1) : this._stages.length - 1;
         for (var i = 0; i < upToStage; i++) {
             mass += this._stages[i].getRemainingMass();
         }
