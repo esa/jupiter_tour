@@ -77,6 +77,17 @@ model.Vehicle.prototype = {
         return remainingDeltaV;
     },
 
+    getRemainingDeltaVForStage: function (numStage) {
+        var mass = 0;
+        var upToStage = numStage != null ? Math.min(numStage, this._stages.length) : this._stages.length - 1;
+        for (var i = 0; i < upToStage; i++) {
+            mass += this._stages[i].getRemainingMass();
+        }
+        var remainingMass = this._stages[upToStage].getRemainingMass() + mass;
+        var emptyMass = this._stages[upToStage].getEmptyMass() + mass;
+        return Math.log(remainingMass / emptyMass) * this._stages[i].getSpecificImpulse() * constants.STANDARD_ACCELERATION;
+    },
+
     getTotalDeltaV: function (numStages) {
         var mass = 0;
         var totalDeltaV = 0;
