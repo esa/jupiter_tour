@@ -238,7 +238,7 @@ gui.TimeOfFlightSelector.prototype._resetSelection = function () {
         delete this._userAction.nextLeg.betaBounds;
         this._userAction.nextLeg.problemType = astrodynamics.ProblemTypes.MGA1DSM_LAUNCH;
         this._userAction.nextLeg.launchEpochBounds = [this._epoch, this._epoch + this._maxLaunchDelay];
-        this._userAction.nextLeg.velocityBounds = [0, this._vehicle.getRemainingDeltaV()];
+        this._userAction.nextLeg.velocityBounds = [0, this._vehicle.getRemainingDeltaVForStage()];
     } else {
         delete this._userAction.nextLeg.launchEpochBounds;
         delete this._userAction.nextLeg.velocityBounds;
