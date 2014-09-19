@@ -250,6 +250,10 @@ var spacehopper = {};
                     var parentVelocityInf = parentVehicle.getVelocityInf();
                     var interactionOption = parentBody.getInteractionOption();
 
+                    if ((parentBody.getInteractionOption() != core.BodyInteractionOptions.NO_ACTION) && (parentBody.getID() == currentBody.getID())) {
+                        return gameState;
+                    }
+
                     var leg = null;
                     var flybyResult = null;
                     var faceValue = 0;
@@ -357,8 +361,10 @@ var spacehopper = {};
                     var parentGameState = parentNode.getValue();
                     if (!parentGameState.isInvalid()) {
                         var gameState = this._createGameState(parentGameState, node.gameState);
-                        childNode = parentNode.addChild(gameState, id, node.isVirtual);
-                        this._jumpTable[childNode.getKey()] = childNode;
+                        if (gameState) {
+                            childNode = parentNode.addChild(gameState, id, node.isVirtual);
+                            this._jumpTable[childNode.getKey()] = childNode;
+                        }
                     }
                 }
                 return childNode;
