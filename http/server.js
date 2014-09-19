@@ -155,16 +155,21 @@ var spacehopper = {};
         this._jumpTable = {};
 
         var mission = null;
+        var saveGame = null;
         var localPath = missionPath + missionID + '.json';
         if (fs.existsSync(localPath)) {
-            mission = JSON.parse(fs.readFileSync(localPath)).mission;
+            var jsonData = JSON.parse(fs.readFileSync(localPath));
+            mission = jsonData.mission;
+            saveGame = jsonData.saveGame;
         } else {
             throw Error(localPath + ' does not exist.');
         }
 
         this._mission = {};
+        this._startSaveGame = saveGame;
 
         this._mission.centralBody = new astrodynamics.CentralBody(mission.centralBody.id, mission.centralBody.name, mission.centralBody.sgp, mission.centralBody.radius);
+
 
         this._mission.orbitingBodies = {};
         for (var currentBodyID in mission.orbitingBodies) {
@@ -312,15 +317,7 @@ var spacehopper = {};
         },
 
         getRootNode: function () {
-            var rootNode = null;
-            for (var id in this._nodes) {
-                var node = this._nodes[id];
-                if (node.parentID == null) {
-                    rootNode = node;
-                    break;
-                }
-            }
-
+            var rootNode = this._startSaveGame.nodes[this._startSaveGame.nodeHistory[0]];
             var gameStateData = rootNode.gameState;
             var currentBody = this._mission.orbitingBodies[gameStateData.orbitingBodyID];
             var chromosome = null;
