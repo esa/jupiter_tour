@@ -526,36 +526,34 @@ var Server = {};
     var dbConnection = null;
 
     function start() {
-        log('HTTP: Starting server...', true);
-        httpServer.listen(PORT, function () {
-            if (ENABLE_HTTPS) {
-                log('HTTP: SSL/TLS server listening on port ' + PORT + '.', true);
+        mongodb.MongoClient.connect('mongodb://127.0.0.1:27017/' + DATABASE_NAME, function (error, database) {
+            if (error) {
+                throw error;
             } else {
-                log('HTTP: Server listening on port ' + PORT + '.', true);
-            }
-            mongodb.MongoClient.connect('mongodb://127.0.0.1:27017/' + DATABASE_NAME, function (error, database) {
-                if (error) {
-                    throw error;
-                } else {
-                    log('DB: Connection opened.', true);
-                    dbConnection = database;
+                log('DB: Connection opened.', true);
+                dbConnection = database;
+                httpServer.listen(PORT, function () {
+                    if (ENABLE_HTTPS) {
+                        log('HTTP: SSL/TLS server listening on port ' + PORT + '.', true);
+                    } else {
+                        log('HTTP: Server listening on port ' + PORT + '.', true);
+                    }
                     periodicSessionCleaning();
                     setInterval(periodicSessionCleaning, SESSION_CLEANING_INTERVAL * 1000);
                     periodicScoreboardRefresh();
                     setInterval(periodicScoreboardRefresh, SCOREBOARD_REFRESH_INTERVAL * 1000);
-                }
-            });
+                });
+            }
         });
     }
 
     function stop(callback) {
-        if (dbConnection) {
-            dbConnection.close();
-            log('DB: Connection closed.', true);
-        }
-        log('Stopping server...', true);
         httpServer.close(function () {
             log('HTTP: Server down.', true);
+            if (dbConnection) {
+                dbConnection.close();
+                log('DB: Connection closed.', true);
+            }
             callback();
         });
     }
