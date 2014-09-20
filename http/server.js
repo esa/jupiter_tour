@@ -68,11 +68,11 @@ include(__dirname + '/game/src/astrodynamics/orbitingbody.js');
 include(__dirname + '/game/src/astrodynamics/launchleg.js');
 include(__dirname + '/game/src/astrodynamics/flybyleg.js');
 include(__dirname + '/game/src/model/model.js');
+include(__dirname + '/game/src/model/stage.js');
+include(__dirname + '/game/src/model/vehicle.js');
 include(__dirname + '/game/src/model/surface.js');
 include(__dirname + '/game/src/model/sphericalsurface.js');
 include(__dirname + '/game/src/model/truncatedicosahedronsurface.js');
-include(__dirname + '/game/src/model/stage.js');
-include(__dirname + '/game/src/model/vehicle.js');
 include(__dirname + '/game/src/gui/gui.js');
 include(__dirname + '/game/src/gui/stage.js');
 include(__dirname + '/game/src/gui/vehicle.js');
@@ -150,7 +150,7 @@ var spacehopper = {};
         this._missionID = missionID;
         this._saveGameNodeHistory = (saveGame != null ? saveGame.nodeHistory.clone() : null);
         this._deltaSaveGameNodeHistory = (deltaSaveGame != null ? deltaSaveGame.nodeHistory.clone() : null);
-        this._saveGamesSize = (saveGame != null ? saveGame.nodeHistory.length : 0);
+        this._saveGameSize = (saveGame != null ? saveGame.nodeHistory.length : 0);
         this._nodes = utility.clone((saveGame != null && deltaSaveGame != null ? utility.merge(deltaSaveGame.nodes, saveGame.nodes) : (saveGame == null ? deltaSaveGame.nodes : saveGame.nodes)));
         this._jumpTable = {};
 
@@ -375,7 +375,7 @@ var spacehopper = {};
             var newNodeHistory = [];
             var newNodeHistoryLength = 0;
             if (isDelta) {
-                newNodeHistoryLength = this._saveGamesSize;
+                newNodeHistoryLength = this._saveGameSize;
             } else {
                 newNodes[rootNode.getKey()] = rootNode;
                 newNodeHistory.push(rootNode.getKey());
@@ -548,7 +548,7 @@ var Server = {};
         });
     }
 
-    function stop() {
+    function stop(callback) {
         if (dbConnection) {
             dbConnection.close();
             log('DB: Connection closed.', true);
@@ -556,6 +556,7 @@ var Server = {};
         log('Stopping server...', true);
         httpServer.close(function () {
             log('HTTP: Server down.', true);
+            callback();
         });
     }
 
@@ -1677,6 +1678,12 @@ var Server = {};
     Server.start = start;
     Server.stop = stop;
 })();
+
+process.on('SIGINT', function () {
+    Server.stop(function () {
+        process.exit();
+    });
+});
 
 Server.start();
 /*
