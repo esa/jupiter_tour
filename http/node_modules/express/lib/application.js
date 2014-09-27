@@ -157,9 +157,19 @@ app.use = function use(fn) {
   var self = this;
 
   // default path to '/'
+  // disambiguate app.use([fn])
   if (typeof fn !== 'function') {
-    offset = 1;
-    path = fn;
+    var arg = fn;
+
+    while (Array.isArray(arg) && arg.length !== 0) {
+      arg = arg[0];
+    }
+
+    // first arg is the path
+    if (typeof arg !== 'function') {
+      offset = 1;
+      path = fn;
+    }
   }
 
   var fns = flatten(slice.call(arguments, offset));

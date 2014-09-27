@@ -42,9 +42,14 @@ gui.TransferLegSimpleSelector = function (orbitingBody) {
     this._infoWrapper.className = 'info-wrapper';
 
     var titleElement = document.createElement('div');
-    titleElement.className = 'title';
+    titleElement.className = 'title text-fit';
     titleElement.textContent = this._orbitingBody.getName();
+
+    var valueElement = document.createElement('div');
+    valueElement.className = 'value text-fit';
+    valueElement.textContent = 'Value: ' + this._orbitingBody.getTotalSurfaceValue();
     this._infoWrapper.appendChild(titleElement);
+    this._infoWrapper.appendChild(valueElement);
 
     contextWrapper.appendChild(this._infoWrapper);
 
@@ -123,7 +128,7 @@ gui.TransferLegSimpleSelector.prototype.show = function (userAction) {
         this._questionBoxWrapper.style.display = 'block';
     } else {
         this._questionBoxWrapper.style.display = 'none';
-        this._infoWrapper.style.display = 'flex';
+        this._infoWrapper.style.display = 'block';
     }
     this._isVisible = true;
     utility.fitText();

@@ -1,5 +1,5 @@
-/* HTTP-Server for the Jupiter Tour Game.
-    Includes Session-Management, Data retreival and user authorization.
+/* HTTP-Server for the space hopper game.
+    Includes session-management, data retreival and user authorization.
     
     Requires:
         express

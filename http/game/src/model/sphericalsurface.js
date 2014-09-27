@@ -12,3 +12,7 @@ model.SphericalSurface.prototype.constructor = model.SphericalSurface;
 model.SphericalSurface.prototype.getFaceValue = function () {
     return this._value;
 };
+
+model.SphericalSurface.prototype.getTotalValue = function () {
+    return this._value;
+};

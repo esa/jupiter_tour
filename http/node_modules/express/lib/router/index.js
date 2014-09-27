@@ -1,3 +1,4 @@
+
 /**
  * Module dependencies.
  */
@@ -8,9 +9,15 @@ var methods = require('methods');
 var mixin = require('utils-merge');
 var debug = require('debug')('express:router');
 var parseUrl = require('parseurl');
+var utils = require('../utils');
+
+/**
+ * Module variables.
+ */
+
+var objectRegExp = /^\[object (\S+)\]$/;
 var slice = Array.prototype.slice;
 var toString = Object.prototype.toString;
-var utils = require('../utils');
 
 /**
  * Initialize a new `Router` with the given `options`.
@@ -405,22 +412,30 @@ proto.use = function use(fn) {
   var self = this;
 
   // default path to '/'
+  // disambiguate router.use([fn])
   if (typeof fn !== 'function') {
-    offset = 1;
-    path = fn;
+    var arg = fn;
+
+    while (Array.isArray(arg) && arg.length !== 0) {
+      arg = arg[0];
+    }
+
+    // first arg is the path
+    if (typeof arg !== 'function') {
+      offset = 1;
+      path = fn;
+    }
   }
 
   var callbacks = utils.flatten(slice.call(arguments, offset));
 
   if (callbacks.length === 0) {
-    throw new TypeError('Router.use() requires callback function');
+    throw new TypeError('Router.use() requires middleware functions');
   }
 
   callbacks.forEach(function (fn) {
     if (typeof fn !== 'function') {
-      var type = toString.call(fn);
-      var msg = 'Router.use() requires callback function but got a ' + type;
-      throw new TypeError(msg);
+      throw new TypeError('Router.use() requires middleware function but got a ' + gettype(fn));
     }
 
     // add the middleware
@@ -476,6 +491,19 @@ methods.concat('all').forEach(function(method){
     return this;
   };
 });
+
+// get type for error message
+function gettype(obj) {
+  var type = typeof obj;
+
+  if (type !== 'object') {
+    return type;
+  }
+
+  // inspect [[Class]] for objects
+  return toString.call(obj)
+    .replace(objectRegExp, '$1');
+}
 
 // merge params with parent params
 function mergeParams(params, parent) {
