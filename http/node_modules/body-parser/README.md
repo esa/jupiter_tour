@@ -4,7 +4,7 @@
 [![NPM Downloads][downloads-image]][downloads-url]
 [![Build Status][travis-image]][travis-url]
 [![Test Coverage][coveralls-image]][coveralls-url]
-[![Gittip][gittip-image]][gittip-url]
+[![Gratipay][gratipay-image]][gratipay-url]
 
 Node.js body parsing middleware.
 
@@ -29,24 +29,7 @@ $ npm install body-parser
 ## API
 
 ```js
-var express    = require('express')
 var bodyParser = require('body-parser')
-
-var app = express()
-
-// parse application/x-www-form-urlencoded
-app.use(bodyParser.urlencoded({ extended: false }))
-
-// parse application/json
-app.use(bodyParser.json())
-
-// parse application/vnd.api+json as json
-app.use(bodyParser.json({ type: 'application/vnd.api+json' }))
-
-app.use(function (req, res, next) {
-  console.log(req.body) // populated!
-  next()
-})
 ```
 
 ### bodyParser.json(options)
@@ -124,6 +107,75 @@ The `verify` argument, if supplied, is called as `verify(req, res, buf, encoding
 
 A new `body` object containing the parsed data is populated on the `request` object after the middleware.
 
+## Examples
+
+### express/connect top-level generic
+
+This example demonstrates adding a generic JSON and urlencoded parser as a top-level middleware, which will parse the bodies of all incoming requests. This is the simplest setup.
+
+```js
+var express = require('express')
+var bodyParser = require('body-parser')
+
+var app = express()
+
+// parse application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({ extended: false }))
+
+// parse application/json
+app.use(bodyParser.json())
+
+app.use(function (req, res) {
+  res.setHeader('Content-Type', 'text/plain')
+  res.write('you posted:\n')
+  res.end(JSON.stringify(req.body, null, 2))
+})
+```
+
+### express route-specific
+
+This example demonstrates adding body parsers specifically to the routes that need them. In general, this is the most recommend way to use body-parser with express.
+
+```js
+var express = require('express')
+var bodyParser = require('body-parser')
+
+var app = express()
+
+// create application/json parser
+var jsonParser = bodyParser.json()
+
+// create application/x-www-form-urlencoded parser
+var urlencodedParser = bodyParser.urlencoded({ extended: false })
+
+// POST /login gets urlencoded bodies
+app.post('/login', urlencodedParser, function (req, res) {
+  if (!req.body) return res.sendStatus(400)
+  res.send('welcome, ' + res.body.username)
+})
+
+// POST /api/users gets JSON bodies
+app.post('/api/users', jsonParser, function (req, res) {
+  if (!req.body) return res.sendStatus(400)
+  // create user in req.body
+})
+```
+
+### change content-type for parsers
+
+All the parsers accept a `type` option which allows you to change the `Content-Type` that the middleware will parse.
+
+```js
+// parse various different custom JSON types as JSON
+app.use(bodyParser.json({ type: 'application/*+json' }))
+
+// parse some custom thing into a Buffer
+app.use(bodyParser.raw({ type: 'application/vnd.custom-type' }))
+
+// parse an HTML body into a string
+app.use(bodyParser.text({ type: 'text/html' }))
+```
+
 ## License
 
 [MIT](LICENSE)
@@ -136,5 +188,5 @@ A new `body` object containing the parsed data is populated on the `request` obj
 [coveralls-url]: https://coveralls.io/r/expressjs/body-parser?branch=master
 [downloads-image]: https://img.shields.io/npm/dm/body-parser.svg?style=flat
 [downloads-url]: https://npmjs.org/package/body-parser
-[gittip-image]: https://img.shields.io/gittip/dougwilson.svg?style=flat
-[gittip-url]: https://www.gittip.com/dougwilson/
+[gratipay-image]: https://img.shields.io/gratipay/dougwilson.svg?style=flat
+[gratipay-url]: https://www.gratipay.com/dougwilson/

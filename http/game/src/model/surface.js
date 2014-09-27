@@ -20,5 +20,9 @@ model.Surface.prototype = {
 
     getFaceValue: function () {
         return 0;
+    },
+
+    getTotalValue: function () {
+        return 0;
     }
 };

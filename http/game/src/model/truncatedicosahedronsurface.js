@@ -469,7 +469,7 @@ model.TruncatedIcosahedronSurface.prototype.computeFlybyFaceAndCoords = function
     };
 };
 
-model.TruncatedIcosahedronSurface.prototype.getTotalFlybyScore = function () {
+model.TruncatedIcosahedronSurface.prototype.getTotalValue = function () {
     var sum = 0;
     for (var i = 1; i <= 32; i++) {
         sum += this._faceValues[i];
@@ -521,8 +521,8 @@ model.TruncatedIcosahedronSurface.prototype.d3jsifyVisitCoords = function () {
             visit.geometry = {};
             visit.geometry.type = 'Point';
             visit.geometry.coordinates = this._faceVisitCoords[i][j].asArray().map(function (val) {
-    return val * utility.RAD_TO_DEG;
-});
+                return val * utility.RAD_TO_DEG;
+            });
             d3Visits.features.push(visit);
         }
     }

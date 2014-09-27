@@ -82,8 +82,8 @@ astrodynamics.OrbitingBody.prototype.setFlybyCoords = function (faceID, coords, 
     this._surface.setFlybyCoords(faceID, coords, isNewest);
 };
 
-astrodynamics.OrbitingBody.prototype.getTotalFlybyScore = function () {
-    return this._surface.getTotalFlybyScore();
+astrodynamics.OrbitingBody.prototype.getTotalSurfaceValue = function () {
+    return this._surface.getTotalValue();
 };
 
 astrodynamics.OrbitingBody.prototype.isFaceVisited = function (faceID) {
