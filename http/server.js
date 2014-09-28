@@ -1683,9 +1683,5 @@ process.on('SIGINT', function () {
     });
 });
 
+// Start server
 Server.start();
-/*
-setTimeout(function () {
-    oServer.stop();
-}, 10000);
-*/
