@@ -4,6 +4,13 @@ function createScoreBoard(response) {
         return parseFloat(d['score']);
     }
 
+    var prettyPrints = {
+        username: 'username',
+        totalDeltaV: 'delta V',
+        passedDays: 'time of flight',
+        score: 'score'
+    };
+
     var rank = 0;
 
     function createHeader(rowData) {
@@ -13,7 +20,7 @@ function createScoreBoard(response) {
         row.appendChild(col);
         for (id in rowData) {
             col = document.createElement('th');
-            col.innerHTML = id.toLowerCase();
+            col.innerHTML = prettyPrints[id];
             row.appendChild(col);
         }
         return row;
