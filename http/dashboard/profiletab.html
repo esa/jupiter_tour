@@ -255,6 +255,7 @@
 
         $('#expertcheckbox').change(function () {
             $('#expertresponse').html('');
+            $('#expertresponse').show();
             var isExpert = $(this).is(':checked') == true;
             $.ajax({
                 type: 'POST',
@@ -265,6 +266,9 @@
                 },
                 success: function (response) {
                     $('#expertresponse').html(response);
+                    setTimeout(function () {
+                        $('#expertresponse').fadeOut(1000);
+                    }, 3000);
                 }
             });
         });
