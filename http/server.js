@@ -447,6 +447,7 @@ var Server = {};
     var DATABASE_NAME = 'spacehopper';
     var SPACE_HOPPER_ROOT_FOLDER = './game';
     var MISSION_DEFINITIONS_PATH = './missions/mission';
+    var FORCE_SHUTDOWN_TIMEOUT = 120;
 
     var htmlTemplates = {
         ERROR_400: fs.readFileSync('errors/400.html'),
@@ -548,6 +549,11 @@ var Server = {};
     }
 
     function stop(callback) {
+        log('Please wait. Trying to shut down the server. Forced process termination after ' + FORCE_SHUTDOWN_TIMEOUT + ' seconds.', true);
+        setTimeout(function () {
+            log('FORCED SHUTDOWN :(', true);
+            process.exit();
+        }, FORCE_SHUTDOWN_TIMEOUT * 1000);
         httpServer.close(function () {
             log('HTTP: Server down.', true);
             if (dbConnection) {
@@ -968,6 +974,7 @@ var Server = {};
         var hashedPassword = hash.update(password + chunk).digest('base64');
         var user = {
             name: name,
+            isExpert: false,
             password: hashedPassword,
             chunk: chunk
         };
@@ -978,6 +985,18 @@ var Server = {};
             }
             log('DB: Added user entry with name ' + records[0].name);
             callback(records[0]);
+        });
+    }
+
+    function updateUserExpertInfo(user, isExpert, callback) {
+        var users = dbConnection.collection('users');
+        user.isExpert = isExpert;
+        users.save(user, function (error) {
+            if (error) {
+                callback(null);
+                return;
+            }
+            callback(user);
         });
     }
 
@@ -1207,6 +1226,17 @@ var Server = {};
         }
     }
 
+    function saveGameListToHTML(records) {
+        var htmlText = '<ul>';
+        if (records) {
+            records.forEach(function (record) {
+                htmlText += "\n" + '<li id="' + record._id.toHexString() + '" class="savegame-entry"><div class="name text-fit">' + record.name + '</div><div class="tip text-fit"> (mission ' + record.missionID + ')</div></li>';
+            });
+        }
+        htmlText += "\n" + '</ul>';
+        return htmlText;
+    }
+
     function sendErrorResponse(response, errorCode) {
         var key = 'ERROR_' + errorCode;
         response.setHeader('Cache-Control', 'public, max-age=0');
@@ -1218,17 +1248,6 @@ var Server = {};
 
     function sendSuccessResponse(response) {
         response.status(200).end()
-    }
-
-    function saveGameListToHTML(records) {
-        var htmlText = '<ul>';
-        if (records) {
-            records.forEach(function (record) {
-                htmlText += "\n" + '<li id="' + record._id.toHexString() + '" class="savegame-entry"><div class="name text-fit">' + record.name + '</div><div class="tip text-fit"> (mission ' + record.missionID + ')</div></li>';
-            });
-        }
-        htmlText += "\n" + '</ul>';
-        return htmlText;
     }
 
     function onLoginRequest(request, response) {
@@ -1337,6 +1356,8 @@ var Server = {};
                     response.write(JSON.stringify({
                         isLoggedIn: true
                     }));
+                    updateSession(session, now);
+                    updateSessionCookie(session, response);
                 } else {
                     response.write(JSON.stringify({
                         isLoggedIn: false
@@ -1405,6 +1426,8 @@ var Server = {};
                             sendErrorResponse(response, 500);
                             return;
                         }
+                        updateSession(session, now);
+                        updateSessionCookie(session, response);
                         response.setHeader('Content-Type', 'application/json');
                         response.write(JSON.stringify({
                             gameID: saveGame._id.toHexString(),
@@ -1603,6 +1626,34 @@ var Server = {};
         }
     }
 
+    function onExpertUpdateRequest(request, response) {
+        var now = new Date();
+        searchSession(request, now, function (session) {
+            getUserForSession(session, function (user) {
+                if (user) {
+                    var isExpert = request.body.value == 'true';
+                    updateUserExpertInfo(user, isExpert, function (modifiedUser) {
+                        if (!modifiedUser) {
+                            sendErrorResponse(response, 500);
+                            return;
+                        }
+                        updateSession(session, now);
+                        updateSessionCookie(session, response);
+                        if (user.isExpert) {
+                            response.write('everyone is entitled to their own opinion.');
+                        } else {
+                            response.write('goodbye, expert.')
+                        }
+                        response.end();
+                    });
+                } else {
+                    sendErrorResponse(response, 403);
+                    log('HTTP: Savegame list request denied');
+                }
+            });
+        });
+    }
+
     function onGETRequest(request, response) {
         var now = new Date();
         searchSession(request, now, function (session) {
@@ -1616,6 +1667,7 @@ var Server = {};
                     sendErrorResponse(response, 403);
                     return;
                 }
+
                 updateSession(session, now);
                 updateSessionCookie(session, response);
 
@@ -1665,6 +1717,10 @@ var Server = {};
         case 'savegameupdate':
             onSaveGameUpdateRequest(request, response);
             break;
+
+        case 'updateexpert':
+            onExpertUpdateRequest(request, response);
+            break;
         default:
             sendErrorResponse(response, 400);
             break;
@@ -1678,6 +1734,7 @@ var Server = {};
 })();
 
 process.on('SIGINT', function () {
+    console.log("\n" + 'SIGINT');
     Server.stop(function () {
         process.exit();
     });

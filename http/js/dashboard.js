@@ -1,14 +1,3 @@
-function getUrlParameter(param) {
-    var pageURL = window.location.search.substring(1);
-    var urlVariables = pageURL.split('&');
-    for (var i = 0; i < urlVariables.length; i++) {
-        var parameterName = urlVariables[i].split('=');
-        if (parameterName[0] == param) {
-            return parameterName[1];
-        }
-    }
-}
-
 function setCookie(name, value, expDays) {
     var now = new Date();
     now.setTime(now.getTime() + (expDays * 24 * 60 * 60 * 1000));
@@ -36,7 +25,6 @@ $(document).ready(function () {
                 window.location.reload();
             }
             window.location = '/dashboard/index.html#' + page.slice(0, -3);
-            //window.history.pushState('', 'space hopper | dashboard', '/dashboard/index.html#' + page.slice(0, -3));
         });
     });
 
