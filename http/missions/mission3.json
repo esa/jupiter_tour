@@ -8,7 +8,7 @@
         "funGetInvalidReasonsForState": null,
         "funSetScoreForState": "var cleaned = 13 - Object.keys(gameState.getOrbitingBodies()).length; gameState.setScore(cleaned +1 - gameState.getTotalDeltaV() / gameState.getVehicle().getTotalDeltaV() );",
         "funIsWinningState": "return Object.keys(gameState.getOrbitingBodies()).length == 2;",
-        "funGetWinningProgress": "var score = gameState.getScore(); return score/100;",
+        "funGetWinningProgress": "var score = gameState.getScore(); return score/13;",
 
         "centralBody": {
             "id": 1,
