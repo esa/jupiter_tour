@@ -3,11 +3,11 @@
         "id": 3,
         "revision": 0,
 
-        "maximumMissionDuration": 60,
+        "maximumMissionDuration": 30,
 
         "funGetInvalidReasonsForState": null,
-        "funSetScoreForState": null,
-        "funIsWinningState": "var orbBodyID = gameState.getOrbitingBody().getID(); return orbBodyID == 44;",
+        "funSetScoreForState": "var cleaned = 13 - Object.keys(gameState.getOrbitingBodies()).length; gameState.setScore(cleaned +1 - gameState.getTotalDeltaV() / gameState.getVehicle().getTotalDeltaV() );",
+        "funIsWinningState": "return Object.keys(gameState.getOrbitingBodies()).length == 2;",
         "funGetWinningProgress": "var score = gameState.getScore(); return score/100;",
 
         "centralBody": {
@@ -311,6 +311,62 @@
                     "lan": 5.5,
                     "ap": 2.43,
                     "ma": 1.11
+                },
+                "sgp": 0.0,
+                "radius": 2,
+                "minRadiusFactor": 1.1,
+                "maxRadiusFactor": 100,
+                "maxTimeOfFlight": 2,
+                "maxLaunchDelay": 1,
+                "arrivalOption": 0,
+                "interactionOption": 1,
+                "scale": 4,
+                "meshMaterialURL": "res/img/debrissurface.jpg",
+                "surface": {
+                    "type": 0,
+                    "values": {
+                        "0": 1
+                    }
+                }
+            },
+            "13": {
+                "name": "Junk 11",
+                "refEpoch": 51544.5,
+                "orbitalElements": {
+                    "sma": 14134874,
+                    "ecc": 0.0111,
+                    "incl": 1.42,
+                    "lan": -1.0,
+                    "ap": 2.22,
+                    "ma": -0.14316391697638581
+                },
+                "sgp": 0.0,
+                "radius": 2,
+                "minRadiusFactor": 1.1,
+                "maxRadiusFactor": 100,
+                "maxTimeOfFlight": 2,
+                "maxLaunchDelay": 1,
+                "arrivalOption": 0,
+                "interactionOption": 1,
+                "scale": 4,
+                "meshMaterialURL": "res/img/debrissurface.jpg",
+                "surface": {
+                    "type": 0,
+                    "values": {
+                        "0": 1
+                    }
+                }
+            },
+            "14": {
+                "name": "Junk 12",
+                "refEpoch": 51544.5,
+                "orbitalElements": {
+                    "sma": 14244874,
+                    "ecc": 0.0311,
+                    "incl": 1.60,
+                    "lan": 2.2,
+                    "ap": -0.13,
+                    "ma": 3.14316391697638581
                 },
                 "sgp": 0.0,
                 "radius": 2,
