@@ -49,7 +49,9 @@ gui.TransferLegSimpleSelector = function (orbitingBody) {
     valueElement.className = 'value text-fit';
     valueElement.textContent = 'Value: ' + this._orbitingBody.getTotalSurfaceValue();
     this._infoWrapper.appendChild(titleElement);
-    this._infoWrapper.appendChild(valueElement);
+
+    // TODO: Useful in future missions?
+    //this._infoWrapper.appendChild(valueElement);
 
     contextWrapper.appendChild(this._infoWrapper);
 
