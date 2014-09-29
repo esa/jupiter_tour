@@ -17,6 +17,7 @@ $(document).ready(function () {
         event.preventDefault();
         var div = $(this).children(':first').attr('href');
         $('.tab-contents ' + div).show().siblings().hide();
+        $('.tab').html('');
         $(this).addClass('active').siblings().removeClass('active');
         var page = div.substr(1);
         $(div).load(page + '.html', function (responseText, textStatus, XmlHttpRequest) {
