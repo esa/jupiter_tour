@@ -1,5 +1,75 @@
 function createScoreBoard(response) {
+    // Private functions
+    function comparingValue(d) {
+        return parseFloat(d['score']);
+    }
+
+    var rank = 0;
+
+    function createHeader(rowData) {
+        var row = document.createElement('tr');
+        var col = document.createElement('th');
+        col.innerHTML = 'rank';
+        row.appendChild(col);
+        for (id in rowData) {
+            col = document.createElement('th');
+            col.innerHTML = id.toLowerCase();
+            row.appendChild(col);
+        }
+        return row;
+    }
+
+    function createRow(rowData) {
+        rank++;
+        var row = document.createElement('tr');
+        var col = document.createElement('td');
+        col.innerHTML = rank.toString() + '.';
+        row.appendChild(col);
+
+        for (id in rowData) {
+            col = document.createElement('td');
+            var val = rowData[id];
+            val = parseFloat(val);
+            if (isNaN(val)) {
+                val =  rowData[id];
+            } else {
+                val = Math.round(val * 100) / 100;
+            }
+            col.innerHTML = val;
+            row.appendChild(col);
+        }
+        return row;
+    }
+
+
+    var scoreChart = $('#scorechart')[0];
+    scoreChart.innerHTML = '';
+
     var data = d3.csv.parse(response);
+
+
+    var table = document.createElement('table');
+    table.className = 'score-table center-horizontally';
+
+    if (data.length == 0) {
+        table.innerHTML = '<tr><td>empty</td></tr>';
+    } else {
+
+        var sortedData = data.sort(function (a, b) {
+            return d3.descending(comparingValue(a), comparingValue(b));
+        });
+
+        table.appendChild(createHeader(data[0]));
+
+        for (var i = 0; i < data.length; i++) {
+            var row = createRow(data[i]);
+            table.appendChild(row);
+        }
+    }
+
+    scoreChart.appendChild(table);
+
+    /*
     d3.select('#scorechart').html('');
     if (data.length == 0) {
         d3.select('#scorechart').html('empty');
@@ -117,6 +187,8 @@ function createScoreBoard(response) {
                 .duration(500)
                 .style('opacity', 0);
         });
+        
+        */
 }
 
 function displayError(error) {

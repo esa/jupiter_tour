@@ -1,4 +1,9 @@
-div.tooltip {
+.score-table {
+    border: 1px solid #0099CC;
+    width: 90%;
+    text-align:center;
+}
+/*div.tooltip {
     position: absolute;
     text-align: center;
     width: auto;
@@ -9,3 +14,4 @@ div.tooltip {
     color: #0099CC;
     pointer-events: none;
 }
+*/

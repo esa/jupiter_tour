@@ -1550,7 +1550,7 @@ var Server = {};
                 sendErrorResponse(response, 500);
                 return;
             }
-            var result = 'id,username,score,totalDeltaV,passedDays' + "\n";
+            var result = 'username,score,totalDeltaV,passedDays' + "\n";
             var scores = dbConnection.collection('scores');
             var query = {
                 missionID: missionID
@@ -1577,7 +1577,7 @@ var Server = {};
                                 if (!user) {
                                     return;
                                 }
-                                result += score._id.toHexString() + ',' + user.name + ',' + score.score + ',' + score.totalDeltaV + ',' + score.passedDays + "\n";
+                                result += user.name + ',' + score.score + ',' + score.totalDeltaV + ',' + score.passedDays + "\n";
                             });
                             response.setHeader('Content-Type', 'text/csv');
                             response.write(result);

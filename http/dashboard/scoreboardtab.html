@@ -10,13 +10,13 @@
             <a href="#3">space roomba</a>
         </div>
     </div>
-    <div id="scorechart" style="position:absolute;left:0px;bottom:0px;width:100%;height:85%;display:inline-flex;justify-content:center;align-items:center;">
+    <div id="scorechart" style="position:absolute;left:0px;bottom:0px;width:100%;height:85%;display:block;">
     </div>
 </div>
 </div>
 <script>
-    $(document).ready(function() {
-        $('.score-tab-links .tab-link').on('click', function(event) {
+    $(document).ready(function () {
+        $('.score-tab-links .tab-link').on('click', function (event) {
             event.preventDefault();
             var div = $(this).children(':first').attr('href');
             $(this).addClass('active').siblings().removeClass('active');
