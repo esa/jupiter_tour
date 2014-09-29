@@ -274,7 +274,7 @@
                     "epoch": 58849,
                     "vehicle": {
                         "isLanded": false,
-                        "velocityInf": [3000, -1200, 500],
+                        "velocityInf": [3000, -2500, 500],
                         "stages": [
                             {
                                 "propulsionType": 0,

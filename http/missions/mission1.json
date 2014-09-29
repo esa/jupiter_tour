@@ -322,7 +322,7 @@
                 "isVirtual": false,
                 "gameState": {
                     "orbitingBodyID": 5,
-                    "epoch": 56000,
+                    "epoch": 58000,
                     "vehicle": {
                         "isLanded": true,
                         "velocityInf": [0, 0, 0],
@@ -333,7 +333,7 @@
                                 "remainingMass": 2200,
                                 "emptyMass": 1200,
                                 "thrust": 1.0,
-                                "specificImpulse": 311,
+                                "specificImpulse": 308,
                                 "imageURL": "res/img/spacecraft.jpg"
                         }, {
                                 "propulsionType": 1,
