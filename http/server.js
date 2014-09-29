@@ -1356,8 +1356,6 @@ var Server = {};
                     response.write(JSON.stringify({
                         isLoggedIn: true
                     }));
-                    updateSession(session, now);
-                    updateSessionCookie(session, response);
                 } else {
                     response.write(JSON.stringify({
                         isLoggedIn: false
