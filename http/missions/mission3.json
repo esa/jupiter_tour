@@ -6,8 +6,8 @@
         "maximumMissionDuration": 60,
 
         "funGetInvalidReasonsForState": null,
-        "funSetScoreForState": "var orbBodyID = gameState.getOrbitingBody().getID(); if(orbBodyID == 11) {gameState.setScore(Math.ceil(100/(1+gameState.getTotalDeltaV())));}",
-        "funIsWinningState": "var orbBodyID = gameState.getOrbitingBody().getID(); return orbBodyID == 11;",
+        "funSetScoreForState": null,
+        "funIsWinningState": "var orbBodyID = gameState.getOrbitingBody().getID(); return orbBodyID == 44;",
         "funGetWinningProgress": "var score = gameState.getScore(); return score/100;",
 
         "centralBody": {
@@ -16,7 +16,7 @@
             "isStar": false,
             "sgp": 398600.4418e9,
             "radius": 6378000,
-            "scale": 0.00005,
+            "scale": 0.000043,
             "meshMaterialURL": "res/img/earthsurface.jpg"
         },
 
@@ -45,7 +45,7 @@
                 "surface": {
                     "type": 0,
                     "values": {
-                        "0": 0
+                        "0": 1
                     }
                 }
             },
@@ -73,7 +73,7 @@
                 "surface": {
                     "type": 0,
                     "values": {
-                        "0": 0
+                        "0": 1
                     }
                 }
             },
@@ -101,7 +101,7 @@
                 "surface": {
                     "type": 0,
                     "values": {
-                        "0": 0
+                        "0": 1
                     }
                 }
             },
@@ -129,7 +129,7 @@
                 "surface": {
                     "type": 0,
                     "values": {
-                        "0": 0
+                        "0": 1
                     }
                 }
             },
@@ -157,7 +157,7 @@
                 "surface": {
                     "type": 0,
                     "values": {
-                        "0": 0
+                        "0": 1
                     }
                 }
             },
@@ -185,7 +185,7 @@
                 "surface": {
                     "type": 0,
                     "values": {
-                        "0": 0
+                        "0": 1
                     }
                 }
             },
@@ -213,7 +213,7 @@
                 "surface": {
                     "type": 0,
                     "values": {
-                        "0": 0
+                        "0": 1
                     }
                 }
             },
@@ -241,7 +241,7 @@
                 "surface": {
                     "type": 0,
                     "values": {
-                        "0": 0
+                        "0": 1
                     }
                 }
             },
@@ -269,7 +269,63 @@
                 "surface": {
                     "type": 0,
                     "values": {
-                        "0": 0
+                        "0": 1
+                    }
+                }
+            },
+            "11": {
+                "name": "Junk 9",
+                "refEpoch": 51544.5,
+                "orbitalElements": {
+                    "sma": 14963936,
+                    "ecc": 0.0143,
+                    "incl": 0.25,
+                    "lan": 0.7,
+                    "ap": 3.5,
+                    "ma": 1.45
+                },
+                "sgp": 0.0,
+                "radius": 2,
+                "minRadiusFactor": 1.1,
+                "maxRadiusFactor": 100,
+                "maxTimeOfFlight": 2,
+                "maxLaunchDelay": 1,
+                "arrivalOption": 0,
+                "interactionOption": 1,
+                "scale": 4,
+                "meshMaterialURL": "res/img/debrissurface.jpg",
+                "surface": {
+                    "type": 0,
+                    "values": {
+                        "0": 1
+                    }
+                }
+            },
+            "12": {
+                "name": "Junk 10",
+                "refEpoch": 51544.5,
+                "orbitalElements": {
+                    "sma": 17893748,
+                    "ecc": 0.254,
+                    "incl": 4.7,
+                    "lan": 5.5,
+                    "ap": 2.43,
+                    "ma": 1.11
+                },
+                "sgp": 0.0,
+                "radius": 2,
+                "minRadiusFactor": 1.1,
+                "maxRadiusFactor": 100,
+                "maxTimeOfFlight": 2,
+                "maxLaunchDelay": 1,
+                "arrivalOption": 0,
+                "interactionOption": 1,
+                "scale": 4,
+                "meshMaterialURL": "res/img/debrissurface.jpg",
+                "surface": {
+                    "type": 0,
+                    "values": {
+                        "0": 1
                     }
                 }
             }
@@ -303,9 +359,9 @@
                                 "propulsionType": 1,
                                 "mass": 777000,
                                 "remainingMass": 777000,
-                                "emptyMass": 180000,
+                                "emptyMass": 760000,
                                 "thrust": 12940000,
-                                "specificImpulse": 430,
+                                "specificImpulse": 10000,
                                 "imageURL": "res/img/isslaunch.jpg"
                         }]
                     }

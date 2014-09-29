@@ -331,7 +331,7 @@
                                 "propulsionType": 0,
                                 "mass": 2200,
                                 "remainingMass": 2200,
-                                "emptyMass": 1500,
+                                "emptyMass": 1200,
                                 "thrust": 1.0,
                                 "specificImpulse": 311,
                                 "imageURL": "res/img/spacecraft.jpg"
