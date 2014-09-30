@@ -216,6 +216,10 @@
                     </select>
                     <p id="nationalityresponse"></p>
                     -->
+                    <form style="position:absolute;bottom:0px;right:0px;" method="post">
+                        <input type="hidden" name="type" value="logout">
+                        <input class="button" type="submit" value="logout" />
+                    </form>
     </div>
 </div>
 
@@ -227,30 +231,6 @@
                 replaceCookie('gameID', gameID, 1);
                 window.location.href = '/game/index.html';
             });
-        });
-
-        $('#profiletabbutton').on('mouseover', function () {
-            if ($('#profiletabbutton').parent().hasClass('active')) {
-                $(this).html('logout');
-            }
-        });
-        $('#profiletabbutton').on('mouseout', function () {
-            $(this).html('profile');
-        });
-        $('#profiletabbutton').on('click', function () {
-            if ($('#profiletabbutton').html() == 'logout') {
-                $.ajax({
-                    type: 'POST',
-                    url: '/',
-                    data: {
-                        type: 'logout'
-                    },
-                    success: function (response) {
-                        window.location = '/dashboard/index.html#signin';
-                        window.location.reload();
-                    }
-                });
-            }
         });
 
         $('#expertcheckbox').change(function () {
