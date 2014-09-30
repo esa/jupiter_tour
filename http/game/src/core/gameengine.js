@@ -295,7 +295,7 @@ core.GameEngine.prototype = {
         }
     },
 
-    _markAndSetScoreForGameState: function (gameState, dsmResult) {
+    _markAndSetScoreForGameState: function (parentGameState, gameState, dsmResult) {
         var reasonIDs = [];
         if (this._funGetTimeUsage(gameState) > 1) {
             reasonIDs.push(strings.FinalStateReasonIDs.MAX_MISSION_EPOCH);
@@ -322,7 +322,11 @@ core.GameEngine.prototype = {
             }
         }
         if (gameState.isInvalid()) {
-            gameState.setScore(0);
+            if (parentGameState) {
+                gameState.setScore(parentGameState.getScore());
+            } else {
+                gameState.setScore(0);
+            }
         } else {
             if (this._funSetScoreForState) {
                 this._funSetScoreForState(gameState);
@@ -452,7 +456,7 @@ core.GameEngine.prototype = {
             };
 
             var newGameState1 = new core.GameState(currentBodies, currentBody, epoch, passedDays, totalDeltaV, score, vehicle, currentGameState.getMappedFaces(), transferLeg);
-            this._markAndSetScoreForGameState(newGameState1);
+            this._markAndSetScoreForGameState(this._gameState, newGameState1);
 
             flybyResult = currentBody.computeFlybyFaceAndCoords(epoch, velocityInf, chromosome[1], chromosome[2]);
             faceValue = currentBody.getFaceValue(flybyResult.faceID);
@@ -493,7 +497,7 @@ core.GameEngine.prototype = {
             }
 
             var newGameState2 = new core.GameState(currentBodies, nextBody, epoch, passedDays, totalDeltaV, score, vehicle, currentGameState.getMappedFaces(), transferLeg);
-            this._markAndSetScoreForGameState(newGameState2, dsmResult);
+            this._markAndSetScoreForGameState(this._gameState, newGameState2, dsmResult);
 
             this._gameHistoryManager.unlock();
             this._gameHistoryManager.add(newGameState1, true);
@@ -548,7 +552,7 @@ core.GameEngine.prototype = {
             }
 
             var newGameState = new core.GameState(currentBodies, nextBody, epoch, passedDays, totalDeltaV, score, vehicle, currentGameState.getMappedFaces(), transferLeg);
-            this._markAndSetScoreForGameState(newGameState, dsmResult);
+            this._markAndSetScoreForGameState(this._gameState, newGameState, dsmResult);
 
             this._gameHistoryManager.unlock();
             this._gameHistoryManager.add(newGameState, false);
@@ -739,7 +743,7 @@ core.GameEngine.prototype = {
         var mappedFaces = {};
 
         var gameState = new core.GameState(this._initialOrbitingBodies, currentBody, epoch, passedDays, totalDeltaV, score, vehicle, mappedFaces, transferLeg);
-        this._markAndSetScoreForGameState(gameState, dsmResult);
+        this._markAndSetScoreForGameState(null, gameState, dsmResult);
         gameStates[rootNode.id] = gameState;
 
         var parentGameState = null;
@@ -838,7 +842,7 @@ core.GameEngine.prototype = {
                     };
 
                     gameState = new core.GameState(orbitingBodies, currentBody, epoch, passedDays, totalDeltaV, score, vehicle, mappedFaces, transferLeg);
-                    this._markAndSetScoreForGameState(gameState, dsmResult);
+                    this._markAndSetScoreForGameState(parentGameState, gameState, dsmResult);
                     gameStates[node.id] = gameState;
                 }
             }

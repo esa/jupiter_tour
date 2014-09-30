@@ -101,7 +101,7 @@ var plugin = {};
                             deltaIndex: deltaIndex
                         }, function (saveGameInfos) {
                             self._isSaved = true;
-                            console.log('Autosave success');
+                            console.log('Autosave success @ ' + new Date().toUTCString());
                             setTimeout(self._funAutoSave, self._logInterval * 1000);
                         }, function (error) {
                             console.log('Autosave error');
@@ -188,7 +188,7 @@ var plugin = {};
                                 });
                                 setTimeout(self._funAutoSave, self._logInterval * 1000);
                                 console.log('Autosave running');
-                                console.log('Autosave success');
+                                console.log('Autosave success @ ' + new Date().toUTCString());
                                 self._isInitialized = true;
                                 self._isBusy = false;
                             }, function (error) {

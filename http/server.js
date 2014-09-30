@@ -196,7 +196,7 @@ var spacehopper = {};
     spacehopper.SaveGameParser.prototype = {
         constructor: spacehopper.SaveGameParser,
 
-        _markAndSetScoreForGameState: function (gameState, dsmResult) {
+        _markAndSetScoreForGameState: function (parentGameState, gameState, dsmResult) {
             var reasonIDs = [];
             if (this._mission.funGetTimeUsage(gameState) > 1) {
                 reasonIDs.push(strings.FinalStateReasonIDs.MAX_MISSION_EPOCH);
@@ -224,7 +224,11 @@ var spacehopper = {};
             }
 
             if (gameState.isInvalid()) {
-                gameState.setScore(0);
+                if (parentGameState) {
+                    gameState.setScore(parentGameState.getScore());
+                } else {
+                    gameState.setScore(0);
+                }
             } else {
                 if (this._mission.funSetScoreForState) {
                     this._mission.funSetScoreForState(gameState);
@@ -330,7 +334,7 @@ var spacehopper = {};
                     };
 
                     gameState = new core.GameState(parentBodies, currentBody, epoch, passedDays, totalDeltaV, score, vehicle, mappedFaces, transferLeg);
-                    this._markAndSetScoreForGameState(gameState, dsmResult);
+                    this._markAndSetScoreForGameState(parentGameState, gameState, dsmResult);
                 }
             }
             return gameState;
@@ -358,7 +362,7 @@ var spacehopper = {};
             var mappedFaces = {};
 
             var gameState = new core.GameState(this._mission.orbitingBodies, currentBody, epoch, passedDays, totalDeltaV, score, vehicle, mappedFaces, transferLeg);
-            this._markAndSetScoreForGameState(gameState, dsmResult);
+            this._markAndSetScoreForGameState(null, gameState, dsmResult);
 
             var rootHistoryNode = new core.HistoryNode(gameState, rootNode.id, false);
             rootHistoryNode.setHistorySequenceNr(0);
@@ -731,6 +735,7 @@ var Server = {};
 
             var orbitingBodyID = gameState.getOrbitingBody().getID();
             var vehicle = gameState.getVehicle();
+            var performLanding = (parent ? !parent.getValue().getVehicle().isLanded() && vehicle.isLanded() : false);
 
             var nodeResult = {};
             nodeResult.id = id;
@@ -745,7 +750,7 @@ var Server = {};
                 nodeResult.gameState.transferLeg.timeOfFlight = transferLeg.timeOfFlight;
                 nodeResult.gameState.transferLeg.problemType = transferLeg.problemType;
                 nodeResult.gameState.transferLeg.deltaV = transferLeg.deltaV;
-                nodeResult.gameState.transferLeg.performLanding = vehicle.isLanded();
+                nodeResult.gameState.transferLeg.performLanding = performLanding;
             }
             if (nodeResult.parentID == null) {
                 nodeResult.gameState.epoch = gameState.getEpoch();
