@@ -6,7 +6,7 @@
         "maximumMissionDuration": 30,
 
         "funGetInvalidReasonsForState": null,
-        "funSetScoreForState": "var cleaned = 13 - Object.keys(gameState.getOrbitingBodies()).length; gameState.setScore(Math.round((cleaned +1 - gameState.getTotalDeltaV() / gameState.getVehicle().getTotalDeltaV() )*100)/100);",
+        "funSetScoreForState": "var cleaned = 14 - Object.keys(gameState.getOrbitingBodies()).length; gameState.setScore(Math.round((cleaned +1 - gameState.getTotalDeltaV() / gameState.getVehicle().getTotalDeltaV() )*100)/100);",
         "funIsWinningState": "return Object.keys(gameState.getOrbitingBodies()).length == 2;",
         "funGetWinningProgress": "var score = gameState.getScore(); return score/13;",
 
@@ -367,6 +367,34 @@
                     "lan": 2.2,
                     "ap": -0.13,
                     "ma": 3.14316391697638581
+                },
+                "sgp": 0.0,
+                "radius": 2,
+                "minRadiusFactor": 1.1,
+                "maxRadiusFactor": 100,
+                "maxTimeOfFlight": 2,
+                "maxLaunchDelay": 1,
+                "arrivalOption": 0,
+                "interactionOption": 1,
+                "scale": 4,
+                "meshMaterialURL": "res/img/debrissurface.jpg",
+                "surface": {
+                    "type": 0,
+                    "values": {
+                        "0": 1
+                    }
+                }
+            },
+            "15": {
+                "name": "Junk 13",
+                "refEpoch": 51544.5,
+                "orbitalElements": {
+                    "sma": 15578000.44247,
+                    "ecc": 0.11671123,
+                    "incl": -5.6720990848033185e-07,
+                    "lan": 0.1,
+                    "ap": 3.2,
+                    "ma": -1.04316391697638581
                 },
                 "sgp": 0.0,
                 "radius": 2,
