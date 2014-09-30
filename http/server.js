@@ -259,11 +259,28 @@ var spacehopper = {};
                         return gameState;
                     }
 
+                    switch (currentBody.getArrivalOption()) {
+                    case core.VehicleArrivalOptions.PERFORM_FLYBY:
+                        if (performLanding) {
+                            return gameState;
+                        }
+                        break;
+
+                    case core.VehicleArrivalOptions.PERFORM_LANDING:
+                        if (!performLanding) {
+                            return gameState;
+                        }
+                        break;
+                    }
+
                     var leg = null;
                     var flybyResult = null;
                     var faceValue = 0;
                     switch (problemType) {
                     case astrodynamics.ProblemTypes.MGA1DSM_LAUNCH:
+                        if (!parentVehicle.isLanded()) {
+                            return gameState;
+                        }
                         leg = new astrodynamics.LaunchLeg(chromosome, parentBody, currentBody);
                         flybyResult = parentBody.computeFlybyFaceAndCoords(parentEpoch, parentVelocityInf, chromosome[1], chromosome[2]);
                         faceValue = parentBody.getFaceValue(flybyResult.faceID);
@@ -272,6 +289,9 @@ var spacehopper = {};
                         }
                         break;
                     case astrodynamics.ProblemTypes.MGA1DSM_FLYBY:
+                        if (parentVehicle.isLanded()) {
+                            return gameState;
+                        }
                         leg = new astrodynamics.FlybyLeg(chromosome, parentBody, currentBody, parentVelocityInf, parentEpoch);
                         flybyResult = parentBody.computeFlybyFaceAndCoords(parentEpoch, parentVelocityInf, chromosome[0], chromosome[1]);
                         faceValue = parentBody.getFaceValue(flybyResult.faceID);
@@ -290,8 +310,8 @@ var spacehopper = {};
                     if (leg) {
                         var nextVelocityInf = leg.getArrivalVelocityInf();
                         vehicle.setVelocityInf(nextVelocityInf);
+                        vehicle.setLanded(performLanding);
                     }
-                    vehicle.setLanded(performLanding);
 
                     var score = parentScore + faceValue;
                     var epoch = parentEpoch + timeOfFlight;
@@ -316,7 +336,7 @@ var spacehopper = {};
             return gameState;
         },
 
-        getRootNode: function () {
+        _getRootNode: function () {
             var rootNode = this._startSaveGame.nodes[this._startSaveGame.nodeHistory[0]];
             var gameStateData = rootNode.gameState;
             var currentBody = this._mission.orbitingBodies[gameStateData.orbitingBodyID];
@@ -347,19 +367,25 @@ var spacehopper = {};
             return rootHistoryNode;
         },
 
-        getNode: function (id) {
+        _getNode: function (id) {
             if (this._jumpTable[id]) {
                 return this._jumpTable[id];
             } else {
                 var childNode = null;
                 var node = this._nodes[id];
-                var parentNode = this.getNode(node.parentID);
+                var parentNode = this._getNode(node.parentID);
                 if (parentNode) {
                     var parentGameState = parentNode.getValue();
                     if (!parentGameState.isInvalid()) {
                         var gameState = this._createGameState(parentGameState, node.gameState);
                         if (gameState) {
-                            childNode = parentNode.addChild(gameState, id, node.isVirtual);
+                            if (node.isVirtual) {
+                                if (!parentNode.isVirtual() && parentGameState.getVehicle().isLanded() && gameState.getTransferLeg().problemType == null) {
+                                    childNode = parentNode.addChild(gameState, id, true);
+                                }
+                            } else {
+                                childNode = parentNode.addChild(gameState, id, false);
+                            }
                             this._jumpTable[childNode.getKey()] = childNode;
                         }
                     }
@@ -368,8 +394,8 @@ var spacehopper = {};
             }
         },
 
-        getCheckedSaveGame: function (isDelta) {
-            var rootNode = this.getRootNode();
+        extractCheckedSaveGame: function (isDelta) {
+            var rootNode = this._getRootNode();
 
             var newNodes = {};
             var newNodeHistory = [];
@@ -384,7 +410,7 @@ var spacehopper = {};
 
             for (var i = (isDelta == true ? 0 : 1); i < this._deltaSaveGameNodeHistory.length; i++) {
                 var id = this._deltaSaveGameNodeHistory[i];
-                var node = this.getNode(id);
+                var node = this._getNode(id);
                 if (node) {
                     if (node.getKey() != id) {
                         log('ERROR: Key mismatch.');
@@ -402,6 +428,7 @@ var spacehopper = {};
             };
         },
 
+        // only call with checked savegame data!
         getMaximumScore: function () {
             var maxScore = {
                 score: 0,
@@ -409,10 +436,10 @@ var spacehopper = {};
                 passedDays: 0
             };
 
-            this.getRootNode();
+            this._getRootNode();
             for (var i = 0; i < this._saveGameNodeHistory.length; i++) {
                 var id = this._saveGameNodeHistory[i];
-                var node = this.getNode(id);
+                var node = this._getNode(id);
                 var gameState = node.getValue();
                 var score = gameState.getScore();
                 var totalDeltaV = gameState.getTotalDeltaV();
@@ -769,7 +796,7 @@ var Server = {};
 
         if (saveGameData == null) {
             var parser = new spacehopper.SaveGameParser(MISSION_DEFINITIONS_PATH, missionID, null, deltaData);
-            var checkedSaveGame = parser.getCheckedSaveGame();
+            var checkedSaveGame = parser.extractCheckedSaveGame();
             saveGameData = jsonifySaveGame(checkedSaveGame.nodes, checkedSaveGame.nodeHistory);
 
         } else {
@@ -780,7 +807,7 @@ var Server = {};
                 parser = new spacehopper.SaveGameParser(MISSION_DEFINITIONS_PATH, missionID, saveGameData, deltaData);
             }
 
-            var checkedSaveGame = parser.getCheckedSaveGame(true);
+            var checkedSaveGame = parser.extractCheckedSaveGame(true);
             var saveGameDeltaData = jsonifySaveGame(checkedSaveGame.nodes, checkedSaveGame.nodeHistory);
 
             if (overwrite) {

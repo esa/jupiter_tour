@@ -188,6 +188,7 @@ core.GameHistoryManager.prototype = {
 
                 var orbitingBodyID = gameState.getOrbitingBody().getID();
                 var vehicle = gameState.getVehicle();
+                var performLanding = (parent ? !parent.getValue().getVehicle().isLanded() && vehicle.isLanded() : false);
 
                 var nodeResult = {};
                 nodeResult.id = id;
@@ -202,7 +203,7 @@ core.GameHistoryManager.prototype = {
                     nodeResult.gameState.transferLeg.timeOfFlight = transferLeg.timeOfFlight;
                     nodeResult.gameState.transferLeg.problemType = transferLeg.problemType;
                     nodeResult.gameState.transferLeg.deltaV = transferLeg.deltaV;
-                    nodeResult.gameState.transferLeg.performLanding = vehicle.isLanded();
+                    nodeResult.gameState.transferLeg.performLanding = performLanding;
                 }
                 if (nodeResult.parentID == null) {
                     nodeResult.gameState.epoch = gameState.getEpoch();
