@@ -201,7 +201,8 @@ gui.TimeOfFlightSelector.prototype._showFlybyConfiguration = function () {
     this._toolBoxWrapper.style.display = 'block';
     this._timeOfFlightRangeSlider.show();
     this._resetSelection();
-    this._infoBar.textContent = 'configure flyby at ' + this._orbitingBody.getName() + ' heading to ' + this._userAction.nextOrbitingBody.getName() + ' for ' + (this._userAction.nextLeg.performLanding ? 'landing' : 'flyby');
+
+    this._infoBar.textContent = 'Configure flyby at ' + this._orbitingBody.getName() + '. Next ' + (this._userAction.nextLeg.performLanding ? 'landing' : 'flyby') + ' at ' + this._userAction.nextOrbitingBody.getName() + '.';
 };
 
 gui.TimeOfFlightSelector.prototype._showLaunchConfiguration = function () {
@@ -212,7 +213,7 @@ gui.TimeOfFlightSelector.prototype._showLaunchConfiguration = function () {
     this._timeOfFlightRangeSlider.show();
     this._velocityRangeSlider.show();
     this._resetSelection();
-    this._infoBar.textContent = 'configure launch from ' + this._orbitingBody.getName() + ' to ' + this._userAction.nextOrbitingBody.getName() + ' for ' + (this._userAction.nextLeg.performLanding ? 'landing' : 'flyby');
+    this._infoBar.textContent = 'Configure launch from ' + this._orbitingBody.getName() + '. Next ' + (this._userAction.nextLeg.performLanding ? 'landing' : 'flyby') + ' at ' + this._userAction.nextOrbitingBody.getName() + '.';
 };
 
 gui.TimeOfFlightSelector.prototype._hideConfiguration = function () {

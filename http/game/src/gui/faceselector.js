@@ -521,7 +521,7 @@ gui.FaceSelector.prototype.show = function (userAction) {
     this._isEditable = this._userAction != null;
 
     if (this._userAction) {
-        this._infoBar.textContent = 'configure flyby at ' + this._orbitingBody.getName() + ' heading to ' + this._userAction.nextOrbitingBody.getName() + ' for ' + (this._userAction.nextLeg.performLanding ? 'landing' : 'flyby');
+        this._infoBar.textContent = 'Configure flyby at ' + this._orbitingBody.getName() + '. Next ' + (this._userAction.nextLeg.performLanding ? 'landing' : 'flyby') + ' at ' + this._userAction.nextOrbitingBody.getName() + '.';
     }
     this._updateMap();
     this._confirmElement.style.display = 'none';
