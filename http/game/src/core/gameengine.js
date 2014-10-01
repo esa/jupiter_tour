@@ -297,7 +297,7 @@ core.GameEngine.prototype = {
 
     _markAndSetScoreForGameState: function (parentGameState, gameState, dsmResult) {
         var reasonIDs = [];
-        if (this._funGetTimeUsage(gameState) > 1) {
+        if (this._funGetTimeUsage(gameState) <= 0) {
             reasonIDs.push(strings.FinalStateReasonIDs.MAX_MISSION_EPOCH);
         }
         if (this._funGetInvalidReasonsForState) {
@@ -700,7 +700,7 @@ core.GameEngine.prototype = {
 
         var maximumMissionDuration = mission.maximumMissionDuration;
         this._funGetTimeUsage = function (gameState) {
-            return gameState.getPassedDays() / maximumMissionDuration;
+            return 1 - gameState.getPassedDays() / maximumMissionDuration;
         };
         this._funGetWinningProgress = Function('gameState', mission.funGetWinningProgress);
 
@@ -876,10 +876,7 @@ core.GameEngine.prototype = {
         datastructure.updateIDSeed(maxNodeID + 1);
 
         this._gameHistoryManager = new core.GameHistoryManager(rootNode, jumpTable, newNodeHistory);
-        this._scoreHUD = new gui.ScoreHUD(this._gameHistoryManager, {
-            funGetWinningProgress: this._funGetWinningProgress,
-            funGetTimeUsage: this._funGetTimeUsage
-        });
+        this._scoreHUD = new gui.ScoreHUD(this._gameHistoryManager, maximumMissionDuration, this._funGetWinningProgress);
         this._unsetBusy();
         this._setGameState(this._gameHistoryManager.getCurrentGameState());
     },

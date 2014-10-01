@@ -1,15 +1,12 @@
 /* Class ScoreHud. 
     Displays information about current score 
 */
-gui.ScoreHUD = function (gameHistoryManager, params) {
+gui.ScoreHUD = function (gameHistoryManager, maximumMissionDuration, funGetWinningProgress) {
     var self = this;
     this._gameHistoryManager = gameHistoryManager;
-    this._funGetTimeUsage = null;
-    this._funGetWinningProgress = null;
-    if (params) {
-        this._funGetTimeUsage = params.funGetTimeUsage;
-        this._funGetWinningProgress = params.funGetWinningProgress;
-    }
+    this._maximumMissionDuration = maximumMissionDuration;
+    this._funGetWinningProgress = funGetWinningProgress;
+
     this._isVisible = false;
 
     var centerDiv = document.createElement('div');
@@ -135,14 +132,11 @@ gui.ScoreHUD.prototype = {
 
     update: function () {
         var gameState = this._gameHistoryManager.getCurrentGameState();
-        if (this._funGetTimeUsage) {
-            var timeUsgPercentage = this._funGetTimeUsage(gameState) * 100;
-            timeUsgPercentage = Math.round(timeUsgPercentage * 100) / 100;
-            $(this._epochBar).css('width', timeUsgPercentage + '%');
-            $(this._epochText).html((Math.round(gameState.getPassedDays() * 100) / 100) + ' days<br>(' + timeUsgPercentage + '%)');
-        } else {
-            $(this._epochText).text((Math.round(gameState.getPassedDays() * 100) / 100) + ' days');
-        }
+        var daysLeft = this._maximumMissionDuration - gameState.getPassedDays();
+        var timeUsgPercentage = daysLeft / this._maximumMissionDuration * 100;
+        timeUsgPercentage = Math.round(timeUsgPercentage * 100) / 100;
+        $(this._epochBar).css('width', timeUsgPercentage + '%');
+        $(this._epochText).html((Math.round(daysLeft * 100) / 100) + ' days<br>(' + timeUsgPercentage + '%)');
         var totalDeltaV = gameState.getVehicle().getTotalDeltaV(1);
         var remainingDV = gameState.getVehicle().getRemainingDeltaV(1);
         var deltaVPercentage = remainingDV / totalDeltaV * 100;
@@ -151,14 +145,9 @@ gui.ScoreHUD.prototype = {
         $(this._deltaVText).html(remainingDV + ' m/s<br>(' + deltaVPercentage + '%)');
         $(this._deltaVBar).css('width', deltaVPercentage + '%');
 
-        if (this._funGetWinningProgress) {
-            var winProgPercentage = this._funGetWinningProgress(gameState) * 100;
-            winProgPercentage = Math.round(winProgPercentage * 100) / 100;
-            $(this._scoreBar).css('width', winProgPercentage + '%');
-            $(this._scoreText).html(gameState.getScore() + ' points<br>(' + winProgPercentage + '%)');
-        } else {
-            $(this._scoreText).text(gameState.getScore() + ' points');
-        }
-
+        var winProgPercentage = this._funGetWinningProgress(gameState) * 100;
+        winProgPercentage = Math.round(winProgPercentage * 100) / 100;
+        $(this._scoreBar).css('width', winProgPercentage + '%');
+        $(this._scoreText).html(gameState.getScore() + ' points<br>(' + winProgPercentage + '%)');
     }
 };
