@@ -822,8 +822,8 @@ core.GameEngine.prototype = {
                         leg.setGradient(dsmResult.gravityLoss);
                         var nextVelocityInf = leg.getArrivalVelocityInf();
                         vehicle.setVelocityInf(nextVelocityInf);
+                        vehicle.setLanded(performLanding);
                     }
-                    vehicle.setLanded(performLanding);
 
                     score = parentScore + faceValue;
                     epoch = parentEpoch + timeOfFlight;
