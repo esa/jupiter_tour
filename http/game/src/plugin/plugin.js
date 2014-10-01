@@ -101,6 +101,7 @@ var plugin = {};
                             deltaIndex: deltaIndex
                         }, function (saveGameInfos) {
                             self._isSaved = true;
+                            self._gameEngine.pluginEvent(core.GameEvents.AUTOSAVE_SUCCESS);
                             console.log('Autosave success @ ' + new Date().toUTCString());
                             setTimeout(self._funAutoSave, self._logInterval * 1000);
                         }, function (error) {
@@ -186,6 +187,7 @@ var plugin = {};
                                 self._gameEngine.pluginEvent(core.GameEvents.MISSION_REVISION_CHANGE, {
                                     missionRevision: self._missionRevision
                                 });
+                                self._gameEngine.pluginEvent(core.GameEvents.AUTOSAVE_SUCCESS);
                                 setTimeout(self._funAutoSave, self._logInterval * 1000);
                                 console.log('Autosave running');
                                 console.log('Autosave success @ ' + new Date().toUTCString());
@@ -652,9 +654,16 @@ var plugin = {};
 
             default:
                 $(this._content).children('.button').addClass('disabled');
-                this._isSaved = false;
                 break;
             }
+            break;
+
+        case core.GameEvents.GAME_HISTORY_CHANGE:
+            this._isSaved =  false;
+            break;
+
+        case core.GameEvents.AUTOSAVE_SUCCESS:
+            this._isSaved = true;
             break;
         }
     };

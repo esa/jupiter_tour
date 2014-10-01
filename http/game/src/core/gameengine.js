@@ -936,6 +936,11 @@ core.GameEngine.prototype = {
                 result[id] = this._initialOrbitingBodies[id];
             }
             return result;
+
+        case core.GameEvents.AUTOSAVE_SUCCESS:
+            this._dispatchEvent(core.GameEvents.AUTOSAVE_SUCCESS);
+            break;
+
         }
     },
 

@@ -27,7 +27,8 @@ var core = {};
         ORBITING_BODIES_MAPPING_REQUEST: 8,
         GAME_HISTORY_CHANGE: 9,
         MISSION_REVISION_AVAILABLE: 10,
-        MISSION_REVISION_CHANGE: 11
+        MISSION_REVISION_CHANGE: 11,
+        AUTOSAVE_SUCCESS: 12
     };
 
     var TransferLegConfigurationModes = {
