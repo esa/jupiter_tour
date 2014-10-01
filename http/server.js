@@ -1259,14 +1259,20 @@ var Server = {};
     }
 
     function saveGameListToHTML(records) {
-        var htmlText = '<ul>';
         if (records) {
-            records.forEach(function (record) {
-                htmlText += "\n" + '<li id="' + record._id.toHexString() + '" class="savegame-entry"><div class="name text-fit">' + record.name + '</div><div class="tip text-fit"> (mission ' + record.missionID + ')</div></li>';
-            });
+            if (records.length == 0) {
+                return '<p style="text-align:center;">No missions have been saved yet</p>';
+            } else {
+                var htmlText = '<ul>';
+                records.forEach(function (record) {
+                    htmlText += "\n" + '<li id="' + record._id.toHexString() + '" class="savegame-entry"><div class="name text-fit">' + record.name + '</div><div class="tip text-fit"> (mission ' + record.missionID + ')</div></li>';
+                });
+                htmlText += "\n" + '</ul>';
+                return htmlText;
+            }
+        } else {
+            return '<p style="text-align:center;">error</p>';
         }
-        htmlText += "\n" + '</ul>';
-        return htmlText;
     }
 
     function sendErrorResponse(response, errorCode) {
