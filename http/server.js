@@ -1261,7 +1261,7 @@ var Server = {};
     function saveGameListToHTML(records) {
         if (records) {
             if (records.length == 0) {
-                return '<p style="text-align:center;">No missions have been saved yet</p>';
+                return '<p style="font-size:small;color:#cccccc;">No missions have been saved yet</p>';
             } else {
                 var htmlText = '<ul>';
                 records.forEach(function (record) {
@@ -1271,7 +1271,7 @@ var Server = {};
                 return htmlText;
             }
         } else {
-            return '<p style="text-align:center;">error</p>';
+            return '<p style="font-size:small;color:#cccccc;">error</p>';
         }
     }
 

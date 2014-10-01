@@ -5,6 +5,10 @@
             <p style="width:50%;">Feel like continuing one of your previously saved missions?</p>
             <div id="savegamelist" class="savegame-browser-list">
             </div>
+            <form style="position:absolute;bottom:0px;left:0px;" method="post">
+                <input type="hidden" name="type" value="logout">
+                <input class="button" type="submit" value="logout" />
+            </form>
         </div>
     </div>
     <div style="height:100%;width:50%;right:0px;display:inline-block;position:relative;vertical-align:top;box-sizing:border-box;">
@@ -216,10 +220,6 @@
                     </select>
                     <p id="nationalityresponse"></p>
                     -->
-                    <form style="position:absolute;bottom:0px;right:0px;" method="post">
-                        <input type="hidden" name="type" value="logout">
-                        <input class="button" type="submit" value="logout" />
-                    </form>
     </div>
 </div>
 
