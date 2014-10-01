@@ -29,7 +29,8 @@ var strings = {};
         SPACECRAFT_LAUNCH: 14,
         SPACECRAFT_PARKED: 15,
         SPACECRAFT_ORBITING: 16,
-        SPACECRAFT_JETTISON_STAGE: 17
+        SPACECRAFT_JETTISON_STAGE: 17,
+        NO_ISS_RETURN: 18
     };
 
     var texts = {
@@ -50,7 +51,8 @@ var strings = {};
         14: 'Your spacecraft launched from %s.',
         15: 'Your spacecraft is parked on %s.',
         16: 'Your spacecraft is on a flyby trajectory of %s.',
-        17: 'Your vehicle successfully jettisoned stage %d.'
+        17: 'Your vehicle successfully jettisoned stage %d.',
+        18: 'You returned to the ISS. Your mission ends.'
     };
 
     function toText(textID, fillIns) {

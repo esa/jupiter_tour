@@ -5,7 +5,7 @@
 
         "maximumMissionDuration": 30,
 
-        "funGetInvalidReasonsForState": null,
+        "funGetInvalidReasonsForState": "var orbBodyID = gameState.getOrbitingBody().getID(); if(orbBodyID == 2 & gameState.getPassedDays() > 0) return [18];",
         "funSetScoreForState": "var cleaned = 14 - Object.keys(gameState.getOrbitingBodies()).length; gameState.setScore(Math.round((cleaned +1 - gameState.getTotalDeltaV() / gameState.getVehicle().getTotalDeltaV() )*100)/100);",
         "funIsWinningState": "return Object.keys(gameState.getOrbitingBodies()).length == 2;",
         "funGetWinningProgress": "var score = gameState.getScore(); return score/13;",
