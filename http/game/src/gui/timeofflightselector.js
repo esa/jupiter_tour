@@ -56,8 +56,31 @@ gui.TimeOfFlightSelector = function (orbitingBody) {
     this._toolBoxWrapper = document.createElement('div');
     this._toolBoxWrapper.className = 'content-wrapper';
 
+    var infoHelpContainer = document.createElement('div');
+    infoHelpContainer.className = 'info-help-container';
+
     this._infoBar = document.createElement('div');
-    this._infoBar.className = 'row1 text-fit';
+    this._infoBar.className = 'info-bar text-fit';
+
+    var col = document.createElement('div');
+    col.className = 'help-button-container';
+
+    var img = document.createElement('img');
+    img.src = 'res/svg/help.svg';
+    img.className = 'help-button';
+    col.appendChild(img);
+    img.onclick = function () {
+        if (self._vehicle.isLanded()) {
+            var dialogue =  new gui.Dialogue('/help/launchconfiguration.html');
+            dialogue.open();
+        } else {
+            var dialogue =  new gui.Dialogue('/help/timeofflightconfiguration.html');
+            dialogue.open();
+        }
+    };
+
+    infoHelpContainer.appendChild(this._infoBar);
+    infoHelpContainer.appendChild(col);
 
     var toolRow = document.createElement('div');
     toolRow.className = 'row2';
@@ -185,7 +208,7 @@ gui.TimeOfFlightSelector = function (orbitingBody) {
     toolRow.appendChild(imageCol);
     toolRow.appendChild(toolBoxCol);
     toolRow.appendChild(buttonCol);
-    this._toolBoxWrapper.appendChild(this._infoBar);
+    this._toolBoxWrapper.appendChild(infoHelpContainer);
     this._toolBoxWrapper.appendChild(toolRow);
     contextWrapper.appendChild(this._toolBoxWrapper);
     this._containerElement.appendChild(contextWrapper);
