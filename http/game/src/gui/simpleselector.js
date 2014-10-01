@@ -71,10 +71,10 @@ gui.SimpleSelector = function (orbitingBody) {
     col.appendChild(img);
     img.onclick = function () {
         if (self._vehicle.isLanded()) {
-            var dialogue =  new gui.Dialogue('/help/launchconfiguration.html');
+            var dialogue =  new gui.Dialogue('help/launchconfiguration.html');
             dialogue.open();
         } else {
-            var dialogue =  new gui.Dialogue('/help/flybyconfiguration.html');
+            var dialogue =  new gui.Dialogue('help/flybyconfiguration.html');
             dialogue.open();
         }
     };

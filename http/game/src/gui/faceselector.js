@@ -61,7 +61,7 @@ gui.FaceSelector = function (orbitingBody) {
     img.src = 'res/svg/help.svg';
     img.className = 'help-button center-horizontally center-vertically';
     img.onclick = function () {
-        var dialogue =  new gui.Dialogue('/help/faceselectionconfiguration.html');
+        var dialogue =  new gui.Dialogue('help/faceselectionconfiguration.html');
         dialogue.open();
     };
 

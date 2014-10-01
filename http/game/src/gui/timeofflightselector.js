@@ -71,10 +71,10 @@ gui.TimeOfFlightSelector = function (orbitingBody) {
     col.appendChild(img);
     img.onclick = function () {
         if (self._vehicle.isLanded()) {
-            var dialogue =  new gui.Dialogue('/help/launchconfiguration.html');
+            var dialogue =  new gui.Dialogue('help/launchconfiguration.html');
             dialogue.open();
         } else {
-            var dialogue =  new gui.Dialogue('/help/timeofflightconfiguration.html');
+            var dialogue =  new gui.Dialogue('help/timeofflightconfiguration.html');
             dialogue.open();
         }
     };
