@@ -52,7 +52,7 @@ gui.Dialogue.prototype = {
             var diffY = event.deltaY;
 
             var container = $(self._container);
-            var position =  container.position();
+            var position = container.position();
 
             container.css('left', position.left + diffX);
             container.css('top', position.top + diffY);
