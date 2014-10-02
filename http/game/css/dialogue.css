@@ -4,11 +4,6 @@
     background-color: #333333;
     z-index: 15;
     position: absolute;
-    margin: auto;
-    top: 0px;
-    left: 0px;
-    right: 0px;
-    bottom: 0px;
     box-shadow: 0vmin 0vmin 1.5vmin #000000;
     -moz-box-shadow: 0vmin 0vmin 1.5vmin #000000;
     -webkit-box-shadow: 0vmin 0vmin 1.5vmin #000000;

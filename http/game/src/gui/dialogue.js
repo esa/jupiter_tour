@@ -46,12 +46,13 @@ gui.Dialogue.prototype = {
     open: function () {
         var self = this;
         document.body.appendChild(this._container);
+        var container = $(self._container);
         var md1 = new utility.MouseDriver(this._titleDiv);
         md1.registerLeftDrag(function (event) {
             var diffX = event.deltaX;
             var diffY = event.deltaY;
 
-            var container = $(self._container);
+
             var position = container.position();
 
             container.css('left', position.left + diffX);
@@ -76,6 +77,14 @@ gui.Dialogue.prototype = {
             utility.fitText();
         });
         */
+
+        var width = window.innerWidth;
+        var height = window.innerHeight;
+        var posWidth = Math.round(width / 2 - container.width() / 2);
+        var posHeight = Math.round(height / 2 - container.height() / 2);
+        container.css('left', posWidth);
+        container.css('top', posHeight);
+
         utility.fitText();
 
         net.sendGETRequest(this._sourceURL, 'html', {}, function (response) {
