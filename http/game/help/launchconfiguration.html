@@ -1,1 +1,40 @@
-<h1>#1</h1>
+<style type="text/css">
+.container {
+  display: table;
+}
+.row {
+  display: table-row;
+  ce
+}
+.column {
+  display: table-cell;
+  vertical-align: middle;
+  padding:20px;
+}
+</style>
+
+<h2>Launch configuration</h2>
+
+
+<div class="container">
+    <div class="row">
+        <div class="column"><img src="res/svg/calendaricon.svg" style="width:100px"></div>
+        <div class="column">
+        	In the slider associated to this icon, you can select the bounds for the launch epoch: that is the launch window. The numbers indicates the Modified Julian Date and are, essentially, days.
+        </div>
+    </div>
+    <div class="row">
+        <div class="column"><img src="res/svg/deltavicon.svg" style="width:80%"></div>
+        <div class="column">
+        	In the slider associated to this icon, you can select bounds for launch DV in m/s. This number is, essentially, the initial velocity of the spacecraft provided at launch.
+        </div>
+    </div>
+    <div class="row">
+        <div class="column"><img src="res/svg/clockicon.svg" style="width:80%"></div>
+        <div class="column">
+        	In the slider associated to this icon, you can select bounds for the time of flight (in days) of the trajectory leg. 
+        	The slider also shows some vertical lines. These lines are placed at the resonant periods. If you select as next target the current planet/moon, by bounding the time of flight around these lines you will most probably obtain a resonant transfer. 
+        </div>
+    </div>
+    </div>
+</div>
