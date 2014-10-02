@@ -71,6 +71,6 @@
     position: absolute;
     bottom: -1%;
     right: -1%;
-    pointer-events: all;
-    cursor: nwse-resize;
+    /*pointer-events: all;*/
+    /*cursor: nwse-resize;*/
 }

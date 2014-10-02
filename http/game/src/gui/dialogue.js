@@ -59,7 +59,7 @@ gui.Dialogue.prototype = {
             utility.fitText();
         });
 
-        var md2 = new utility.MouseDriver(this._resizeDiv);
+        /*var md2 = new utility.MouseDriver(this._resizeDiv);
         md2.registerLeftDrag(function (event) {
             var diffX = event.deltaX;
             var diffY = event.deltaY;
@@ -75,6 +75,7 @@ gui.Dialogue.prototype = {
             container.css('top', position.top + diffY);
             utility.fitText();
         });
+        */
         utility.fitText();
 
         net.sendGETRequest(this._sourceURL, 'html', {}, function (response) {

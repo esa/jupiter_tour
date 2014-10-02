@@ -55,21 +55,8 @@ gui.FaceSelector = function (orbitingBody) {
     titleContainer.appendChild(titleElement);
     rowElement1.appendChild(titleContainer);
 
-    var col =  document.createElement('div');
+    var col = document.createElement('div');
     col.className = 'col2';
-    var img = document.createElement('img');
-    img.src = 'res/svg/help.svg';
-    img.className = 'help-button center-horizontally center-vertically';
-    img.onclick = function () {
-        var dialogue =  new gui.Dialogue('help/faceselectionconfiguration.html');
-        dialogue.open();
-    };
-
-    col.appendChild(img);
-    rowElement1.appendChild(col);
-
-    col = document.createElement('div');
-    col.className = 'col3';
     var img = document.createElement('img');
     img.src = 'res/svg/clockicon.svg';
     img.className = 'icon center-horizontally center-vertically';
@@ -78,7 +65,7 @@ gui.FaceSelector = function (orbitingBody) {
     this._clockIcon = img;
 
     col = document.createElement('div');
-    col.className = 'col4';
+    col.className = 'col3';
     var wrapper = document.createElement('div');
     wrapper.title = 'configure leg time of flight range';
     wrapper.className = 'rangeslider-wrapper center-vertically';
@@ -94,7 +81,7 @@ gui.FaceSelector = function (orbitingBody) {
     rowElement1.appendChild(col);
 
     var buttonContainer = document.createElement('div');
-    buttonContainer.className = 'col5';
+    buttonContainer.className = 'col4';
 
     var centerVertically = document.createElement('div');
     centerVertically.className = 'center-vertically';
@@ -214,10 +201,28 @@ gui.FaceSelector = function (orbitingBody) {
 
     this._containerElement.appendChild(rowElement3);
 
-    this._infoBar = document.createElement('div');
-    this._infoBar.className = 'row4 text-fit';
+    var infoHelpContainer = document.createElement('div');
+    infoHelpContainer.className = 'info-help-container';
 
-    this._containerElement.appendChild(this._infoBar);
+    this._infoBar = document.createElement('div');
+    this._infoBar.className = 'info-bar text-fit';
+
+    var col = document.createElement('div');
+    col.className = 'help-button-container';
+
+    var img = document.createElement('img');
+    img.src = 'res/svg/help.svg';
+    img.className = 'help-button';
+    col.appendChild(img);
+    img.onclick = function () {
+        var dialogue =  new gui.Dialogue('help/faceselectionconfiguration.html');
+        dialogue.open();
+    };
+
+    infoHelpContainer.appendChild(this._infoBar);
+    infoHelpContainer.appendChild(col);
+
+    this._containerElement.appendChild(infoHelpContainer);
     this._backgroundElement.appendChild(this._containerElement);
     document.body.appendChild(this._backgroundElement);
 

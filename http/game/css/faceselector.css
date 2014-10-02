@@ -19,49 +19,25 @@
     position: relative;
 }
 .face-selector .row1 .col1 {
-    width: 25%;
+    width: 30%;
     height: 100%;
     display: inline-block;
     position: relative;
 }
 .face-selector .row1 .col2 {
-    width: 5%;
-    height: 100%;
-    display: inline-block;
-    position: relative;
-}
-.face-selector .row1 .col2 .help-button {
-    height: 50%;
-    max-width: 100%;
-    width: auto;
-    display: inline-block;
-    vertical-align: top;
-    opacity: 0.8;
-    filter: alpha(opacity=80);
-    cursor: pointer;
-    pointer-events: all;
-    position: absolute;
-    right: 0px;
-    top: 0px;
-}
-.face-selector .row1 .col2 .help-button:hover {
-    opacity: 1;
-    filter: alpha(opacity=100);
-}
-.face-selector .row1 .col3 {
     width: 10%;
     height: 100%;
     display: inline-block;
     position: relative;
 }
-.face-selector .row1 .col4 {
+.face-selector .row1 .col3 {
     width: 25%;
     height: 100%;
     display: inline-block;
     position: relative;
     pointer-events: all;
 }
-.face-selector .row1 .col5 {
+.face-selector .row1 .col4 {
     width: 35%;
     height: 100%;
     display: inline-block;
@@ -181,11 +157,42 @@
     overflow: hidden;
     cursor: default;
 }
-.face-selector .row4 {
-    display: flex;
-    justify-content: center;
-    align-content: center;
-    position: relative;
-    width: 100%;
+.face-selector .info-help-container {
     height: 8%;
+    width: 100%;
+    display: block;
+    position: relative;
+}
+.face-selector .help-button-container {
+    height: 100%;
+    width: 25%;
+    display: inline-block;
+    vertical-align: top;
+    position: relative;
+}
+.face-selector .help-button-container .help-button {
+    height: 50%;
+    max-width: 100%;
+    width: auto;
+    display: inline-block;
+    vertical-align: top;
+    opacity: 0.8;
+    filter: alpha(opacity=80);
+    cursor: pointer;
+    pointer-events: all;
+    position: absolute;
+    right: 0px;
+    bottom: 0px;
+}
+.face-selector .help-button-container .help-button:hover {
+    opacity: 1;
+    filter: alpha(opacity=100);
+}
+.face-selector .info-bar {
+    height: 100%;
+    width: 75%;
+    display: inline-flex;
+    vertical-align: top;
+    justify-content: flex-start;
+    align-items: center;
 }
