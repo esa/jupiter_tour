@@ -1076,7 +1076,7 @@ var Server = {};
                             name: name,
                             missionID: missionID,
                             missionRevision: missionRevision,
-                            submission: date,
+                            lastModified: date,
                             recomputeScore: true
                         };
                         saveGames.insert(record, function (error, records) {
@@ -1100,7 +1100,7 @@ var Server = {};
                         name: name,
                         missionID: missionID,
                         missionRevision: missionRevision,
-                        submission: date,
+                        lastModified: date,
                         recomputeScore: user != null
                     };
                     saveGames.insert(record, function (error, records) {
@@ -1177,7 +1177,7 @@ var Server = {};
                                 record.data.nodeHistory = checkedSaveGame.nodeHistory;
                                 record.name = name != null ? name : record.name;
                                 record.deltaIndex = record.data.nodeHistory.length;
-                                record.submission = date;
+                                record.lastModified = date;
                                 record.recomputeScore = true;
 
                                 deleteRecordIfEmpty(saveGames, record, callback);
@@ -1189,7 +1189,7 @@ var Server = {};
                                 record.deltaIndex = record.data.nodeHistory.length;
                                 record.missionID = missionID;
                                 record.missionRevision = missionRevision;
-                                record.submission = date;
+                                record.lastModified = date;
                                 record.recomputeScore = true;
 
                                 deleteRecordIfEmpty(saveGames, record, callback);
@@ -1204,7 +1204,7 @@ var Server = {};
                             record.data.nodeHistory = checkedSaveGame.nodeHistory;
                             record.name = name != null ? name : record.name;
                             record.deltaIndex = record.data.nodeHistory.length;
-                            record.submission = date;
+                            record.lastModified = date;
                             record.recomputeScore = user != null;
 
                             deleteRecordIfEmpty(saveGames, record, callback);
@@ -1216,7 +1216,7 @@ var Server = {};
                             record.deltaIndex = record.data.nodeHistory.length;
                             record.missionID = missionID;
                             record.missionRevision = missionRevision;
-                            record.submission = date;
+                            record.lastModified = date;
                             record.recomputeScore = user != null;
 
                             deleteRecordIfEmpty(saveGames, record, callback);
