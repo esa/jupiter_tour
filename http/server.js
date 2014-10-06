@@ -538,6 +538,10 @@ var Server = {};
         log('HTTP: GET request: ' + request.url);
         onNumberOfGamesRequest(request, response);
     });
+    app.get('/admin/games/lastModified/*', function (request, response) {
+        log('HTTP: GET request: ' + request.url);
+        onLastModifiedGamesRequest(request, response);
+    });
 
     app.get('/*', function (request, response) {
         log('HTTP: GET request: ' + request.url);
@@ -1261,6 +1265,25 @@ var Server = {};
         });
     }
 
+    function getLastModifiedSaveGames(date, callback) {
+        if (!date) {
+            date = new Date(new Date().getTime() - 10 * 60 * 1000);
+        }
+        var saveGames = dbConnection.collection('savegames');
+        var query = {
+            lastModified: {
+                '$gte': date
+            }
+        };
+        saveGames.find(query).toArray(function (error, records) {
+            if (error) {
+                callback(null);
+                return;
+            }
+            callback(records);
+        });
+    }
+
     function getNumberOfGames(callback) {
         var saveGames = dbConnection.collection('savegames');
         saveGames.find().toArray(function (error, saveGameArray) {
@@ -1740,6 +1763,14 @@ var Server = {};
             response.write(numGames.toString());
             response.end();
         });
+    }
+
+    function onLastModifiedGamesRequest(request, response) {
+        var url = request.url;
+        var index = url.lastIndexOf('/');
+        var dateStr = url.substring(index + 1);
+        var date = new Date();
+        // TODO: learn javascript
     }
 
     function onGETRequest(request, response) {
