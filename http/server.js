@@ -977,7 +977,7 @@ var Server = {};
 
     function getNumberOfRegisteredUsers(callback) {
         var users = dbConnection.collection('users');
-        users.find().toArray(function (usersArray, error) {
+        users.find().toArray(function (error, usersArray) {
             if (error) {
                 callback(null);
                 return;
@@ -1263,7 +1263,7 @@ var Server = {};
 
     function getNumberOfGames(callback) {
         var saveGames = dbConnection.collection('savegames');
-        saveGames.find().toArray(function (saveGameArray, error) {
+        saveGames.find().toArray(function (error, saveGameArray) {
             if (error) {
                 callback(null);
                 return;
@@ -1726,7 +1726,7 @@ var Server = {};
                 sendErrorResponse(response, 500);
                 return;
             }
-            response.write(numUsers);
+            response.write(numUsers.toString());
             response.end();
         });
     }
@@ -1737,7 +1737,7 @@ var Server = {};
                 sendErrorResponse(response, 500);
                 return;
             }
-            response.write(numGames);
+            response.write(numGames.toString());
             response.end();
         });
     }
