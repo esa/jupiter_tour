@@ -530,6 +530,14 @@ var Server = {};
         log('HTTP: GET request: ' + request.url);
         onScoreBoardRequest(request, response);
     });
+    app.get('/admin/users/total', function (request, response) {
+        log('HTTP: GET request: ' + request.url);
+        onNumberOfUsersRequest(request, response);
+    });
+    app.get('/admin/games/total', function (request, response) {
+        log('HTTP: GET request: ' + request.url);
+        onNumberOfGamesRequest(request, response);
+    });
 
     app.get('/*', function (request, response) {
         log('HTTP: GET request: ' + request.url);
@@ -967,6 +975,17 @@ var Server = {};
         }
     }
 
+    function getNumberOfRegisteredUsers(callback) {
+        var users = dbConnection.collection('users');
+        users.find().toArray(function (usersArray, error) {
+            if (error) {
+                callback(null);
+                return;
+            }
+            callback(usersArray.length);
+        });
+    }
+
     function getUserForSession(session, callback) {
         if (session) {
             var users = dbConnection.collection('users');
@@ -1239,6 +1258,17 @@ var Server = {};
                 return;
             }
             callback(record);
+        });
+    }
+
+    function getNumberOfGames(callback) {
+        var saveGames = dbConnection.collection('savegames');
+        saveGames.find().toArray(function (saveGameArray, error) {
+            if (error) {
+                callback(null);
+                return;
+            }
+            callback(saveGameArray.length);
         });
     }
 
@@ -1687,6 +1717,28 @@ var Server = {};
                     log('HTTP: Savegame list request denied');
                 }
             });
+        });
+    }
+
+    function onNumberOfUsersRequest(request, response) {
+        getNumberOfRegisteredUsers(function (numUsers) {
+            if (numUsers == null) {
+                sendErrorResponse(response, 500);
+                return;
+            }
+            response.write(numUsers);
+            response.end();
+        });
+    }
+
+    function onNumberOfGamesRequest(request, response) {
+        getNumberOfGames(function (numGames) {
+            if (numGames == null) {
+                sendErrorResponse(response, 500);
+                return;
+            }
+            response.write(numGames);
+            response.end();
         });
     }
 
