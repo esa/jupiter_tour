@@ -282,7 +282,7 @@ gui.GameHistoryHUD.prototype = {
     },
 
     _getNodeColor: function (node) {
-        var rating = node.properties.gravityLoss;
+        var rating = Math.max(0, node.properties.gravityLoss);
         var green = Math.round(255 * rating);
         var red = Math.round(255 - rating * 255);
         var textRed = red.toString(16);
