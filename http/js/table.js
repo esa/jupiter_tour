@@ -25,15 +25,11 @@ function createTable(response, funComparingValue, sortDescending, prettyPrints) 
                 col.innerHTML = getNextRank().toString() + '.';
             } else {
                 var val = rowData[id];
-                if (/[a-zA-Z]/.test(val)) {
+                val = parseFloat(val);
+                if (isNaN(val) || val.toString() != rowData[id]) {
                     val =  rowData[id];
                 } else {
-                    val = parseFloat(val);
-                    if (isNaN(val)) {
-                        val =  rowData[id];
-                    } else {
-                        val = Math.round(val * 1000) / 1000;
-                    }
+                    val = Math.round(val * 1000) / 1000;
                 }
                 col.innerHTML = val;
             }
