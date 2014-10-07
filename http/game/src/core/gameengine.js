@@ -434,6 +434,7 @@ core.GameEngine.prototype = {
         var timeOfFlight = 0;
         var nextVelocityInf = null;
         var passedDays = 0;
+        var passedTimeOfFlight = 0;
         var transferLeg =  null;
         var flybyResult = null;
         var faceValue = null;
@@ -445,9 +446,14 @@ core.GameEngine.prototype = {
             timeOfFlight = chromosome[5];
             epoch = chromosome[0];
             passedDays = currentGameState.getPassedDays() + epoch - currentGameState.getEpoch();
+            passedTimeOfFlight = currentGameState.getPassedTimeOfFlight();
+
+            if (!this._gameHistoryManager.isRootGameState(currentGameState)) {
+                passedTimeOfFlight += passedDays;
+            }
 
             transferLeg = {
-                problemType: null,
+                problemType: astrodynamics.ProblemTypes.MGA1DSM_LAUNCH_STANDBY,
                 chromosome: [],
                 deltaV: 0,
                 gravityLoss: 1,
@@ -455,7 +461,7 @@ core.GameEngine.prototype = {
                 mappedFaceID: ''
             };
 
-            var newGameState1 = new core.GameState(currentBodies, currentBody, epoch, passedDays, totalDeltaV, score, vehicle, currentGameState.getMappedFaces(), transferLeg);
+            var newGameState1 = new core.GameState(currentBodies, currentBody, epoch, passedDays, totalDeltaV, score, vehicle, currentGameState.getMappedFaces(), transferLeg, passedTimeOfFlight);
             this._markAndSetScoreForGameState(this._gameState, newGameState1);
 
             flybyResult = currentBody.computeFlybyFaceAndCoords(epoch, velocityInf, chromosome[1], chromosome[2]);
@@ -478,6 +484,7 @@ core.GameEngine.prototype = {
             totalDeltaV += deltaV;
             nextVelocityInf = leg.getArrivalVelocityInf();
             vehicle.setVelocityInf(nextVelocityInf);
+            passedTimeOfFlight += timeOfFlight;
 
             transferLeg = {
                 problemType: astrodynamics.ProblemTypes.MGA1DSM_LAUNCH,
@@ -496,7 +503,7 @@ core.GameEngine.prototype = {
                 delete currentBodies[currentBody.getID()];
             }
 
-            var newGameState2 = new core.GameState(currentBodies, nextBody, epoch, passedDays, totalDeltaV, score, vehicle, currentGameState.getMappedFaces(), transferLeg);
+            var newGameState2 = new core.GameState(currentBodies, nextBody, epoch, passedDays, totalDeltaV, score, vehicle, currentGameState.getMappedFaces(), transferLeg, passedTimeOfFlight);
             this._markAndSetScoreForGameState(this._gameState, newGameState2, dsmResult);
 
             this._gameHistoryManager.unlock();
@@ -513,6 +520,7 @@ core.GameEngine.prototype = {
             timeOfFlight = chromosome[3];
             epoch = currentGameState.getEpoch();
             passedDays = currentGameState.getPassedDays();
+            passedTimeOfFlight = currentGameState.getPassedTimeOfFlight();
 
             flybyResult = currentBody.computeFlybyFaceAndCoords(epoch, velocityInf, chromosome[0], chromosome[1]);
             faceValue = currentBody.getFaceValue(flybyResult.faceID);
@@ -534,6 +542,7 @@ core.GameEngine.prototype = {
             totalDeltaV += deltaV;
             nextVelocityInf = leg.getArrivalVelocityInf();
             vehicle.setVelocityInf(nextVelocityInf);
+            passedTimeOfFlight += timeOfFlight;
 
             transferLeg = {
                 problemType: astrodynamics.ProblemTypes.MGA1DSM_FLYBY,
@@ -551,7 +560,7 @@ core.GameEngine.prototype = {
                 delete currentBodies[currentBody.getID()];
             }
 
-            var newGameState = new core.GameState(currentBodies, nextBody, epoch, passedDays, totalDeltaV, score, vehicle, currentGameState.getMappedFaces(), transferLeg);
+            var newGameState = new core.GameState(currentBodies, nextBody, epoch, passedDays, totalDeltaV, score, vehicle, currentGameState.getMappedFaces(), transferLeg, passedTimeOfFlight);
             this._markAndSetScoreForGameState(this._gameState, newGameState, dsmResult);
 
             this._gameHistoryManager.unlock();
@@ -700,7 +709,7 @@ core.GameEngine.prototype = {
 
         var maximumMissionDuration = mission.maximumMissionDuration;
         this._funGetTimeUsage = function (gameState) {
-            return 1 - gameState.getPassedDays() / maximumMissionDuration;
+            return 1 - gameState.getPassedTimeOfFlight() / maximumMissionDuration;
         };
         this._funGetWinningProgress = Function('gameState', mission.funGetWinningProgress);
 
@@ -728,6 +737,7 @@ core.GameEngine.prototype = {
         var chromosome = null;
         var epoch = gameStateData.epoch;
         var passedDays = 0;
+        var passedTimeOfFlight = 0;
         var totalDeltaV = 0;
         var velocityInf = new geometry.Vector3().fromArray(gameStateData.vehicle.velocityInf);
         var stages = [];
@@ -742,7 +752,7 @@ core.GameEngine.prototype = {
         var score = 0;
         var mappedFaces = {};
 
-        var gameState = new core.GameState(this._initialOrbitingBodies, currentBody, epoch, passedDays, totalDeltaV, score, vehicle, mappedFaces, transferLeg);
+        var gameState = new core.GameState(this._initialOrbitingBodies, currentBody, epoch, passedDays, totalDeltaV, score, vehicle, mappedFaces, transferLeg, passedTimeOfFlight);
         this._markAndSetScoreForGameState(null, gameState, dsmResult);
         gameStates[rootNode.id] = gameState;
 
@@ -753,6 +763,7 @@ core.GameEngine.prototype = {
         var parentScore = 0;
         var parentEpoch = 0;
         var parentPassedDays = 0;
+        var parentPassedTimeOfFlight = 0;
         var parentTotalDeltaV = 0;
         var parentVelocityInf = null;
         var timeOfFlight = 0;
@@ -764,6 +775,7 @@ core.GameEngine.prototype = {
         var leg = null;
         var orbitingBodies = null;
 
+        //TODO adapt to new problem type.
         for (var id in rootLessNodes) {
             parentGameState = gameStates[parents[id]];
 
@@ -778,7 +790,7 @@ core.GameEngine.prototype = {
                     problemType = gameStateData.transferLeg.problemType;
                     performLanding = gameStateData.transferLeg.performLanding;
                     deltaV = gameStateData.transferLeg.deltaV;
-                    timeOfFlight = gameStateData.transferLeg.timeOfFlight;
+                    passedDays = gameStateData.transferLeg.passedDays;
                     mappedFaces = parentGameState.getMappedFaces();
 
                     parentBody = parentGameState.getOrbitingBody();
@@ -787,6 +799,7 @@ core.GameEngine.prototype = {
                     parentEpoch = parentGameState.getEpoch();
                     parentPassedDays = parentGameState.getPassedDays();
                     parentTotalDeltaV = parentGameState.getTotalDeltaV();
+                    parentPassedTimeOfFlight = parentGameState.getPassedTimeOfFlight();
                     parentVelocityInf = parentVehicle.getVelocityInf();
                     interactionOption = parentBody.getInteractionOption();
 
@@ -801,6 +814,9 @@ core.GameEngine.prototype = {
                         if (interactionOption == core.BodyInteractionOptions.REMOVE_ON_LAUNCH) {
                             delete orbitingBodies[parentBody.getID()];
                         }
+                        if (node.parentID != rootNode.id) {
+                            passedTimeOfFlight = timeOfFlight;
+                        }
                         break;
                     case astrodynamics.ProblemTypes.MGA1DSM_FLYBY:
                         leg = new gui.FlybyLeg(chromosome, parentBody, currentBody, parentVelocityInf, parentEpoch);
@@ -809,6 +825,7 @@ core.GameEngine.prototype = {
                         if (interactionOption == core.BodyInteractionOptions.REMOVE_ON_FLYBY) {
                             delete orbitingBodies[parentBody.getID()];
                         }
+                        passedTimeOfFlight = timeOfFlight;
                         break;
                     }
 
@@ -828,6 +845,7 @@ core.GameEngine.prototype = {
                     score = parentScore + faceValue;
                     epoch = parentEpoch + timeOfFlight;
                     passedDays = parentPassedDays + timeOfFlight;
+                    passedTimeOfFlight = parentPassedTimeOfFlight + passedTimeOfFlight;
                     totalDeltaV = parentTotalDeltaV + deltaV;
 
                     var transferLeg = {
@@ -841,7 +859,7 @@ core.GameEngine.prototype = {
                         periapsisCoords: flybyResult != null ? flybyResult.coords : null
                     };
 
-                    gameState = new core.GameState(orbitingBodies, currentBody, epoch, passedDays, totalDeltaV, score, vehicle, mappedFaces, transferLeg);
+                    gameState = new core.GameState(orbitingBodies, currentBody, epoch, passedDays, totalDeltaV, score, vehicle, mappedFaces, transferLeg, passedTimeOfFlight);
                     this._markAndSetScoreForGameState(parentGameState, gameState, dsmResult);
                     gameStates[node.id] = gameState;
                 }

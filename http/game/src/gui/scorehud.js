@@ -132,7 +132,7 @@ gui.ScoreHUD.prototype = {
 
     update: function () {
         var gameState = this._gameHistoryManager.getCurrentGameState();
-        var daysLeft = this._maximumMissionDuration - gameState.getPassedDays();
+        var daysLeft = this._maximumMissionDuration - gameState.getPassedTimeOfFlight();
         var timeUsgPercentage = daysLeft / this._maximumMissionDuration * 100;
         timeUsgPercentage = Math.round(timeUsgPercentage * 100) / 100;
         $(this._epochBar).css('width', timeUsgPercentage + '%');

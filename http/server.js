@@ -48,6 +48,8 @@ include(__dirname + '/game/src/div/strings.js');
 include(__dirname + '/game/src/datastructure/datastructure.js');
 include(__dirname + '/game/src/datastructure/treenode.js');
 include(__dirname + '/game/src/datastructure/queue.js');
+include(__dirname + '/game/src/datastructure/individual.js');
+include(__dirname + '/game/src/datastructure/jdeproblem.js');
 include(__dirname + '/game/src/geometry/geometry.js');
 include(__dirname + '/game/src/geometry/vector2.js');
 include(__dirname + '/game/src/geometry/vector3.js');
@@ -67,6 +69,8 @@ include(__dirname + '/game/src/astrodynamics/periapsis.js');
 include(__dirname + '/game/src/astrodynamics/orbitingbody.js');
 include(__dirname + '/game/src/astrodynamics/launchleg.js');
 include(__dirname + '/game/src/astrodynamics/flybyleg.js');
+include(__dirname + '/game/src/astrodynamics/mga1dsmlaunch.js');
+include(__dirname + '/game/src/astrodynamics/mga1dsmflyby.js');
 include(__dirname + '/game/src/model/model.js');
 include(__dirname + '/game/src/model/stage.js');
 include(__dirname + '/game/src/model/vehicle.js');
@@ -188,7 +192,7 @@ var spacehopper = {};
         this._mission.funSetScoreForState = mission.funSetScoreForState != null ? Function('gameState', mission.funSetScoreForState) : null;
         var maximumMissionDuration = mission.maximumMissionDuration;
         this._mission.funGetTimeUsage = function (gameState) {
-            return gameState.getPassedDays() / maximumMissionDuration;
+            return 1 - gameState.getPassedTimeOfFlight() / maximumMissionDuration;
         };
         this._mission.funGetWinningProgress = Function('gameState', mission.funGetWinningProgress);
     };
@@ -198,7 +202,7 @@ var spacehopper = {};
 
         _markAndSetScoreForGameState: function (parentGameState, gameState, dsmResult) {
             var reasonIDs = [];
-            if (this._mission.funGetTimeUsage(gameState) > 1) {
+            if (this._mission.funGetTimeUsage(gameState) >= 0) {
                 reasonIDs.push(strings.FinalStateReasonIDs.MAX_MISSION_EPOCH);
             }
             if (this._mission.funGetInvalidReasonsForState) {
@@ -236,18 +240,17 @@ var spacehopper = {};
             }
         },
 
-        _createGameState: function (parentGameState, gameStateData) {
+        _createGameState: function (parentNode, node) {
             var gameState = null;
-            if (parentGameState != null) {
+            if (parentNode != null) {
+                var parentGameState = parentNode.getValue();
                 var parentBodies = parentGameState.getOrbitingBodies();
+                var gameStateData = node.gameState;
                 var currentBody = parentBodies[gameStateData.orbitingBodyID];
                 if (currentBody) {
                     var chromosome = gameStateData.transferLeg.chromosome;
                     var problemType = gameStateData.transferLeg.problemType;
                     var performLanding = gameStateData.transferLeg.performLanding;
-                    var deltaV = gameStateData.transferLeg.deltaV;
-                    var timeOfFlight = gameStateData.transferLeg.timeOfFlight;
-
                     var mappedFaces = parentGameState.getMappedFaces();
 
                     var parentBody = parentGameState.getOrbitingBody();
@@ -255,6 +258,7 @@ var spacehopper = {};
                     var parentScore = parentGameState.getScore();
                     var parentEpoch = parentGameState.getEpoch();
                     var parentPassedDays = parentGameState.getPassedDays();
+                    var parentPassedTimeOfFlight = parentGameState.getPassedTimeOfFlight();
                     var parentTotalDeltaV = parentGameState.getTotalDeltaV();
                     var parentVelocityInf = parentVehicle.getVelocityInf();
                     var interactionOption = parentBody.getInteractionOption();
@@ -280,7 +284,23 @@ var spacehopper = {};
                     var leg = null;
                     var flybyResult = null;
                     var faceValue = 0;
+                    var timeOfFlight = 0;
+                    var passedDays = parentPassedDays;
+                    var passedTimeOfFlight = parentPassedTimeOfFlight;
+                    var epoch = parentEpoch;
+                    var deltaV = 0;
                     switch (problemType) {
+                    case astrodynamics.ProblemTypes.MGA1DSM_LAUNCH_STANDBY:
+                        if (!parentVehicle.isLanded()) {
+                            return gameState;
+                        }
+                        epoch = chromosome[0];
+                        passedDays += epoch - parentEpoch;
+                        if (parentNode.getKey() != this._rootNode.getKey()) {
+                            timeOfFlight = passedDays;
+                            passedTimeOfFlight += timeOfFlight;
+                        }
+                        break;
                     case astrodynamics.ProblemTypes.MGA1DSM_LAUNCH:
                         if (!parentVehicle.isLanded()) {
                             return gameState;
@@ -291,6 +311,12 @@ var spacehopper = {};
                         if (interactionOption == core.BodyInteractionOptions.REMOVE_ON_LAUNCH) {
                             delete parentBodies[parentBody.getID()];
                         }
+                        timeOfFlight = chromosome[5];
+                        epoch += timeOfFlight;
+                        passedTimeOfFlight += timeOfFlight;
+                        passedDays += timeOfFlight;
+                        var problem = new astrodynamics.MGA1DSMLaunch(parentBody, currentBody, [0, 0], [0, 0], [0, 0], performLanding);
+                        deltaV = problem.objectiveFunction(new datastructure.Individual(problem, chromosome));
                         break;
                     case astrodynamics.ProblemTypes.MGA1DSM_FLYBY:
                         if (parentVehicle.isLanded()) {
@@ -302,6 +328,12 @@ var spacehopper = {};
                         if (interactionOption == core.BodyInteractionOptions.REMOVE_ON_FLYBY) {
                             delete parentBodies[parentBody.getID()];
                         }
+                        timeOfFlight = chromosome[3];
+                        passedTimeOfFlight += timeOfFlight;
+                        passedDays += timeOfFlight;
+                        var problem = new astrodynamics.MGA1DSMFlyby(parentBody, currentBody, epoch, parentVelocityInf, [0, 0], [0, 0], [0, 0], performLanding);
+                        deltaV = problem.objectiveFunction(new datastructure.Individual(problem, chromosome));
+                        epoch += timeOfFlight;
                         break;
                     }
 
@@ -318,22 +350,20 @@ var spacehopper = {};
                     }
 
                     var score = parentScore + faceValue;
-                    var epoch = parentEpoch + timeOfFlight;
-                    var passedDays = parentPassedDays + timeOfFlight;
                     var totalDeltaV = parentTotalDeltaV + deltaV;
 
                     var transferLeg = {
                         problemType: problemType,
                         chromosome: chromosome,
                         deltaV: deltaV,
-                        timeOfFlight: timeOfFlight,
+                        passedDays: passedDays - parentPassedDays,
                         visualization: leg,
                         gravityLoss: dsmResult ? dsmResult.gravityLoss : 1,
                         mappedFaceID: flybyResult != null ? parentBody.getID() + '_' + flybyResult.faceID : '',
                         periapsisCoords: flybyResult != null ? flybyResult.coords : null
                     };
 
-                    gameState = new core.GameState(parentBodies, currentBody, epoch, passedDays, totalDeltaV, score, vehicle, mappedFaces, transferLeg);
+                    gameState = new core.GameState(parentBodies, currentBody, epoch, passedDays, totalDeltaV, score, vehicle, mappedFaces, transferLeg, passedTimeOfFlight);
                     this._markAndSetScoreForGameState(parentGameState, gameState, dsmResult);
                 }
             }
@@ -347,6 +377,7 @@ var spacehopper = {};
             var chromosome = null;
             var epoch = gameStateData.epoch;
             var passedDays = 0;
+            var passedTimeOfFlight = 0;
             var totalDeltaV = 0;
             var velocityInf = new geometry.Vector3().fromArray(gameStateData.vehicle.velocityInf);
             var stages = [];
@@ -361,13 +392,14 @@ var spacehopper = {};
             var score = 0;
             var mappedFaces = {};
 
-            var gameState = new core.GameState(this._mission.orbitingBodies, currentBody, epoch, passedDays, totalDeltaV, score, vehicle, mappedFaces, transferLeg);
+            var gameState = new core.GameState(this._mission.orbitingBodies, currentBody, epoch, passedDays, totalDeltaV, score, vehicle, mappedFaces, transferLeg, passedTimeOfFlight);
             this._markAndSetScoreForGameState(null, gameState, dsmResult);
 
             var rootHistoryNode = new core.HistoryNode(gameState, rootNode.id, false);
             rootHistoryNode.setHistorySequenceNr(0);
             var id = rootHistoryNode.getKey();
             this._jumpTable[id] = rootHistoryNode;
+            this._rootNode = rootHistoryNode;
             return rootHistoryNode;
         },
 
@@ -378,21 +410,16 @@ var spacehopper = {};
                 var childNode = null;
                 var node = this._nodes[id];
                 var parentNode = this._getNode(node.parentID);
-                if (parentNode) {
-                    var parentGameState = parentNode.getValue();
-                    if (!parentGameState.isInvalid()) {
-                        var gameState = this._createGameState(parentGameState, node.gameState);
-                        if (gameState) {
-                            if (node.isVirtual) {
-                                if (!parentNode.isVirtual() && parentGameState.getVehicle().isLanded() && gameState.getTransferLeg().problemType == null) {
-                                    childNode = parentNode.addChild(gameState, id, true);
-                                }
-                            } else {
-                                childNode = parentNode.addChild(gameState, id, false);
-                            }
-                            this._jumpTable[childNode.getKey()] = childNode;
+                var gameState = this._createGameState(parentNode, node);
+                if (gameState) {
+                    if (node.isVirtual) {
+                        if (!parentNode.isVirtual() && parentNode.getValue().getVehicle().isLanded() && gameState.getTransferLeg().problemType == null) {
+                            childNode = parentNode.addChild(gameState, id, true);
                         }
+                    } else {
+                        childNode = parentNode.addChild(gameState, id, false);
                     }
+                    this._jumpTable[childNode.getKey()] = childNode;
                 }
                 return childNode;
             }

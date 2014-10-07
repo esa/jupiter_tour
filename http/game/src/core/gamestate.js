@@ -1,7 +1,7 @@
 /* Class GameState. 
     Contains all informations about the current gamestate.
 */
-core.GameState = function (orbitingBodies, orbitingBody, epoch, passedDays, totalDeltaV, score, vehicle, mappedFaces, transferLeg) {
+core.GameState = function (orbitingBodies, orbitingBody, epoch, passedDays, totalDeltaV, score, vehicle, mappedFaces, transferLeg, passedTimeOfFlight) {
     this._orbitingBodies = {};
     for (var id in orbitingBodies) {
         this._orbitingBodies[id] = orbitingBodies[id];
@@ -12,6 +12,7 @@ core.GameState = function (orbitingBodies, orbitingBody, epoch, passedDays, tota
     this._passedDays = passedDays;
     this._score = score;
     this._totalDeltaV = totalDeltaV;
+    this._passedTimeOfFlight = passedTimeOfFlight;
     this._mappedFaces = {};
     for (var faceID in mappedFaces) {
         this._mappedFaces[faceID] = mappedFaces[faceID].clone();
@@ -61,6 +62,10 @@ core.GameState.prototype = {
 
     getPassedDays: function () {
         return this._passedDays;
+    },
+
+    getPassedTimeOfFlight: function () {
+        return this._passedTimeOfFlight;
     },
 
     getEpoch: function () {
