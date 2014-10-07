@@ -17,6 +17,7 @@
 <script>
     $(document).ready(function () {
         $('.score-tab-links .tab-link').on('click', function (event) {
+            $('#scorechart').html('');
             event.preventDefault();
             var div = $(this).children(':first').attr('href');
             $(this).addClass('active').siblings().removeClass('active');
@@ -26,10 +27,30 @@
                 data: {
                     missionID: div.substr(1)
                 },
-                success: createScoreBoard
+                success: function (response) {
+                    var prettyPrints = {
+                        rank: 'rank',
+                        username: 'username',
+                        score: 'score',
+                        totalDeltaV: 'delta V',
+                        passedDays: 'time of flight'
+                    };
+
+                    function comparingValue(d) {
+                        return parseFloat(d['score']);
+                    }
+
+                    var table = createTable(response, comparingValue, true, prettyPrints);
+                    table.className = 'score-table center-horizontally';
+                    $('#scorechart').append(table);
+                }
             });
         });
 
         $('.score-tab-links .tab-link.active').trigger('click');
     });
+
+    function displayError(error) {
+        $('#scorechart').html('<p style="color:red;">' + error.statusText + '</p>');
+    }
 </script>

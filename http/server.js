@@ -538,6 +538,10 @@ var Server = {};
         log('HTTP: GET request: ' + request.url);
         onNumberOfGamesRequest(request, response);
     });
+    app.get('/admin/games/lastModified*', function (request, response) {
+        log('HTTP: GET request: ' + request.url);
+        onLastModifiedGamesRequest(request, response);
+    });
 
     app.get('/*', function (request, response) {
         log('HTTP: GET request: ' + request.url);
@@ -977,7 +981,7 @@ var Server = {};
 
     function getNumberOfRegisteredUsers(callback) {
         var users = dbConnection.collection('users');
-        users.find().toArray(function (error, usersArray) {
+        users.find({}).toArray(function (error, usersArray) {
             if (error) {
                 callback(null);
                 return;
@@ -1261,9 +1265,28 @@ var Server = {};
         });
     }
 
+    function getLastModifiedSaveGames(date, callback) {
+        if (!date) {
+            date = new Date(new Date().getTime() - 10 * 60 * 1000);
+        }
+        var saveGames = dbConnection.collection('savegames');
+        var query = {
+            lastModified: {
+                '$gte': date
+            }
+        };
+        saveGames.find(query).toArray(function (error, records) {
+            if (error) {
+                callback(null);
+                return;
+            }
+            callback(records);
+        });
+    }
+
     function getNumberOfGames(callback) {
         var saveGames = dbConnection.collection('savegames');
-        saveGames.find().toArray(function (error, saveGameArray) {
+        saveGames.find({}).toArray(function (error, saveGameArray) {
             if (error) {
                 callback(null);
                 return;
@@ -1739,6 +1762,31 @@ var Server = {};
             }
             response.write(numGames.toString());
             response.end();
+        });
+    }
+
+    function onLastModifiedGamesRequest(request, response) {
+        var now = new Date();
+        searchSession(request, now, function (session) {
+            getUserForSession(session, function (user) {
+                if (user && user.isAdmin) {
+                    var parsedUrl = url.parse(request.url, true);
+                    var date = new Date(parsedUrl.query.date);
+
+                    getLastModifiedSaveGames(date, function (records) {
+                        response.setHeader('Content-Type', 'text/csv');
+                        var result = 'id,missionID,size,lastModified' + "\n";
+                        records.forEach(function (record) {
+                            result += record._id.toHexString() + ',' + record.missionID + ',' + JSON.stringify(record.data).length + ',' + record.lastModified + "\n";
+                        });
+                        response.write(result);
+                        response.end();
+                        response.end();
+                    });
+                } else {
+                    sendErrorResponse(response, 403);
+                }
+            });
         });
     }
 
