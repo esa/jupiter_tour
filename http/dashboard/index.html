@@ -18,7 +18,11 @@
 <body>
     <img class="title-image" src="../img/title.svg">
     <img class="esa-logo" src="../img/esalogo.svg">
-
+    
+<div class="statistics">
+    <div> Number of registered users: <span id="totalusers"></span> </div>
+    <div> Number of games played: <span id="totalgames"></span> </div>
+</div>
 
     <div class="dashboard container center-horizontally center-vertically">
         <div class="tab-links">
@@ -66,6 +70,13 @@
             </div>
         </div>
     </div>
+
+    <script>
+        $('#totalusers').load('/admin/users/total', function (responseText, textStatus, XmlHttpRequest) {});
+        $('#totalgames').load('/admin/games/total', function (responseText, textStatus, XmlHttpRequest) {});
+    </script>
+
+
 </body>
 
 </html>

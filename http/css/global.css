@@ -70,6 +70,16 @@ a {
     height: 10%;
     width: auto;
 }
+
+.statistics {
+    position: absolute;
+    bottom: 5%;
+    left: 5%;
+    height: 10%;
+    width: auto;
+    color: rgb(154, 192, 204);
+}
+
 .esa-logo {
     position: absolute;
     top: 5%;
