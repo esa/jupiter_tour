@@ -49,7 +49,7 @@ core.GameState.prototype = {
         if (this._transferLeg) {
             leg = {
                 chromosome: this._transferLeg.chromosome.clone(),
-                timeOfFlight: this._transferLeg.timeOfFlight,
+                passedDays: this._transferLeg.passedDays,
                 deltaV: this._transferLeg.deltaV,
                 visualization: this._transferLeg.visualization,
                 gravityLoss: this._transferLeg.gravityLoss,

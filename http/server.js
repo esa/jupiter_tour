@@ -786,9 +786,7 @@ var Server = {};
             if (transferLeg) {
                 nodeResult.gameState.transferLeg = {};
                 nodeResult.gameState.transferLeg.chromosome = transferLeg.chromosome;
-                nodeResult.gameState.transferLeg.timeOfFlight = transferLeg.timeOfFlight;
                 nodeResult.gameState.transferLeg.problemType = transferLeg.problemType;
-                nodeResult.gameState.transferLeg.deltaV = transferLeg.deltaV;
                 nodeResult.gameState.transferLeg.performLanding = performLanding;
             }
             if (nodeResult.parentID == null) {
