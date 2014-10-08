@@ -776,7 +776,7 @@ var plugin = {};
 
         var entries = {
             epoch: 'mission epoch',
-            passedDays: 'passed days',
+            passedTimeOfFlight: 'passed time of flight',
             score: 'score',
             vehicleState: 'vehicle state',
             sphereOfInfluence: 'current sphere of influence',
@@ -786,7 +786,7 @@ var plugin = {};
             mappedArea: 'last leg mapped area',
             deltaV: 'last leg deltaV',
             gravityLoss: 'last leg gravity loss',
-            timeOfFlight: 'last leg time of flight',
+            legPassedDays: 'last leg passed days',
             chromosome: 'last leg chromosome'
         };
 
@@ -816,7 +816,7 @@ var plugin = {};
                 var gameState = eventData.gameState;
                 var vehicle = gameState.getVehicle();
                 this._entries.epoch.textContent = utility.round(gameState.getEpoch()) + ' MJD';
-                this._entries.passedDays.textContent = utility.round(gameState.getPassedDays()) + ' days';
+                this._entries.passedTimeOfFlight.textContent = utility.round(gameState.getPassedTimeOfFlight()) + ' days';
                 this._entries.velocityInf.textContent = vehicle.getVelocityInf().toString(2) + ' m/s';
                 this._entries.spacecraftTotalDeltaV.textContent = utility.round(gameState.getTotalDeltaV()) + ' m/s';
                 this._entries.vehicleRemainingDeltaV.textContent = utility.round(Math.max(0, gameState.getVehicle().getRemainingDeltaV())) + ' m/s';
@@ -829,7 +829,7 @@ var plugin = {};
                     this._entries.mappedArea.textContent = 'No previous leg.';
                     this._entries.deltaV.textContent = 'No previous leg.';
                     this._entries.gravityLoss.textContent = 'No previous leg.';
-                    this._entries.timeOfFlight.textContent = 'No previous leg.';
+                    this._entries.legPassedDays.textContent = 'No previous leg.';
                 } else {
                     this._entries.chromosome.textContent = transferLeg.chromosome.map(function (value) {
                         return Math.round(value * 100) / 100;
@@ -849,7 +849,7 @@ var plugin = {};
                     this._entries.deltaV.textContent = utility.round(transferLeg.deltaV) + ' m/s';
                     this._entries.mappedArea.textContent = mappedFace;
                     this._entries.gravityLoss.textContent = utility.round(transferLeg.gravityLoss * 100) + ' %';
-                    this._entries.timeOfFlight.textContent = utility.round(transferLeg.timeOfFlight) + ' days';
+                    this._entries.legPassedDays.textContent = utility.round(transferLeg.passedDays) + ' days';
                 }
             }
             break;

@@ -202,7 +202,7 @@ var spacehopper = {};
 
         _markAndSetScoreForGameState: function (parentGameState, gameState, dsmResult) {
             var reasonIDs = [];
-            if (this._mission.funGetTimeUsage(gameState) >= 0) {
+            if (this._mission.funGetTimeUsage(gameState) <= 0) {
                 reasonIDs.push(strings.FinalStateReasonIDs.MAX_MISSION_EPOCH);
             }
             if (this._mission.funGetInvalidReasonsForState) {
@@ -295,9 +295,9 @@ var spacehopper = {};
                             return gameState;
                         }
                         epoch = chromosome[0];
-                        passedDays += epoch - parentEpoch;
+                        timeOfFlight = epoch - parentEpoch;
+                        passedDays += timeOfFlight;
                         if (parentNode.getKey() != this._rootNode.getKey()) {
-                            timeOfFlight = passedDays;
                             passedTimeOfFlight += timeOfFlight;
                         }
                         break;
@@ -413,7 +413,7 @@ var spacehopper = {};
                 var gameState = this._createGameState(parentNode, node);
                 if (gameState) {
                     if (node.isVirtual) {
-                        if (!parentNode.isVirtual() && parentNode.getValue().getVehicle().isLanded() && gameState.getTransferLeg().problemType == null) {
+                        if (!parentNode.isVirtual() && parentNode.getValue().getVehicle().isLanded() && gameState.getTransferLeg().problemType == astrodynamics.ProblemTypes.MGA1DSM_LAUNCH_STANDBY) {
                             childNode = parentNode.addChild(gameState, id, true);
                         }
                     } else {
