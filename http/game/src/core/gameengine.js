@@ -830,7 +830,7 @@ core.GameEngine.prototype = {
                         passedTimeOfFlight += timeOfFlight;
                         passedDays += timeOfFlight;
                         var problem = new astrodynamics.MGA1DSMLaunch(parentBody, currentBody, [0, 0], [0, 0], [0, 0], performLanding);
-                        deltaV = problem.objectiveFunction(new datastructure.Individual(problem, chromosome));
+                        deltaV = new datastructure.Individual(problem, chromosome).getFitness();
                         break;
                     case astrodynamics.ProblemTypes.MGA1DSM_FLYBY:
                         if (parentVehicle.isLanded()) {
@@ -846,7 +846,7 @@ core.GameEngine.prototype = {
                         passedTimeOfFlight += timeOfFlight;
                         passedDays += timeOfFlight;
                         var problem = new astrodynamics.MGA1DSMFlyby(parentBody, currentBody, epoch, parentVelocityInf, [0, 0], [0, 0], [0, 0], performLanding);
-                        deltaV = problem.objectiveFunction(new datastructure.Individual(problem, chromosome));
+                        deltaV = new datastructure.Individual(problem, chromosome).getFitness();
                         epoch += timeOfFlight;
                         break;
                     }
