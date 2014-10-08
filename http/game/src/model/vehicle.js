@@ -19,19 +19,25 @@ model.Vehicle.prototype = {
             isOutOfFuel: false,
             hasDeltaVLimitation: false
         };
-        var stage = this._stages[this._stages.length - 1];
-        var maxDeltaV = stage.getThrust() / this.getRemainingMass() * timeOfFlight;
-        var mass = stage.getRemainingMass() * Math.exp(-(deltaV / (stage.getSpecificImpulse() * constants.STANDARD_ACCELERATION)));
-        stage.setRemainingMass(mass);
+        if (timeOfFlight == 0) {
+            dsmResult.gravityLoss = 1;
+            return dsmResult;
+        } else {
+            var stage = this._stages[this._stages.length - 1];
+            var maxDeltaV = stage.getThrust() / this.getRemainingMass() * timeOfFlight;
+            var mass = stage.getRemainingMass() * Math.exp(-(deltaV / (stage.getSpecificImpulse() * constants.STANDARD_ACCELERATION)));
+            stage.setRemainingMass(mass);
 
-        dsmResult.gravityLoss = 1 - deltaV / maxDeltaV;
 
-        if (stage.getRemainingMass() < stage.getEmptyMass()) {
-            dsmResult.isOutOfFuel = true;
-            dsmResult.gravityLoss = 0;
+            dsmResult.gravityLoss = 1 - deltaV / maxDeltaV;
+
+            if (stage.getRemainingMass() < stage.getEmptyMass()) {
+                dsmResult.isOutOfFuel = true;
+                dsmResult.gravityLoss = 0;
+            }
+            dsmResult.hasDeltaVLimitation = dsmResult.gravityLoss < 0;
+            return dsmResult;
         }
-        dsmResult.hasDeltaVLimitation = dsmResult.gravityLoss < 0;
-        return dsmResult;
     },
 
     jettisonStage: function () {
